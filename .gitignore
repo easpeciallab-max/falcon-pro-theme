@@ -1,0 +1,23 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.idea/
+.vscode/
+*.sublime-*
+*.swp
+*~
+
+# Logs / temp
+*.log
+*.tmp
+
+# Build artifacts / archives (ธีมไม่มี build step — ไม่ควร commit zip)
+*.zip
+node_modules/
+vendor/
+
+# WP Pusher ดึงทั้งโฟลเดอร์ falcon-pro/ ไปติดตั้ง อย่า commit ไฟล์ลับใด ๆ
+# (ค่า config เช่น LINE URL / ราคา อยู่ใน WordPress DB ผ่าน Customizer ไม่ใช่ในโค้ด)
