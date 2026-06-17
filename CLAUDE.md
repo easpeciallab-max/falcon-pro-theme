@@ -3,7 +3,7 @@
 ไฟล์นี้เป็นบริบทสำหรับ Claude Code อ่านก่อนเริ่มงานในโปรเจกต์นี้
 
 ## โปรเจกต์คืออะไร
-ธีม WordPress แบบ **custom** สำหรับเว็บ Landing ขาย **FALCON PRO EA** — ระบบช่วยเทรดอัตโนมัติ (Expert Advisor) บน MetaTrader 5 เนื้อหาภาษาไทย โทนดำ–ฟ้าเทอร์คอยซ์–เงิน (ตามโลโก้เหยี่ยว)
+ธีม WordPress แบบ **custom** สำหรับเว็บ Landing ขาย **FALCON PRO EA** — ระบบช่วยเทรดอัตโนมัติ (Expert Advisor) บน MetaTrader 5 เนื้อหาภาษาไทย **ดีไซน์มินิมอลพื้นขาว** สีเน้นฟ้าเทอร์คอยซ์ + เทาเงิน เน้นเรียบ–แบน–สีทึบ (ไม่มี gradient / glow / กราฟิกไฮเทค) โลโก้เหยี่ยวพื้นดำวางบนพื้นขาว
 - **ไม่มี build step** — PHP + CSS + vanilla JS ตรง ๆ แก้ไฟล์แล้วใช้ได้เลย ไม่มี npm/compile
 - ธีมอยู่ในโฟลเดอร์ `falcon-pro/` (root ของ repo เก็บเอกสาร dev) WP Pusher ตั้ง subdirectory = `falcon-pro`
 - ต้องการ WordPress 6.0+ / PHP 7.4+
@@ -57,12 +57,19 @@
    - รายการ (บรรทัดละ 1) → `fenix_lines()`
 - เพิ่ม **section** ใหม่: `$sections['fenix_xxx'] = array(...)` ก่อนบรรทัด `$priority = 10;`
 
-## Design tokens (style.css :root) — โทน FALCON
-- สี: `--void #0A0A0E`, `--coal`, `--ember #16E0C8` (เทอร์คอยซ์หลัก = แทนส้มไฟเดิม), `--flare #5BF3DE`, `--gold #69E8D2`, `--line-green #06C755` (ใช้เฉพาะปุ่ม LINE), `--warn #FFC53D`
-- **หมายเหตุ**: ชื่อ CSS var ยังเป็น `--ember`/`--flare`/`--gold` (คงชื่อไว้ เปลี่ยนเฉพาะค่าสี) — `--ember` ตอนนี้ = เทอร์คอยซ์ ไม่ใช่ส้ม
+## Design tokens (style.css :root) — โทน FALCON (Light Minimal v2)
+- พื้น: `--void #FFFFFF` (พื้นเพจ), `--coal #F4F6F8` (section-alt / พื้นอ่อน), `--coal-2 #FFFFFF` (พื้นการ์ด), `--coal-3 #EDF0F3`
+- สีเน้น: `--ember #0C9384` (เทอร์คอยซ์หลัก = ปุ่ม/ลิงก์/ไฮไลต์, ใช้ทึบ ไม่ไล่สี), `--ember-deep #0A7C70` (hover), `--flare #0B8576` (ลิงก์/เน้น)
+- สีรอง: `--gold #5F6B77` (เทา/เงิน — เดิมคือทอง เปลี่ยนเป็นเทาเงินตามโทนใหม่)
+- ตัวอักษร: `--ink #14181E` (หัวข้อ/เนื้อหาเข้ม), `--ash #515A64` (body), `--ash-2 #6C757F` (รอง)
+- semantic: `--ok #1E9E73`, `--bad #D64545`, `--warn #B26C09` (ปรับให้เข้มพออ่านบนพื้นขาว), `--line-green #06C755` (ปุ่ม LINE เท่านั้น)
+- เส้นขอบ: `--border rgba(20,24,30,0.12)` (เส้นเข้มบางบนพื้นขาว), `--border-fire rgba(12,147,132,0.30)` (teal)
+- **สำคัญ**: `--grad-fire`/`--grad-text` ถูกทำให้เป็น **สีทึบ** (`var(--ember)` / `var(--ink)`) แล้ว — ทั้งธีม **ไม่มี gradient/glow/blur** เหลือเฉพาะ `mask-image` (fade ขอบแถบเลื่อน) เท่านั้น เวลาเพิ่มของใหม่ **ห้ามใส่ gradient/box-shadow แบบ glow** ให้ใช้สีทึบ + เส้นขอบบาง
+- **หมายเหตุ**: ชื่อ CSS var ยังเป็น `--ember`/`--flare`/`--gold`/`--void`/`--coal*` (คงชื่อเดิม เปลี่ยนเฉพาะ "ค่า") — `--void` ตอนนี้ = ขาว, `--ember` = เทอร์คอยซ์, `--gold` = เทาเงิน
 - ฟอนต์: **Noto Sans Thai** (display + body) จาก Google Fonts
-- การ์ด: `--card-bg` สว่างกว่าพื้น section เพื่อไม่ให้กล่องกลืนพื้นหลัง
-- section: สลับ `.section` กับ `.section-alt` + เส้นแบ่งบาง (`border-soft`)
+- การ์ด: พื้นขาว (`--card-bg #FFFFFF`) + เส้นขอบบาง 1px + มุมโค้งน้อย (`--radius 10px` / `--radius-lg 12px`) ไม่มีเงา
+- section: สลับ `.section` (ขาว) กับ `.section-alt` (เทาอ่อน `--coal`) + เส้นแบ่งบาง (`border-soft`)
+- ปุ่ม/ข้อความบนพื้นสี: ปุ่มเทอร์คอยซ์ (`.btn-fire`) ใช้ตัวอักษร **ขาว**, ปุ่ม LINE (`.btn-line`) เขียว + ตัวอักษรเขียวเข้ม `#03240F`
 
 ## เพจ & slug (สำคัญต่อการลิงก์)
 หน้าแรก = `front-page.php` เพจที่ต้องสร้างใน WP แล้วเลือก Template + ตั้ง slug ให้ตรง:
