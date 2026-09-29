@@ -58,6 +58,8 @@ fenix_page_hero( 'Risk Disclosure', $fenix_title ? $fenix_title : 'คำเต�
 	</div>
 </section>
 
+<?php fenix_page_longform( 'section section-alt' ); ?>
+
 <?php fenix_line_cta( 'มีคำถามเรื่องความเสี่ยง?', 'ทักมาสอบถามทีมงานก่อนตัดสินใจใช้งานได้ทาง LINE' ); ?>
 
 </main>

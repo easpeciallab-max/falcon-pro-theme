@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'FALCON_VERSION', '1.0.0' );
+define( 'FALCON_VERSION', '2.0.0' );
 
 /* --------------------------------------------------------------
  * Theme setup
@@ -181,10 +181,41 @@ function fenix_defaults() {
 	}
 
 	$install_assets = get_template_directory_uri() . '/assets/img/install/';
+	$banner_assets  = get_template_directory_uri() . '/assets/img/banners/';
 
 	$d = array(
 		/* ทั่วไป */
 		'line_url'        => '#',
+		'wordmark_dark'   => '',
+		'wordmark_light'  => '',
+		'line_openchat_url'  => '',
+		'line_openchat_text' => 'เข้ากลุ่ม LINE OpenChat',
+		'line_qr_image'      => '',
+		'contact_title'      => 'พร้อมคุยเรื่อง FALCON PRO EA กับทีมงานแล้วหรือยัง?',
+		'contact_text'       => 'ทักมาทาง LINE ทีมงานช่วยประเมินทุน ความเสี่ยง และแนะนำการติดตั้งให้เหมาะกับบัญชีของคุณ ไม่มีข้อผูกมัด',
+
+		/* สถานะผลทดสอบ (แสดงเมื่อยังไม่ได้กรอกตัวเลขจริง) */
+		'results_pending_title' => 'ยังไม่มีผลทดสอบที่เผยแพร่',
+		'results_pending_text'  => 'เราไม่แสดงตัวเลขที่ยังตรวจสอบไม่ได้ เมื่อมีผลที่พร้อมเผยแพร่ จะแสดงที่หน้านี้พร้อมเงื่อนไขการทดสอบครบทุกค่า ระหว่างนี้อ่านวิธีทดสอบและวิธีอ่านผลด้วยตัวเองได้ด้านล่าง',
+
+		/* หน้า /go (ลิงก์รวม) */
+		'go_sub'         => 'ผู้ช่วยเทรดอัตโนมัติสำหรับ MT5 · ทักทีมงาน หรือเริ่มตามขั้นตอนด้านล่าง',
+		'go_steps_title' => 'เริ่มต้นใน 6 ขั้น',
+		'go_step1'       => 'เปิดบัญชีเทรด MT5',
+		'go_step2'       => 'อ่านคู่มือเปิดบัญชีและยืนยันตัวตน',
+		'go_step3'       => 'ดาวน์โหลดและล็อกอิน MT5',
+		'go_step4'       => 'ขอรับไฟล์ FALCON PRO EA ทาง LINE',
+		'go_step5'       => 'ติดตั้ง EA บน MT5',
+		'go_step6'       => 'ตั้ง VPS ให้ EA ทำงานต่อเนื่อง',
+		'mt5_dl_windows' => 'https://www.metatrader5.com/en/download',
+		'mt5_dl_android' => 'https://play.google.com/store/apps/details?id=net.metaquotes.metatrader5',
+		'mt5_dl_ios'     => 'https://apps.apple.com/app/metatrader-5/id413251709',
+
+		/* โบรกเกอร์ (ใช้ในคู่มือเปิดบัญชี / ล็อกอิน ผ่าน shortcode [falcon_broker]) */
+		'broker_name'        => 'โบรกเกอร์ที่คุณเลือก',
+		'broker_server'      => 'ชื่อเซิร์ฟเวอร์ที่ได้รับทางอีเมลหลังเปิดบัญชี',
+		'broker_signup_url'  => '',
+		'broker_signup_text' => 'เปิดบัญชีกับโบรกเกอร์',
 		'facebook_url'    => '',
 		'contact_email'   => '',
 		'show_float_line' => false,
@@ -216,18 +247,36 @@ function fenix_defaults() {
 
 		/* Hero */
 		'show_hero'      => true,
-		'hero_badge'     => 'Automated Trading System • MT5',
+		'hero_badge'     => 'Expert Advisor for MetaTrader 5',
 		'hero_title'     => 'FALCON PRO EA',
-		'hero_subtitle'  => 'ระบบช่วยเทรดอัตโนมัติ เพื่อการเทรดที่มีวินัยมากขึ้น',
-		'hero_desc'      => 'ออกแบบมาเพื่อช่วยให้การเทรดเป็นระบบ ลดการตัดสินใจตามอารมณ์ พร้อมแนวคิดบริหารความเสี่ยงสำหรับผู้ใช้งาน MetaTrader 5',
-		'hero_btn1_text' => 'สอบถามรายละเอียด',
-		'hero_btn2_text' => 'รู้จักระบบ',
-		'hero_note'      => 'การเทรดมีความเสี่ยง โปรดศึกษาข้อมูลก่อนตัดสินใจใช้งาน',
+		'hero_subtitle'  => 'ผู้ช่วยเทรดอัตโนมัติสำหรับ',
+		'hero_subtitle_em' => 'MT5',
+		'hero_desc'      => 'EA MT5 ที่ทำงานตามกฎที่ตั้งไว้ล่วงหน้า ใช้ได้กับ Forex ทองคำ และสินทรัพย์อื่นบน MetaTrader 5 ไม่ตัดสินใจตามอารมณ์ ทุนและระดับความเสี่ยงคุณเป็นคนกำหนดเอง',
+		'hero_point1_title' => 'เทรดอัตโนมัติตามกฎ',
+		'hero_point1_desc'  => 'เปิดและปิดออเดอร์เมื่อเงื่อนไขครบ ไม่เดา ไม่ไล่ราคา',
+		'hero_point2_title' => 'ติดตั้งง่าย ตั้งค่าไม่ซับซ้อน',
+		'hero_point2_desc'  => 'มีคู่มือภาษาไทยและทีมช่วยตั้งค่าผ่าน LINE',
+		'hero_point3_title' => 'บริหารความเสี่ยงอย่างเป็นระบบ',
+		'hero_point3_desc'  => 'กำหนดขนาดออเดอร์และระดับ Drawdown ที่รับได้เอง',
+		'hero_btn1_text' => 'สอบถามทาง LINE',
+		'hero_btn2_text' => 'ระบบทำงานอย่างไร',
+		'hero_btn2_url'  => '#how-it-works',
+		'hero_note'      => 'การลงทุนมีความเสี่ยง ผลลัพธ์ขึ้นอยู่กับการตั้งค่าและการบริหารความเสี่ยงของผู้ใช้',
+		'hero_tagline'   => 'Automate · Analyze · Trade Better',
 		'hero_image'     => '',
+		/* Hero · แผงควบคุมจำลอง (แสดงเมื่อไม่ได้ใส่รูป Hero) */
+		'hero_panel_title'   => 'FALCON PRO EA',
+		'hero_panel_status'  => 'Running',
+		'hero_panel_badge'   => 'MT5',
+		'hero_panel_fields'  => "Symbol|XAUUSD\nLot Size|ตามทุน\nRisk|คุณกำหนด\nMode|Auto",
+		'hero_panel_button'  => 'Trading Active',
+		'hero_panel_tags'    => 'Disciplined · Systematic · Consistent',
+		'hero_panel_caption' => 'ภาพจำลองแผงควบคุม ไม่ใช่ผลการเทรดจริง',
 
 		/* ปัญหานักเทรด */
 		'show_pain'     => true,
-		'pain_title'    => 'เทรดเองแล้วเจอปัญหาแบบนี้ไหม?',
+		'pain_title'    => 'ใช้ EA เทรด Forex ดีไหม? ปัญหาที่คนเทรดมือเจอบ่อย',
+		'pain_answer'   => 'สิ่งที่ระบบอัตโนมัติเข้ามาแทน คือการทำตามกฎเดิมทุกครั้ง ส่วนทุน ความเสี่ยง และการตัดสินใจเริ่มหรือหยุดระบบยังเป็นของคุณเสมอ',
 		'pain_subtitle' => 'ปัญหาคลาสสิกที่นักเทรดส่วนใหญ่ต้องเจอ และเป็นเหตุผลที่ FALCON PRO EA ถูกสร้างขึ้นมา',
 		'pain1_title'   => 'ใช้อารมณ์ในการเข้าออเดอร์',
 		'pain1_desc'    => 'กลัวตกรถ รีบเข้า รีบออก สุดท้ายไม่ทำตามแผนที่วางไว้',
@@ -240,8 +289,11 @@ function fenix_defaults() {
 
 		/* FALCON PRO EA คืออะไร */
 		'show_about'  => true,
-		'about_title' => 'FALCON PRO EA คืออะไร?',
-		'about_text'  => "FALCON PRO EA คือระบบช่วยเทรดอัตโนมัติ (Expert Advisor) บนแพลตฟอร์ม MetaTrader 5 ที่ทำงานตามเงื่อนไขที่กำหนดไว้ล่วงหน้า ช่วยให้การเข้าและออกออเดอร์เป็นระบบมากขึ้น ลดการตัดสินใจจากอารมณ์ และติดตามการทำงานของระบบได้ง่ายผ่าน Dashboard\n\nEA ไม่ใช่เครื่องมือการันตีกำไร แต่เป็นผู้ช่วยให้คุณเทรดตามแผนได้สม่ำเสมอขึ้น ภายใต้การบริหารความเสี่ยงที่คุณเป็นผู้กำหนดเอง",
+		'about_title' => 'FALCON PRO EA คืออะไร · EA เทรดอัตโนมัติบน MT5',
+		'about_text'  => "FALCON PRO EA คือ Expert Advisor หรือที่หลายคนเรียกว่าบอทเทรด โรบอทเทรด สำหรับแพลตฟอร์ม MetaTrader 5 ติดตั้งบนกราฟ MT5 แล้วเฝ้าดูราคาแทนคุณตลอดเวลาที่ตลาดเปิด เมื่อราคาเข้าเงื่อนไขที่ตั้งไว้ ระบบจะเปิดออเดอร์ คุมขนาดออเดอร์และเงื่อนไขปิดตามค่าที่กำหนด แล้วปิดเมื่อครบเงื่อนไข โดยไม่ต้องนั่งเฝ้าจอ\n\nสิ่งที่ระบบให้คือความสม่ำเสมอ ทำตามกฎเดิมทุกครั้ง ไม่รีบเข้า ไม่ลังเลตอนควรออก แต่ EA ไม่ใช่เครื่องมือการันตีกำไร ผลลัพธ์ขึ้นกับสภาวะตลาด โบรกเกอร์ และการตั้งค่าของคุณ",
+		'about_points' => "แพลตฟอร์ม|ทำงานบน MetaTrader 5 โดยตรง ติดตั้งครั้งเดียวแล้วรันต่อเนื่องบนคอมพิวเตอร์หรือ VPS\nวินัย|ทำตามกฎเดิมทุกครั้ง ไม่ให้ความกลัวหรือความโลภมาแทรกการตัดสินใจ\nการควบคุม|คุณกำหนดทุน ขนาดออเดอร์ และระดับความเสี่ยงเอง หยุดระบบได้ทุกเมื่อ",
+		'about_image'         => $banner_assets . 'falcon-pro-ea-mt5-laptop-overview.webp',
+		'about_image_caption' => 'ภาพประกอบ ตัวเลขในภาพเป็นตัวอย่างหน้าตาโปรแกรม ไม่ใช่ผลการเทรดจริง',
 
 		/* จุดเด่น */
 		'show_features'     => true,
@@ -262,31 +314,35 @@ function fenix_defaults() {
 
 		/* ภาพระบบ */
 		'show_gallery'     => true,
-		'gallery_title'    => 'หน้าตาระบบจริง',
-		'gallery_subtitle' => 'Dashboard ออกแบบให้ดูง่าย เห็นสถานะระบบ เงื่อนไขหลัก และผลการทำงานในบัญชีได้ชัดเจน',
-		'gallery_note'     => '* ภาพใช้เพื่อประกอบการนำเสนอ ไม่ใช่การรับประกันผลลัพธ์',
-		'gallery_img1'     => $install_assets . 'step-05.jpg',
-		'gallery_cap1'     => 'Dashboard แสดงสถานะการทำงานของ FALCON PRO EA',
-		'gallery_img2'     => $install_assets . 'step-06.jpg',
-		'gallery_cap2'     => 'ตัวอย่างการตั้งค่าความเสี่ยงและ Lot Size',
-		'gallery_img3'     => '',
-		'gallery_cap3'     => 'หน้าต่างตั้งค่าหลักของระบบ',
-		'gallery_img4'     => '',
-		'gallery_cap4'     => 'ตัวอย่างสถานะการทำงาน Buy / Sell',
+		'gallery_title'    => 'FALCON PRO EA บนทุกหน้าจอ',
+		'gallery_subtitle' => 'EA รันบน MetaTrader 5 ในคอมพิวเตอร์หรือ VPS ส่วนมือถือและแท็บเล็ตใช้ติดตามสถานะบัญชีผ่านแอป MT5',
+		'gallery_note'     => 'ภาพประกอบการนำเสนอ ตัวเลขในภาพเป็นตัวอย่างเพื่อให้เห็นหน้าตาการใช้งาน ไม่ใช่ผลการเทรดจริงและไม่ใช่การรับประกันผลลัพธ์',
+		'gallery_img1'     => $banner_assets . 'falcon-pro-ea-mt5-feature-toggles.webp',
+		'gallery_cap1'     => 'โมดูลหลัก: Auto Trading, Risk Management, Multi-Symbol, Smart Filter',
+		'gallery_img2'     => $banner_assets . 'falcon-pro-ea-mt5-settings-panel.webp',
+		'gallery_cap2'     => 'แผงตั้งค่า Symbol, Lot Size, Risk และ Mode',
+		'gallery_img3'     => $banner_assets . 'falcon-pro-ea-mt5-navigator.webp',
+		'gallery_cap3'     => 'FALCON PRO ในหน้าต่าง Navigator ของ MetaTrader 5',
+		'gallery_img4'     => $banner_assets . 'falcon-pro-ea-mt5-ea-status-panel.webp',
+		'gallery_cap4'     => 'แผงสถานะ EA บนกราฟ MT5',
+		'gallery_img5'     => $banner_assets . 'falcon-pro-ea-mt5-mobile-settings.webp',
+		'gallery_cap5'     => 'ติดตามสถานะบัญชีผ่านแอป MT5 บนมือถือ',
+		'gallery_img6'     => $banner_assets . 'falcon-pro-ea-mt5-tablet-box.webp',
+		'gallery_cap6'     => 'ดูภาพรวมบนแท็บเล็ต',
 
 		/* ขั้นตอนใช้งาน */
 		'show_steps'     => true,
-		'steps_kicker'   => 'Workflow',
-		'steps_title'    => 'เริ่มใช้งานใน 4 ขั้นตอน',
-		'steps_subtitle' => 'จากศูนย์จนระบบเริ่มทำงาน โดยมีทีมงานช่วยดูแลตลอดทาง',
-		'step1_title'    => 'ติดตั้ง MT5',
-		'step1_desc'     => 'เตรียมบัญชีเทรดและติดตั้งแพลตฟอร์ม MetaTrader 5 บนเครื่องหรือ VPS',
-		'step2_title'    => 'ติดตั้ง FALCON PRO EA',
-		'step2_desc'     => 'ทีมงานช่วยแนะนำการติดตั้งและตั้งค่าเบื้องต้นจนระบบพร้อมทำงาน',
-		'step3_title'    => 'ตั้งค่าความเสี่ยง',
-		'step3_desc'     => 'เลือก Lot ทุนเริ่มต้น และระดับความเสี่ยงให้เหมาะสมกับพอร์ตของคุณ',
-		'step4_title'    => 'ติดตามผลผ่าน Dashboard',
-		'step4_desc'     => 'ดูสถานะระบบและผลการทำงานได้อย่างเป็นระบบ โปร่งใส ตรวจสอบได้',
+		'steps_kicker'   => 'How it works',
+		'steps_title'    => 'FALCON PRO EA ทำงานอย่างไรบน MetaTrader 5',
+		'steps_subtitle' => 'บอทเทรด MT5 ทำงานเป็นวงจร 4 ขั้น ซ้ำแบบเดิมทุกวัน ตั้งแต่ตั้งค่าครั้งแรกจนถึงการติดตามผล',
+		'step1_title'    => 'ตั้งทุนและระดับความเสี่ยง',
+		'step1_desc'     => 'กำหนดทุนที่ใช้กับระบบ เลือกระดับความเสี่ยงและขนาด Lot ให้สอดคล้องกับบัญชี MT5 ทีมงานมีไฟล์ Preset ให้เริ่มจากค่าที่เหมาะกับทุน',
+		'step2_title'    => 'ระบบตรวจเงื่อนไขตลาดตามกฎ',
+		'step2_desc'     => 'EA อ่านราคาจากกราฟตลอดเวลาที่ตลาดเปิด เทียบกับเงื่อนไขที่ตั้งไว้ ถ้ายังไม่เข้าเงื่อนไขก็รอ ไม่เดาและไม่ไล่ราคา',
+		'step3_title'    => 'เปิดและปิดออเดอร์อัตโนมัติ',
+		'step3_desc'     => 'เมื่อเงื่อนไขครบ ระบบส่งคำสั่งไปยังโบรกเกอร์ จัดการขนาดออเดอร์และเงื่อนไขปิดตามค่าที่คุณตั้ง แล้วปิดเมื่อครบกฎ',
+		'step4_title'    => 'ติดตามผลผ่าน Dashboard และ LINE',
+		'step4_desc'     => 'แผงสถานะบนกราฟแสดงทุน กำไรขาดทุน Drawdown และออเดอร์แบบเรียลไทม์ ดูยอดบัญชีในแอป MT5 บนมือถือได้ และถามทีมงานทาง LINE ได้เสมอ',
 
 		/* ผลการทดสอบ */
 		'show_perf'         => true,
@@ -358,28 +414,28 @@ function fenix_defaults() {
 
 		/* FAQ */
 		'show_faq'     => true,
-		'faq_title'    => 'คำถามที่พบบ่อย',
+		'faq_title'    => 'คำถามที่พบบ่อยเกี่ยวกับ FALCON PRO EA และ EA MT5',
 		'faq_subtitle' => 'รวมคำตอบสำหรับคำถามที่ลูกค้าสอบถามเข้ามามากที่สุด',
-		'faq1_q'       => 'FALCON PRO EA คืออะไร?',
-		'faq1_a'       => 'ระบบช่วยเทรดอัตโนมัติ (Expert Advisor) ที่ทำงานตามเงื่อนไขที่กำหนดไว้ล่วงหน้า บนแพลตฟอร์ม MetaTrader 5',
-		'faq2_q'       => 'EA การันตีกำไรไหม?',
-		'faq2_a'       => 'ไม่การันตี ผลการเทรดขึ้นอยู่กับสภาวะตลาด การตั้งค่า ทุน ระดับความเสี่ยง และเงื่อนไขของโบรกเกอร์ที่ใช้งาน',
-		'faq3_q'       => 'ต้องมีความรู้เทรดมาก่อนไหม?',
-		'faq3_a'       => 'ควรมีพื้นฐานเรื่อง Lot, Stop Loss, Drawdown และความเสี่ยง เพื่อให้ตั้งค่าระบบได้เหมาะสมกับทุนของตัวเอง',
-		'faq4_q'       => 'ใช้ทุนเริ่มต้นเท่าไร?',
-		'faq4_a'       => 'ขึ้นอยู่กับระดับความเสี่ยงที่เลือกและเงื่อนไขของโบรกเกอร์ แนะนำให้ทักมาปรึกษาทีมงานเพื่อประเมินทุนที่เหมาะสมก่อนเริ่มใช้งาน',
-		'faq5_q'       => 'ต้องเปิดคอมตลอดเวลาไหม?',
-		'faq5_a'       => 'EA ทำงานบน MT5 จึงต้องเปิดเครื่องให้ระบบทำงานต่อเนื่อง หรือใช้บริการ VPS เพื่อให้ระบบทำงานได้ตลอด 24 ชั่วโมง',
-		'faq6_q'       => 'รองรับบัญชีแบบไหนบ้าง?',
-		'faq6_a'       => 'โดยทั่วไปรองรับบัญชีของโบรกเกอร์ที่ใช้ MetaTrader 5 สอบถามความเข้ากันได้กับโบรกเกอร์ของคุณได้ทาง LINE',
-		'faq7_q'       => 'ติดตั้งเองได้ไหม?',
-		'faq7_a'       => 'ได้ มีคู่มือประกอบการติดตั้ง และหากไม่สะดวก ทีมงานมีบริการช่วยติดตั้งและตั้งค่าให้จนระบบพร้อมใช้งาน',
-		'faq8_q'       => 'การใช้ EA มีความเสี่ยงอะไรบ้าง?',
-		'faq8_a'       => 'ความผันผวนของตลาด ข่าวแรง Slippage Spread ที่กว้างขึ้น การตั้งค่าที่ไม่เหมาะสม และการใช้ทุนเกินระดับความเสี่ยงที่รับได้ ทั้งหมดนี้คือสิ่งที่ควรเข้าใจก่อนเริ่มใช้ระบบ',
-		'faq9_q'       => '',
-		'faq9_a'       => '',
-		'faq10_q'      => '',
-		'faq10_a'      => '',
+		'faq1_q'       => 'EA เทรด คืออะไร ต่างจากบอทเทรดหรือโรบอทเทรดไหม?',
+		'faq1_a'       => 'ไม่ต่างกัน EA ย่อมาจาก Expert Advisor คือโปรแกรมที่ติดตั้งบน MetaTrader แล้วส่งคำสั่งซื้อขายตามกฎที่เขียนไว้ คนไทยเรียกทั้งบอทเทรด โรบอทเทรด หรือ EA เทรด แต่หมายถึงสิ่งเดียวกัน FALCON PRO EA คือ EA สำหรับ MetaTrader 5',
+		'faq2_q'       => 'ใช้ EA เทรด Forex ดีไหม เหมาะกับใคร?',
+		'faq2_a'       => 'เหมาะกับคนที่มีแผนเทรดแต่ทำตามได้ไม่สม่ำเสมอ ไม่มีเวลาเฝ้าจอ หรืออยากลดการตัดสินใจตามอารมณ์ ไม่เหมาะกับคนที่หวังกำไรเร็วหรือรับการขาดทุนไม่ได้ เพราะ EA ขาดทุนได้เหมือนการเทรดทุกแบบ',
+		'faq3_q'       => 'FALCON PRO EA การันตีกำไรไหม?',
+		'faq3_a'       => 'ไม่การันตี ผลการเทรดขึ้นอยู่กับสภาวะตลาด การตั้งค่า ทุน ระดับความเสี่ยง และเงื่อนไขของโบรกเกอร์ ผลในอดีตไม่รับประกันผลในอนาคต ใครที่การันตีกำไรจาก EA ควรระวังเป็นพิเศษ',
+		'faq4_q'       => 'ใช้กับโบรกเกอร์ไหนได้บ้าง?',
+		'faq4_a'       => 'ใช้ได้กับโบรกเกอร์ที่ให้บริการ MetaTrader 5 และอนุญาตให้ใช้ EA ก่อนเริ่มใช้จริงควรสอบถามทีมงานเรื่องประเภทบัญชี Spread และเงื่อนไขของโบรกเกอร์ที่คุณใช้',
+		'faq5_q'       => 'เทรดทอง XAUUSD ได้ไหม ใช้กับคู่เงินอะไรบ้าง?',
+		'faq5_a'       => 'ใช้ได้กับคู่เงิน ทองคำ และสินทรัพย์อื่นที่มีบนบัญชี MT5 ของโบรกเกอร์ที่คุณเลือก ค่าที่เหมาะสมของแต่ละสินทรัพย์ต่างกัน ทีมงานจะแนะนำ Preset ให้ตรงกับสินทรัพย์และทุนของคุณ',
+		'faq6_q'       => 'ต้องเปิดคอมตลอดไหม ใช้ EA บนมือถือได้ไหม?',
+		'faq6_a'       => 'EA ต้องรันบน MT5 เวอร์ชันคอมพิวเตอร์ที่เปิดอยู่ตลอด หรือบน VPS ที่ทำงาน 24 ชั่วโมง แอป MT5 บนมือถือใช้ดูยอดเงินและออเดอร์ได้ แต่รัน EA ไม่ได้',
+		'faq7_q'       => 'ใช้ทุนเริ่มต้นเท่าไร?',
+		'faq7_a'       => 'ขึ้นอยู่กับสินทรัพย์ ระดับความเสี่ยง และเงื่อนไขของโบรกเกอร์ ควรใช้เงินที่เสียได้โดยไม่กระทบชีวิตประจำวัน และทักทีมงานเพื่อประเมินทุนที่เหมาะสมก่อนเริ่ม',
+		'faq8_q'       => 'ทดลองบนบัญชีเดโมก่อนได้ไหม?',
+		'faq8_a'       => 'ได้และแนะนำให้ทำ เริ่มจากบัญชีเดโมหรือบัญชีเซ็นต์เพื่อดูพฤติกรรมของระบบกับตลาดจริง ก่อนเพิ่มทุนบนบัญชีจริง',
+		'faq9_q'       => 'ต่างจาก EA แจกฟรีทั่วไปอย่างไร?',
+		'faq9_a'       => 'นอกจากตัวไฟล์ EA คุณจะได้คู่มือภาษาไทย ไฟล์ Preset ตามระดับความเสี่ยง การอัปเดตเวอร์ชัน และทีมงานที่ช่วยติดตั้งและตอบคำถามผ่าน LINE',
+		'faq10_q'      => 'การใช้ EA มีความเสี่ยงอะไรบ้าง?',
+		'faq10_a'      => 'ความผันผวนของตลาด ข่าวแรง Slippage Spread ที่กว้างขึ้น การตั้งค่าที่ไม่เหมาะกับทุน ปัญหาอินเทอร์เน็ตหรือ VPS และการใช้ทุนเกินระดับที่รับได้ ควรอ่านประกาศความเสี่ยงฉบับเต็มก่อนเริ่มใช้งาน',
 
 		/* คำเตือนความเสี่ยง */
 		'show_risk'  => true,
@@ -399,7 +455,7 @@ function fenix_defaults() {
 		'footer_line_text'    => 'ทัก LINE Official Account',
 		'footer_facebook_text' => 'Facebook Page',
 		'footer_email_text'    => 'Email Support',
-		'footer_prep_title'    => 'ก่อนทัก LINE',
+		'footer_prep_title'    => 'ข้อมูลที่ทีมจะถามก่อนแนะนำ',
 		'footer_prep_text'     => 'เตรียมข้อมูลสั้น ๆ เพื่อให้ทีมช่วยแนะนำได้ตรงขึ้น',
 		'footer_prep_items'    => "ทุนที่ต้องการใช้กับระบบ\nโบรกเกอร์และประเภทบัญชี MT5\nเป้าหมาย: ติดตั้ง / สอบถามราคา / ตรวจความเหมาะสม\nช่วงเวลาที่สะดวกให้ทีมติดต่อกลับ",
 		'footer_tagline'      => "FALCON PRO EA ถูกออกแบบให้เป็นผู้ช่วยจัดระบบการเทรดบน MetaTrader 5 สำหรับผู้ที่ต้องการลดการตัดสินใจตามอารมณ์ และให้การทำงานเป็นไปตามแผนที่กำหนดไว้อย่างมีวินัย\n\nแนวทางของระบบให้ความสำคัญกับการใช้งานภายใต้กรอบความเสี่ยงที่ชัดเจน ช่วยให้ผู้ใช้พิจารณาความเหมาะสมของทุน การตั้งค่า และเงื่อนไขการใช้งานก่อนเริ่มต้นจริง",
@@ -413,17 +469,47 @@ function fenix_defaults() {
 		array(
 
 			/* หน้าแรก · แถบไฮไลต์ */
-			'show_highlight' => false,
-			'highlight1'     => 'ทำงานบน MetaTrader 5',
-			'highlight2'     => 'ลดการเทรดด้วยอารมณ์',
-			'highlight3'     => 'บริหารความเสี่ยงได้',
-			'highlight4'     => 'มีทีมช่วยติดตั้ง',
+			'show_highlight' => true,
+			'highlight1'     => 'แพลตฟอร์ม|MetaTrader 5',
+			'highlight2'     => 'สินทรัพย์|Forex ทองคำ และสินทรัพย์บน MT5',
+			'highlight3'     => 'รูปแบบ|เทรดอัตโนมัติตามกฎที่ตั้งไว้',
+			'highlight4'     => 'การส่งมอบ|ไฟล์ EA + คู่มือภาษาไทย',
+			'highlight_note' => 'ป้ายข้อมูลระบบ ไม่ใช่ผลการเทรด',
+
+			/* หน้าแรก · ขั้นตอน · รายการเตรียมตัว */
+			'steps_checklist_title' => 'ต้องมีอะไรบ้างก่อนเริ่ม',
+			'steps_checklist'       => "บัญชี MT5 กับโบรกเกอร์ที่รองรับ\nทุนที่พร้อมรับความเสี่ยง\nคอมพิวเตอร์ที่เปิดตลอด หรือ VPS\nเวลาอ่านคู่มือประมาณ 30 นาที",
+
+			/* หน้าแรก · วิธีทดสอบ (Backtest / Forward) */
+			'show_tests'      => true,
+			'tests_kicker'    => 'Testing',
+			'tests_title'     => 'วิธีทดสอบ FALCON PRO EA ด้วย Backtest และ Forward Test',
+			'tests_subtitle'  => 'การทดสอบ EA MT5 มี 2 แบบ ควรดูทั้งคู่ก่อนใช้เงินจริง และอ่านเงื่อนไขการทดสอบทุกครั้ง',
+			'tests_bt_title'  => 'Backtest · ทดสอบย้อนหลัง',
+			'tests_bt_text'   => 'รัน EA ใน Strategy Tester ของ MT5 กับข้อมูลราคาในอดีต เพื่อดูพฤติกรรมของระบบภายใต้เงื่อนไขที่กำหนด ค่าที่ควรอ่านคือ Profit Factor, Max Drawdown และจำนวนเทรด ข้อจำกัดคือผลขึ้นกับคุณภาพข้อมูล Spread และ Slippage จึงมักดูดีกว่าของจริง',
+			'tests_bt_img'    => $banner_assets . 'falcon-pro-ea-mt5-laptop-falcon.webp',
+			'tests_fw_title'  => 'Forward Test · ทดสอบเดินหน้า',
+			'tests_fw_text'   => 'รัน EA กับตลาดจริงแบบเรียลไทม์บนบัญชีเดโม บัญชีเซ็นต์ หรือบัญชีจริง เห็นผลของ Spread, Slippage และความเร็วส่งคำสั่งจริง ใช้เวลานานกว่า แต่สะท้อนการใช้งานจริงได้ใกล้กว่า Backtest',
+			'tests_fw_img'    => $banner_assets . 'falcon-pro-ea-mt5-desk-setup.webp',
+			'tests_note'      => 'ผลทดสอบที่เผยแพร่จะแสดงพร้อมเงื่อนไขครบถ้วนที่หน้า Backtest และ Forward Test ผลในอดีตไม่รับประกันผลในอนาคต',
+
+			/* หน้าแรก · ติดตั้งย่อ 3 ขั้น */
+			'show_install_home'  => true,
+			'install_home_title' => 'ติดตั้ง FALCON PRO EA บน MT5 ใน 3 ขั้น',
+			'install_home_sub'   => 'ติดตั้งเองได้ตามขั้นตอนด้านล่าง ติดตรงไหนทักทีมงานทาง LINE ได้ทันที',
+			'ih_step1_title'     => 'เตรียมบัญชี MT5 และไฟล์ EA',
+			'ih_step1_desc'      => 'เปิดบัญชีกับโบรกเกอร์ที่รองรับ MetaTrader 5 ติดตั้ง MT5 บนคอมพิวเตอร์หรือ VPS แล้วดาวน์โหลดไฟล์ FALCON PRO EA ที่ได้รับ',
+			'ih_step2_title'     => 'วางไฟล์ในโฟลเดอร์ Experts',
+			'ih_step2_desc'      => 'ใน MT5 ไปที่ File → Open Data Folder → MQL5 → Experts วางไฟล์ลงไป รีสตาร์ต MT5 แล้วเปิดปุ่ม Algo Trading ให้เป็นสีเขียว',
+			'ih_step3_title'     => 'ตั้งค่าตาม Preset และตรวจสถานะ',
+			'ih_step3_desc'      => 'ลาก EA ขึ้นกราฟ โหลด Preset ตามระดับความเสี่ยง แล้วตรวจแผงสถานะและแท็บ Experts ว่าระบบทำงานปกติ',
+			'install_home_note'  => 'ดูผลผ่านแอป MT5 บนมือถือได้ แต่ตัว EA ต้องรันบนคอมพิวเตอร์หรือ VPS ที่เปิดตลอด',
 
 			/* หน้าแรก · แถบสถานะ / Control center */
-			'show_live_status'     => true,
+			'show_live_status'     => false,
 			'live_status_kicker'   => 'Live System Flow',
 			'live_status_items'    => "FALCON PRO EA บน MetaTrader 5\nRisk-first setup\nBacktest และ Forward Test\nตั้งค่าตามทุนและความเสี่ยง\nLINE Support ภาษาไทย",
-			'show_control_center'  => true,
+			'show_control_center'  => false,
 			'control_kicker'       => 'FALCON PRO EA Control Center',
 			'control_title'        => 'ภาพรวมก่อนเริ่มใช้งาน FALCON PRO EA',
 			'control_subtitle'     => 'ดูขั้นตอนสำคัญของระบบ ตั้งแต่ความพร้อมของ MetaTrader 5 การตั้งค่าความเสี่ยง ไปจนถึงการติดตามผลผ่าน Dashboard โดยไม่ต้องเดาเอง',
@@ -441,27 +527,30 @@ function fenix_defaults() {
 			'control_list_items'   => "บัญชี MetaTrader 5 และโบรกเกอร์ที่ใช้งาน\nทุนที่ต้องการนำมาใช้กับระบบ\nระดับความเสี่ยงที่รับได้\nเป้าหมายการใช้งาน: ติดตั้ง / ทดลอง / ปรับพอร์ต",
 
 			/* หน้าแรก · การ์ดนำทาง */
-			'home_cards_title' => 'ดูข้อมูลเชิงลึกต่อ',
+			'home_cards_title' => 'คู่มือและข้อมูลเชิงลึก',
 			'home_cards_sub'   => 'เราแยกข้อมูลเป็นหมวด เพื่อให้คุณศึกษาได้ละเอียดก่อนตัดสินใจ',
-			'card1_title'      => 'ผล Backtest',
-			'card1_desc'       => 'ผลการทดสอบย้อนหลังพร้อมเงื่อนไขการทดสอบที่ชัดเจน',
+			'card1_title'      => 'Backtest EA บน MT5',
+			'card1_desc'       => 'วิธีทดสอบย้อนหลังใน Strategy Tester และวิธีอ่านรายงานผลให้เป็น',
 			'card1_url'        => '/backtest/',
-			'card2_title'      => 'ผล Forward Test',
-			'card2_desc'       => 'ผลการทดสอบบนบัญชีจริง/เดโม่แบบเรียลไทม์',
+			'card2_title'      => 'Forward Test',
+			'card2_desc'       => 'ทดสอบกับตลาดจริงบนบัญชีเดโม เซ็นต์ หรือบัญชีจริง ต่างจาก Backtest อย่างไร',
 			'card2_url'        => '/forward-test/',
 			'card3_title'      => 'แพ็กเกจ & ราคา',
 			'card3_desc'       => 'เปรียบเทียบแพ็กเกจและสิ่งที่ได้รับในแต่ละระดับ',
 			'card3_url'        => '/pricing/',
 			'card4_title'      => 'วิธีติดตั้ง',
-			'card4_desc'       => 'คู่มือติดตั้ง EA บน MT5 ทีละขั้นตอน',
+			'card4_desc'       => 'คู่มือติดตั้ง EA บน MT5 ทีละขั้น พร้อมวิธีแก้ปัญหาที่เจอบ่อย',
 			'card4_url'        => '/how-to-install/',
 			'card5_title'      => 'คำเตือนความเสี่ยง',
 			'card5_desc'       => 'ข้อมูลความเสี่ยงที่ควรอ่านก่อนเริ่มใช้งานจริง',
 			'card5_url'        => '/risk-disclosure/',
+			'card6_title'      => 'คู่มือ VPS',
+			'card6_desc'       => 'รัน EA ต่อเนื่องบน VPS และเชื่อมต่อจาก Windows, Android หรือ iPhone',
+			'card6_url'        => '/vps-windows/',
 
 			/* หน้า Backtest */
-			'backtest_sub'        => 'ผลการทดสอบย้อนหลัง (Historical Backtest)',
-			'backtest_intro'      => 'Backtest คือการนำกลยุทธ์ของ EA มาทดสอบกับข้อมูลราคาในอดีต เพื่อดูพฤติกรรมของระบบภายใต้เงื่อนไขที่กำหนด ผลด้านล่างระบุพารามิเตอร์การทดสอบไว้อย่างชัดเจนเพื่อความโปร่งใส',
+			'backtest_sub'        => 'วิธีทดสอบย้อนหลังใน Strategy Tester ของ MT5 และวิธีอ่านผลให้เป็น',
+			'backtest_intro'      => 'Backtest คือการนำกลยุทธ์ของ EA มาทดสอบกับข้อมูลราคาในอดีต เพื่อดูพฤติกรรมของระบบภายใต้เงื่อนไขที่กำหนด เมื่อมีผลที่เผยแพร่ เราจะระบุพารามิเตอร์การทดสอบไว้ครบทุกค่าเพื่อความโปร่งใส',
 			'bt_stat1_label'      => 'ช่วงเวลาทดสอบ',
 			'bt_stat1_value'      => 'ระบุช่วงเวลา',
 			'bt_stat2_label'      => 'คู่เงิน / สินทรัพย์',
@@ -484,12 +573,12 @@ function fenix_defaults() {
 			'backtest_disclaimer' => 'ผลการทดสอบย้อนหลังใช้เพื่อการศึกษาเท่านั้น ไม่ได้รับประกันผลลัพธ์ในอนาคต และไม่ใช่คำแนะนำในการลงทุน',
 
 			/* หน้า Forward Test */
-			'forward_sub'        => 'ผลการทดสอบบนบัญชีจริง / เดโม่ (Forward Test)',
-			'forward_intro'      => 'Forward Test คือการรันระบบกับสภาวะตลาดจริงแบบเรียลไทม์ สะท้อนสภาพการเทรดจริงได้ดีกว่าการทดสอบย้อนหลัง ข้อมูลด้านล่างจะอัปเดตตามรอบการทดสอบ',
+			'forward_sub'        => 'ทดสอบกับตลาดจริงบนบัญชีเดโม เซ็นต์ หรือบัญชีจริง และต่างจาก Backtest อย่างไร',
+			'forward_intro'      => 'Forward Test คือการรันระบบกับสภาวะตลาดจริงแบบเรียลไทม์ สะท้อนสภาพการเทรดจริงได้ดีกว่าการทดสอบย้อนหลัง เมื่อมีผลที่ตรวจสอบได้ ข้อมูลจะแสดงและอัปเดตที่หน้านี้',
 			'fw_stat1_label'     => 'ช่วงเวลาทดสอบ',
 			'fw_stat1_value'     => 'ระบุช่วงเวลา',
 			'fw_stat2_label'     => 'ประเภทบัญชี',
-			'fw_stat2_value'     => 'Real / Demo',
+			'fw_stat2_value'     => 'ระบุ Real / Demo',
 			'fw_stat3_label'     => 'คู่เงิน / สินทรัพย์',
 			'fw_stat3_value'     => 'เช่น XAUUSD',
 			'fw_stat4_label'     => 'ทุนเริ่มต้น',
@@ -668,26 +757,48 @@ function fenix_logo_url() {
 }
 
 /**
+ * URL โลโก้ตัวอักษร (wordmark) · 'dark' = ตัวอักษรเข้มสำหรับพื้นขาว, 'light' = ตัวอักษรขาวสำหรับพื้นดำ
+ * ตั้งรูปเองได้ที่ ปรับแต่ง → ช่องทางติดต่อ (wordmark_dark / wordmark_light)
+ */
+function fenix_wordmark_url( $variant = 'dark' ) {
+	$variant = 'light' === $variant ? 'light' : 'dark';
+	$custom  = fenix_mod( 'wordmark_' . $variant );
+	if ( $custom ) {
+		return $custom;
+	}
+	return get_template_directory_uri() . '/assets/img/brand/falcon-pro-wordmark-' . $variant . '.webp';
+}
+
+/**
+ * ไอคอนในวงกลม (ดำ/เขียว) ตามสไตล์แบนเนอร์ FALCON
+ */
+function fenix_icon_badge( $name, $variant = 'dark' ) {
+	return '<span class="ic-badge ic-badge--' . esc_attr( $variant ) . '">' . fenix_icon( $name ) . '</span>';
+}
+
+/**
  * เมนูสำรอง กรณียังไม่ได้สร้างเมนูใน WordPress
  * ชี้ไปยังหน้าย่อยตาม slug ที่แนะนำ (ปรับเมนูจริงได้ที่ รูปแบบ → เมนู)
  */
 function fenix_fallback_menu() {
-	$items = array(
-		'/'                => 'หน้าแรก',
-		'/pricing/'        => 'แพ็กเกจ',
-		'/how-to-install/' => 'วิธีติดตั้ง',
+	$groups = array(
+		'การทดสอบ'       => array( '/backtest/', fenix_guide_links( array( 'test' ) ) ),
+		'คู่มือการใช้งาน' => array( '/how-to-install/', fenix_guide_links( array( 'guide' ) ) ),
 	);
 	echo '<ul class="nav-list">';
-	echo '<li><a href="' . esc_url( home_url( '/' ) ) . '">หน้าแรก</a></li>';
-	echo '<li class="menu-item-has-children"><a href="' . esc_url( home_url( '/forward-test/' ) ) . '">ผลทดสอบ</a>';
-	echo '<ul class="sub-menu">';
-	echo '<li><a href="' . esc_url( home_url( '/backtest/' ) ) . '">Backtest</a></li>';
-	echo '<li><a href="' . esc_url( home_url( '/forward-test/' ) ) . '">Forward Test</a></li>';
-	echo '</ul></li>';
-	foreach ( $items as $path => $label ) {
-		if ( '/' === $path ) {
-			continue;
+	echo '<li' . ( is_front_page() ? ' class="current-menu-item"' : '' ) . '><a href="' . esc_url( home_url( '/' ) ) . '">หน้าแรก</a></li>';
+	foreach ( $groups as $label => $group ) {
+		echo '<li class="menu-item-has-children"><a href="' . esc_url( home_url( $group[0] ) ) . '">' . esc_html( $label ) . '</a><ul class="sub-menu">';
+		foreach ( $group[1] as $link ) {
+			echo '<li><a href="' . esc_url( $link['url'] ) . '">' . esc_html( $link['label'] ) . '</a></li>';
 		}
+		echo '</ul></li>';
+	}
+	foreach ( array(
+		'/pricing/'  => 'แพ็กเกจ',
+		'/articles/' => 'บทความ',
+		'/go/'       => 'ติดต่อ',
+	) as $path => $label ) {
 		echo '<li><a href="' . esc_url( home_url( $path ) ) . '">' . esc_html( $label ) . '</a></li>';
 	}
 	echo '</ul>';
@@ -828,16 +939,28 @@ function fenix_language_switcher() {
 }
 
 /**
- * หัวหน้าเพจ (page hero) ใช้ร่วมกันทุกหน้าย่อย
+ * หัวหน้าเพจ (page hero) ใช้ร่วมกันทุกหน้าย่อย · มี breadcrumb (+ BreadcrumbList schema ใน inc/seo.php)
  */
 function fenix_page_hero( $kicker, $title, $subtitle = '' ) {
+	$crumbs = fenix_breadcrumbs( $title );
 	?>
 	<section class="phero">
-		<div class="phero-bg" aria-hidden="true">
-			<span class="ember ember-a"></span>
-			<span class="ember ember-b"></span>
-		</div>
 		<div class="container phero-inner reveal">
+			<?php if ( count( $crumbs ) > 1 ) : ?>
+				<nav class="crumbs" aria-label="เส้นทางนำทาง">
+					<ol>
+						<?php foreach ( $crumbs as $fenix_i => $fenix_crumb ) : ?>
+							<li>
+								<?php if ( $fenix_crumb['url'] && $fenix_i < count( $crumbs ) - 1 ) : ?>
+									<a href="<?php echo esc_url( $fenix_crumb['url'] ); ?>"><?php echo esc_html( $fenix_crumb['name'] ); ?></a>
+								<?php else : ?>
+									<span aria-current="page"><?php echo esc_html( $fenix_crumb['name'] ); ?></span>
+								<?php endif; ?>
+							</li>
+						<?php endforeach; ?>
+					</ol>
+				</nav>
+			<?php endif; ?>
 			<?php if ( $kicker ) : ?>
 				<span class="kicker"><?php echo esc_html( $kicker ); ?></span>
 			<?php endif; ?>
@@ -851,22 +974,161 @@ function fenix_page_hero( $kicker, $title, $subtitle = '' ) {
 }
 
 /**
- * แถบ CTA ทักไลน์ ใช้ปิดท้ายหน้าย่อย
+ * การ์ดสถานะ "ยังไม่มีผลทดสอบที่เผยแพร่" (หน้า Backtest / Forward) · ไม่แสดงตัวเลขสมมติ
+ */
+function fenix_results_pending( $type = 'backtest' ) {
+	?>
+	<div class="results-pending reveal">
+		<?php echo fenix_icon_badge( 'backtest' === $type ? 'candles' : 'pulse' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+		<div>
+			<span class="card-label"><?php echo esc_html( 'backtest' === $type ? 'Backtest Status' : 'Forward Test Status' ); ?></span>
+			<h2><?php echo esc_html( fenix_mod( 'results_pending_title' ) ); ?></h2>
+			<p><?php echo esc_html( fenix_mod( 'results_pending_text' ) ); ?></p>
+		</div>
+	</div>
+	<?php
+}
+
+/**
+ * เส้นทาง breadcrumb ของหน้าปัจจุบัน: หน้าแรก › (กลุ่ม) › หน้านี้
+ */
+function fenix_breadcrumbs( $title = '' ) {
+	$crumbs = array(
+		array(
+			'name' => 'หน้าแรก',
+			'url'  => home_url( '/' ),
+		),
+	);
+	if ( is_front_page() ) {
+		return $crumbs;
+	}
+	if ( is_singular( 'post' ) || is_home() || is_archive() || is_search() ) {
+		$posts_page = (int) get_option( 'page_for_posts' );
+		$crumbs[]   = array(
+			'name' => 'บทความ',
+			'url'  => $posts_page ? get_permalink( $posts_page ) : home_url( '/articles/' ),
+		);
+		if ( is_home() ) {
+			array_pop( $crumbs );
+			$crumbs[] = array(
+				'name' => 'บทความ',
+				'url'  => '',
+			);
+			return $crumbs;
+		}
+	} elseif ( is_page() && function_exists( 'fenix_site_pages' ) ) {
+		$slug   = (string) get_post_field( 'post_name', get_queried_object_id() );
+		$pages  = fenix_site_pages();
+		$group  = isset( $pages[ $slug ]['group'] ) ? $pages[ $slug ]['group'] : '';
+		$parent = array(
+			'test'  => array( 'การทดสอบ', '/backtest/' ),
+			'guide' => array( 'คู่มือการใช้งาน', '/how-to-install/' ),
+		);
+		if ( isset( $parent[ $group ] ) && ! in_array( $slug, array( 'backtest', 'how-to-install' ), true ) ) {
+			$crumbs[] = array(
+				'name' => $parent[ $group ][0],
+				'url'  => home_url( $parent[ $group ][1] ),
+			);
+		}
+	}
+	$crumbs[] = array(
+		'name' => $title ? $title : wp_strip_all_tags( get_the_title() ),
+		'url'  => is_singular() ? get_permalink() : '',
+	);
+	return $crumbs;
+}
+
+/**
+ * เนื้อหาแบบยาวของเพจ (จาก editor) + สารบัญอัตโนมัติ · ใช้ต่อท้ายเทมเพลตเพจที่มีส่วนออกแบบไว้ด้านบน
+ */
+function fenix_page_longform( $section_class = 'section' ) {
+	$content = apply_filters( 'the_content', get_the_content() );
+	if ( '' === trim( wp_strip_all_tags( $content ) ) ) {
+		return;
+	}
+	$toc = isset( $GLOBALS['fenix_toc'] ) ? $GLOBALS['fenix_toc'] : array();
+	$toc = array_values(
+		array_filter(
+			$toc,
+			function ( $item ) {
+				return 2 === $item['level'];
+			}
+		)
+	);
+	?>
+	<section class="<?php echo esc_attr( $section_class ); ?> longform">
+		<div class="container">
+			<div class="longform-layout<?php echo count( $toc ) > 2 ? '' : ' longform-layout--solo'; ?>">
+				<?php if ( count( $toc ) > 2 ) : ?>
+					<aside class="longform-toc" aria-label="สารบัญ">
+						<details open>
+							<summary>สารบัญ</summary>
+							<ol>
+								<?php foreach ( $toc as $fenix_item ) : ?>
+									<li><a href="#<?php echo esc_attr( $fenix_item['id'] ); ?>"><?php echo esc_html( $fenix_item['text'] ); ?></a></li>
+								<?php endforeach; ?>
+							</ol>
+						</details>
+					</aside>
+				<?php endif; ?>
+				<div class="entry-content guide-content">
+					<?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput ?>
+				</div>
+			</div>
+		</div>
+	</section>
+	<?php
+}
+
+/**
+ * บล็อกติดต่อทีมงาน (LINE OA / OpenChat / QR + สิ่งที่ทีมจะถาม) · ใช้ปิดท้ายทุกหน้าย่อย
  */
 function fenix_line_cta( $title = '', $sub = '' ) {
-	$title = $title ? $title : 'มีคำถาม? ทักมาคุยกับเราได้เลย';
-	$sub   = $sub ? $sub : 'สอบถามรายละเอียด การติดตั้ง และความเหมาะสมกับทุนของคุณได้ทาง LINE';
+	$title    = $title ? $title : fenix_mod( 'contact_title' );
+	$sub      = $sub ? $sub : fenix_mod( 'contact_text' );
+	$openchat = fenix_mod( 'line_openchat_url' );
+	$qr       = fenix_mod( 'line_qr_image' );
+	$ask      = fenix_lines( fenix_mod( 'footer_prep_items' ) );
 	?>
-	<section class="section cta cta--slim" id="cta">
-		<div class="cta-bg" aria-hidden="true"><span class="ember ember-c"></span></div>
-		<div class="container container-narrow">
-			<div class="cta-inner reveal">
-				<h2><?php echo esc_html( $title ); ?></h2>
-				<p><?php echo esc_html( $sub ); ?></p>
-				<a class="btn btn-line btn-lg" href="<?php echo esc_url( fenix_mod( 'line_url' ) ); ?>" target="_blank" rel="noopener">
-					<?php echo fenix_icon( 'line' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-					ทัก LINE เพื่อสอบถาม
-				</a>
+	<section class="section contact-block" id="cta">
+		<div class="container">
+			<div class="contact-console reveal">
+				<div class="contact-main">
+					<span class="kicker">Contact</span>
+					<h2><?php echo esc_html( $title ); ?></h2>
+					<p><?php echo esc_html( $sub ); ?></p>
+					<div class="contact-actions">
+						<a class="btn btn-fire btn-lg" href="<?php echo esc_url( fenix_mod( 'line_url' ) ); ?>" target="_blank" rel="noopener" data-line-pos="page-cta">
+							<?php echo fenix_icon( 'line' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+							<?php echo esc_html( fenix_mod( 'footer_line_text' ) ); ?>
+							<?php echo fenix_icon( 'arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+						</a>
+						<?php if ( $openchat ) : ?>
+							<a class="btn btn-ghost btn-lg" href="<?php echo esc_url( $openchat ); ?>" target="_blank" rel="noopener" data-line-pos="page-cta-openchat">
+								<?php echo fenix_icon( 'chat' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+								<?php echo esc_html( fenix_mod( 'line_openchat_text' ) ); ?>
+							</a>
+						<?php endif; ?>
+					</div>
+				</div>
+				<div class="contact-side">
+					<?php if ( $qr ) : ?>
+						<figure class="contact-qr">
+							<img src="<?php echo esc_url( $qr ); ?>" alt="QR Code LINE Official Account" width="140" height="140" loading="lazy">
+							<figcaption>สแกนเพื่อเพิ่มเพื่อน</figcaption>
+						</figure>
+					<?php endif; ?>
+					<?php if ( $ask ) : ?>
+						<div class="contact-ask">
+							<h3><?php echo esc_html( fenix_mod( 'footer_prep_title' ) ); ?></h3>
+							<ol>
+								<?php foreach ( $ask as $fenix_item ) : ?>
+									<li><?php echo esc_html( $fenix_item ); ?></li>
+								<?php endforeach; ?>
+							</ol>
+						</div>
+					<?php endif; ?>
+				</div>
 			</div>
 		</div>
 	</section>
@@ -902,6 +1164,24 @@ function fenix_icon( $name, $class = 'icon' ) {
 		'facebook' => '<path d="M14 8h2.5V4.5H14c-2.2 0-4 1.8-4 4V11H7.5v3.5H10v6h3.5v-6h2.6l.4-3.5h-3V8.7c0-.4.3-.7.5-.7z"/>',
 		'download' => '<path d="M12 4v10M7.5 10.5L12 15l4.5-4.5"/><path d="M5 19h14"/>',
 		'link'     => '<path d="M9.5 14.5l5-5"/><path d="M11.5 6.5l1-1a4 4 0 0 1 5.7 5.7l-2 2"/><path d="M12.5 17.5l-1 1a4 4 0 0 1-5.7-5.7l2-2"/>',
+		'gear'     => '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+		'bars'     => '<path d="M6 20v-6M12 20V10M18 20V4"/>',
+		'robot'    => '<rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V5"/><circle cx="12" cy="4" r="1"/><circle cx="9" cy="13.5" r="1"/><circle cx="15" cy="13.5" r="1"/><path d="M9.5 17h5"/>',
+		'play'     => '<path d="M8 5.5v13l10.5-6.5L8 5.5z"/>',
+		'bolt'     => '<path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/>',
+		'target'   => '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.8"/>',
+		'server'   => '<rect x="4" y="4" width="16" height="7" rx="1.6"/><rect x="4" y="13" width="16" height="7" rx="1.6"/><path d="M8 7.5h.01M8 16.5h.01"/>',
+		'phone'    => '<rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/>',
+		'monitor'  => '<rect x="3" y="4" width="18" height="12" rx="1.8"/><path d="M8 20h8M12 16v4"/>',
+		'calc'     => '<rect x="5" y="2.5" width="14" height="19" rx="2"/><path d="M8 6.5h8"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01M8.5 14.5h.01M12 14.5h.01M15.5 14.5h.01M8.5 18h.01M12 18h.01M15.5 18h.01"/>',
+		'book'     => '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5"/>',
+		'lock'     => '<rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>',
+		'user'     => '<circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/>',
+		'trash'    => '<path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/>',
+		'windows'  => '<path d="M3.5 5.5 10.5 4.5v7h-7zM12 4.3l8.5-1.3v8.5H12zM3.5 12.5h7v7l-7-1zM12 12.5h8.5V21L12 19.7z"/>',
+		'apple'    => '<path d="M16.4 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9-.7 0-1.9-.9-3.1-.8-1.6 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3.1.7c1.3 0 2.1-1.1 2.8-2.3.9-1.3 1.3-2.6 1.3-2.6s-2.5-1-2.5-3.8zM14.1 5.8c.6-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.1 1.8-1 2.9 1.1.1 2.1-.6 2.8-1.4z"/>',
+		'android'  => '<path d="M6 10v6.5a1 1 0 0 0 1 1h1v3h2v-3h4v3h2v-3h1a1 1 0 0 0 1-1V10H6z"/><path d="M6.5 9a5.5 5.5 0 0 1 11 0z"/><path d="M8 4l1.5 2M16 4l-1.5 2"/>',
+		'external' => '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
 	);
 
 	// แบรนด์ไอคอน LINE (โลโก้จริง) · เป็น path แบบ fill ไม่ใช่ stroke จึง render แยก.
@@ -947,14 +1227,11 @@ add_action(
  * -------------------------------------------------------------- */
 function fenix_open_graph() {
 	$site        = get_bloginfo( 'name' );
-	$default_img = fenix_mod( 'og_default_image' );
-	if ( ! $default_img ) {
-		$default_img = fenix_logo_url();
-	}
+	$default_img = fenix_share_image();
 
 	if ( is_singular() ) {
 		$title = get_the_title();
-		$desc  = has_excerpt() ? get_the_excerpt() : wp_trim_words( wp_strip_all_tags( strip_shortcodes( get_the_content() ) ), 40, '…' );
+		$desc  = fenix_meta_description();
 		$url   = get_permalink();
 		$img   = get_the_post_thumbnail_url( get_the_ID(), 'full' );
 		if ( ! $img ) {
@@ -1041,30 +1318,7 @@ function fenix_schema_jsonld() {
 		'url'      => home_url( '/' ),
 	);
 
-	if ( is_front_page() ) {
-		$faqs = array();
-		for ( $i = 1; $i <= 10; $i++ ) {
-			$q = fenix_mod( 'faq' . $i . '_q' );
-			$a = fenix_mod( 'faq' . $i . '_a' );
-			if ( $q && $a ) {
-				$faqs[] = array(
-					'@type'          => 'Question',
-					'name'           => wp_strip_all_tags( $q ),
-					'acceptedAnswer' => array(
-						'@type' => 'Answer',
-						'text'  => wp_strip_all_tags( $a ),
-					),
-				);
-			}
-		}
-		if ( $faqs ) {
-			$blocks[] = array(
-				'@context'   => 'https://schema.org',
-				'@type'      => 'FAQPage',
-				'mainEntity' => $faqs,
-			);
-		}
-	}
+	/* FAQPage ย้ายไป inc/seo.php (ทำงานแม้มีปลั๊กอิน SEO) */
 
 	foreach ( $blocks as $fenix_block ) {
 		echo '<script type="application/ld+json">' . wp_json_encode( $fenix_block, JSON_UNESCAPED_UNICODE ) . '</script>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput
@@ -1079,7 +1333,7 @@ if ( ! defined( 'WPSEO_VERSION' ) && ! class_exists( 'RankMath' ) && ! defined( 
  * ($GLOBALS['fenix_toc'] ถูกเติมตอน the_content ถูกประมวลผล)
  * -------------------------------------------------------------- */
 function fenix_collect_toc( $content ) {
-	if ( ! ( is_singular( 'post' ) && is_main_query() && in_the_loop() ) ) {
+	if ( ! ( is_singular( array( 'post', 'page' ) ) && is_main_query() && in_the_loop() ) ) {
 		return $content;
 	}
 
@@ -1204,3 +1458,6 @@ add_action( 'wp_ajax_nopriv_fenix_load_more', 'fenix_load_more' );
  * Customizer
  * -------------------------------------------------------------- */
 require get_template_directory() . '/inc/customizer.php';
+require get_template_directory() . '/inc/setup.php';
+require get_template_directory() . '/inc/shortcodes.php';
+require get_template_directory() . '/inc/seo.php';

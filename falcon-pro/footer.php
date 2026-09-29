@@ -43,91 +43,122 @@ $fenix_mobile_nav = array(
 ?>
 
 <?php if ( ! function_exists( 'elementor_theme_do_location' ) || ! elementor_theme_do_location( 'footer' ) ) : ?>
-<footer class="site-footer" id="contact">
+<?php
+$fenix_openchat = fenix_mod( 'line_openchat_url' );
+$fenix_specs    = array();
+for ( $i = 1; $i <= 4; $i++ ) {
+	$fenix_hl = fenix_mod( 'highlight' . $i );
+	if ( $fenix_hl && false !== strpos( $fenix_hl, '|' ) ) {
+		$fenix_specs[] = array_map( 'trim', explode( '|', $fenix_hl, 2 ) );
+	}
+}
+$fenix_docs = array(
+	'about'           => 'เกี่ยวกับเรา',
+	'privacy-policy'  => 'นโยบายความเป็นส่วนตัว',
+	'terms-of-use'    => 'เงื่อนไขการใช้บริการ',
+	'data-deletion'   => 'คำขอลบข้อมูล',
+	'risk-disclosure' => fenix_mod( 'footer_risk_link' ),
+);
+?>
+<footer class="site-footer site-footer--dark" id="contact">
 	<div class="container">
 
-		<div class="footer-cta">
-			<div>
+		<div class="footer-top">
+			<div class="footer-brand">
+				<a class="footer-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?> · หน้าแรก">
+					<img src="<?php echo esc_url( fenix_wordmark_url( 'light' ) ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" width="200" height="97" loading="lazy">
+				</a>
+				<?php if ( $fenix_intro ) : ?>
+					<p class="footer-tagline"><?php echo esc_html( $fenix_intro[0] ); ?></p>
+				<?php endif; ?>
+				<?php if ( $fenix_trust ) : ?>
+					<ul class="footer-trust">
+						<?php foreach ( $fenix_trust as $fenix_item ) : ?>
+							<li><?php echo esc_html( $fenix_item ); ?></li>
+						<?php endforeach; ?>
+					</ul>
+				<?php endif; ?>
+			</div>
+			<div class="footer-cta-box">
 				<p class="footer-kicker"><?php echo esc_html( fenix_mod( 'footer_kicker' ) ); ?></p>
 				<h2><?php echo esc_html( fenix_mod( 'footer_cta_title' ) ); ?></h2>
 				<p><?php echo esc_html( fenix_mod( 'footer_cta_text' ) ); ?></p>
-			</div>
-			<a class="footer-primary" href="<?php echo esc_url( $fenix_line ); ?>" target="_blank" rel="noopener">
-				<?php echo fenix_icon( 'line' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-				<span><?php echo esc_html( fenix_mod( 'footer_line_text' ) ); ?></span>
-			</a>
-		</div>
-
-		<div class="footer-main">
-
-			<div class="footer-brand">
-				<a class="brand" href="<?php echo esc_url( home_url( '/' ) ); ?>">
-					<img class="brand-logo" src="<?php echo esc_url( fenix_logo_url() ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" width="64" height="64">
-					<span class="brand-name">FALCON <em>PRO</em><small>EA&nbsp;for&nbsp;MT5</small></span>
+				<a class="btn btn-fire" href="<?php echo esc_url( $fenix_line ); ?>" target="_blank" rel="noopener" data-line-pos="footer">
+					<?php echo fenix_icon( 'line' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+					<?php echo esc_html( fenix_mod( 'footer_line_text' ) ); ?>
 				</a>
-				<?php if ( $fenix_intro ) : ?>
-				<div class="footer-tagline">
-					<?php foreach ( $fenix_intro as $fenix_paragraph ) : ?>
-					<p><?php echo esc_html( $fenix_paragraph ); ?></p>
-					<?php endforeach; ?>
-				</div>
-				<?php endif; ?>
-				<?php if ( $fenix_trust ) : ?>
-				<ul class="footer-trust">
-					<?php foreach ( $fenix_trust as $fenix_item ) : ?>
-					<li><?php echo esc_html( $fenix_item ); ?></li>
-					<?php endforeach; ?>
-				</ul>
-				<?php endif; ?>
 			</div>
-
-			<div class="footer-prep">
-				<h3 class="footer-head"><?php echo esc_html( fenix_mod( 'footer_prep_title' ) ); ?></h3>
-				<p><?php echo esc_html( fenix_mod( 'footer_prep_text' ) ); ?></p>
-
-				<?php if ( $fenix_prep ) : ?>
-				<ul class="footer-prep-list">
-					<?php foreach ( $fenix_prep as $fenix_item ) : ?>
-					<li>
-						<?php echo fenix_icon( 'check', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-						<span><?php echo esc_html( $fenix_item ); ?></span>
-					</li>
-					<?php endforeach; ?>
-				</ul>
-				<?php endif; ?>
-			</div>
-
 		</div>
+
+		<div class="footer-cols">
+			<nav class="footer-col" aria-label="ดัชนีหน้า">
+				<h3 class="footer-head">ดัชนีหน้า</h3>
+				<ul>
+					<li><a href="<?php echo esc_url( home_url( '/' ) ); ?>">หน้าแรก</a></li>
+					<li><a href="<?php echo esc_url( home_url( '/#how-it-works' ) ); ?>">ระบบทำงานอย่างไร</a></li>
+					<li><a href="<?php echo esc_url( home_url( '/pricing/' ) ); ?>">แพ็กเกจและราคา</a></li>
+					<li><a href="<?php echo esc_url( home_url( '/articles/' ) ); ?>">บทความ</a></li>
+					<li><a href="<?php echo esc_url( home_url( '/#faq' ) ); ?>">คำถามที่พบบ่อย</a></li>
+				</ul>
+			</nav>
+			<nav class="footer-col" aria-label="คู่มือ">
+				<h3 class="footer-head">คู่มือ</h3>
+				<ul>
+					<?php foreach ( fenix_guide_links( array( 'guide', 'test' ) ) as $fenix_link ) : ?>
+						<li><a href="<?php echo esc_url( $fenix_link['url'] ); ?>"><?php echo esc_html( $fenix_link['label'] ); ?></a></li>
+					<?php endforeach; ?>
+				</ul>
+			</nav>
+			<div class="footer-col">
+				<h3 class="footer-head">ช่องทาง</h3>
+				<ul>
+					<li><a href="<?php echo esc_url( $fenix_line ); ?>" target="_blank" rel="noopener" data-line-pos="footer-col">LINE Official Account</a></li>
+					<?php if ( $fenix_openchat ) : ?>
+						<li><a href="<?php echo esc_url( $fenix_openchat ); ?>" target="_blank" rel="noopener">LINE OpenChat</a></li>
+					<?php endif; ?>
+					<?php if ( $fenix_fb ) : ?>
+						<li><a href="<?php echo esc_url( $fenix_fb ); ?>" target="_blank" rel="noopener"><?php echo esc_html( fenix_mod( 'footer_facebook_text' ) ); ?></a></li>
+					<?php endif; ?>
+					<?php if ( $fenix_email ) : ?>
+						<li><a class="keep-case" href="<?php echo esc_url( 'mailto:' . $fenix_email ); ?>"><?php echo esc_html( $fenix_email ); ?></a></li>
+					<?php endif; ?>
+					<li><a href="<?php echo esc_url( home_url( '/go/' ) ); ?>">หน้าลิงก์รวม</a></li>
+				</ul>
+			</div>
+			<nav class="footer-col" aria-label="เอกสาร">
+				<h3 class="footer-head">เอกสาร</h3>
+				<ul>
+					<?php foreach ( $fenix_docs as $fenix_slug => $fenix_label ) : ?>
+						<?php
+						$fenix_doc = get_page_by_path( $fenix_slug );
+						if ( 'risk-disclosure' !== $fenix_slug && ( ! $fenix_doc || 'publish' !== get_post_status( $fenix_doc ) ) ) {
+							continue;
+						}
+						?>
+						<li><a href="<?php echo esc_url( $fenix_doc ? get_permalink( $fenix_doc ) : home_url( '/' . $fenix_slug . '/' ) ); ?>"><?php echo esc_html( $fenix_label ); ?></a></li>
+					<?php endforeach; ?>
+					<?php if ( fenix_mod( 'show_cookie_consent' ) ) : ?>
+						<li><button type="button" class="footer-linkbtn cookie-reopen">ตั้งค่าคุกกี้</button></li>
+					<?php endif; ?>
+				</ul>
+			</nav>
+			<?php if ( $fenix_specs ) : ?>
+				<div class="footer-col">
+					<h3 class="footer-head">ข้อมูลระบบ</h3>
+					<dl class="footer-specs">
+						<?php foreach ( $fenix_specs as $fenix_spec ) : ?>
+							<div><dt><?php echo esc_html( $fenix_spec[0] ); ?></dt><dd><?php echo esc_html( $fenix_spec[1] ); ?></dd></div>
+						<?php endforeach; ?>
+					</dl>
+				</div>
+			<?php endif; ?>
+		</div>
+
+		<p class="footer-risk"><?php echo fenix_icon( 'warn', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php echo esc_html( fenix_mod( 'risk_text' ) ); ?></p>
 
 		<div class="footer-bottom">
-			<p class="footer-copy">&copy; <?php echo esc_html( gmdate( 'Y' ) ); ?> <?php bloginfo( 'name' ); ?> สงวนลิขสิทธิ์</p>
-			<?php if ( $fenix_fb || $fenix_email ) : ?>
-			<div class="footer-links-mini">
-				<?php if ( $fenix_fb ) : ?>
-				<a href="<?php echo esc_url( $fenix_fb ); ?>" target="_blank" rel="noopener"><?php echo esc_html( fenix_mod( 'footer_facebook_text' ) ); ?></a>
-				<?php endif; ?>
-				<?php if ( $fenix_email ) : ?>
-				<a class="keep-case" href="<?php echo esc_url( 'mailto:' . $fenix_email ); ?>"><?php echo esc_html( $fenix_email ); ?></a>
-				<?php endif; ?>
-			</div>
-			<?php endif; ?>
-			<nav class="footer-legal" aria-label="ลิงก์ทางกฎหมาย">
-				<?php
-				foreach ( array(
-					'about'          => 'เกี่ยวกับเรา',
-					'privacy-policy' => 'นโยบายความเป็นส่วนตัว',
-					'terms'          => 'เงื่อนไขการใช้บริการ',
-				) as $fenix_slug => $fenix_label ) :
-					$fenix_legal_page = get_page_by_path( $fenix_slug );
-					if ( $fenix_legal_page ) :
-						?>
-						<a href="<?php echo esc_url( get_permalink( $fenix_legal_page ) ); ?>"><?php echo esc_html( $fenix_label ); ?></a>
-						<?php
-					endif;
-				endforeach;
-				?>
-				<a href="<?php echo esc_url( home_url( '/risk-disclosure/' ) ); ?>"><?php echo esc_html( fenix_mod( 'footer_risk_link' ) ); ?></a>
-			</nav>
+			<p class="footer-copy">&copy; <?php echo esc_html( gmdate( 'Y' ) ); ?> <?php bloginfo( 'name' ); ?> · สงวนลิขสิทธิ์</p>
+			<p class="footer-copy spaced">Trade Smarter · Live Better</p>
 		</div>
 
 	</div>
@@ -164,10 +195,10 @@ $fenix_mobile_nav = array(
 	<p class="cookie-consent-text">
 		<?php echo esc_html( fenix_mod( 'cookie_consent_text' ) ); ?>
 		<?php
-		$fenix_privacy = get_page_by_path( 'privacy-policy' );
+		$fenix_privacy = fenix_published_page_url( 'privacy-policy' );
 		if ( $fenix_privacy ) :
 			?>
-			<a class="cookie-consent-link" href="<?php echo esc_url( get_permalink( $fenix_privacy ) ); ?>">อ่านนโยบาย</a>
+			<a class="cookie-consent-link" href="<?php echo esc_url( $fenix_privacy ); ?>">อ่านนโยบาย</a>
 		<?php endif; ?>
 	</p>
 	<div class="cookie-consent-actions">

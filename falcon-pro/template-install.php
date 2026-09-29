@@ -75,6 +75,8 @@ fenix_page_hero( 'How to Install', $fenix_title ? $fenix_title : 'วิธี�
 	<?php endif; ?>
 </section>
 
+<?php fenix_page_longform( 'section section-alt' ); ?>
+
 <?php fenix_line_cta( 'อยากให้ทีมงานช่วยติดตั้ง?', 'ทักมาทาง LINE ทีมงานช่วยติดตั้งและตั้งค่าให้จนระบบพร้อมใช้งาน' ); ?>
 
 </main>

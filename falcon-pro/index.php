@@ -13,53 +13,35 @@ $fenix_found = (int) $GLOBALS['wp_query']->found_posts;
 
 <main id="main">
 
-	<div class="page-hero archive-hero">
-		<div class="container">
+	<?php
+	if ( is_home() && ! is_front_page() ) {
+		$fenix_posts_page = (int) get_option( 'page_for_posts' );
+		$fenix_h1         = $fenix_posts_page ? get_the_title( $fenix_posts_page ) : 'บทความ';
+	} elseif ( is_search() ) {
+		$fenix_h1 = 'ผลการค้นหา: ' . get_search_query();
+	} elseif ( is_archive() ) {
+		$fenix_h1 = wp_strip_all_tags( get_the_archive_title() );
+	} else {
+		$fenix_h1 = 'บทความ';
+	}
+	$fenix_sub = $fenix_desc ? wp_strip_all_tags( $fenix_desc ) : ( is_home() ? fenix_mod( 'blog_subtitle' ) : '' );
+	fenix_page_hero( 'Articles', $fenix_h1, $fenix_sub );
+	?>
 
-			<nav class="breadcrumb breadcrumb-center" aria-label="เส้นทางนำทาง">
-				<a href="<?php echo esc_url( home_url( '/' ) ); ?>">หน้าแรก</a>
-				<span class="breadcrumb-sep" aria-hidden="true">›</span>
-				<span class="breadcrumb-current">
-					<?php
-					if ( is_search() ) {
-						echo 'ค้นหา';
-					} elseif ( is_archive() ) {
-						the_archive_title();
-					} else {
-						echo 'บทความ';
-					}
-					?>
-				</span>
-			</nav>
-
-			<h1>
-				<?php
-				if ( is_home() && ! is_front_page() ) {
-					$fenix_posts_page = (int) get_option( 'page_for_posts' );
-					echo $fenix_posts_page ? esc_html( get_the_title( $fenix_posts_page ) ) : 'บทความ';
-				} elseif ( is_search() ) {
-					echo 'ผลการค้นหา: ' . esc_html( get_search_query() );
-				} elseif ( is_archive() ) {
-					the_archive_title();
-				} else {
-					echo 'บทความ';
-				}
-				?>
-			</h1>
-
-			<?php if ( $fenix_desc ) : ?>
-				<div class="archive-desc"><?php echo wp_kses_post( $fenix_desc ); ?></div>
-			<?php elseif ( is_home() ) : ?>
-				<p class="muted">ความรู้เรื่อง EA, MT5 และการบริหารความเสี่ยง</p>
-			<?php endif; ?>
-
-			<?php if ( $fenix_found ) : ?>
-				<p class="archive-count"><?php echo esc_html( number_format_i18n( $fenix_found ) . ' บทความ' ); ?></p>
-			<?php endif; ?>
-
-		</div>
-	</div>
-
+	<?php
+	$fenix_cats = get_categories( array( 'hide_empty' => true ) );
+	if ( ! is_search() && count( $fenix_cats ) > 1 ) :
+		$fenix_posts_url = (int) get_option( 'page_for_posts' ) ? get_permalink( (int) get_option( 'page_for_posts' ) ) : home_url( '/' );
+		?>
+		<nav class="cat-chips" aria-label="หมวดหมู่บทความ">
+			<div class="container">
+				<a class="chip-link<?php echo is_home() ? ' is-active' : ''; ?>" href="<?php echo esc_url( $fenix_posts_url ); ?>">ทั้งหมด<?php echo $fenix_found && is_home() ? ' · ' . esc_html( number_format_i18n( $fenix_found ) ) : ''; ?></a>
+				<?php foreach ( $fenix_cats as $fenix_cat ) : ?>
+					<a class="chip-link<?php echo is_category( $fenix_cat->term_id ) ? ' is-active' : ''; ?>" href="<?php echo esc_url( get_category_link( $fenix_cat ) ); ?>"><?php echo esc_html( $fenix_cat->name ); ?></a>
+				<?php endforeach; ?>
+			</div>
+		</nav>
+	<?php endif; ?>
 	<div class="posts-wrap">
 		<div class="container">
 
@@ -108,6 +90,31 @@ $fenix_found = (int) $GLOBALS['wp_query']->found_posts;
 		</div>
 	</div>
 
+
+	<?php if ( is_home() && ! is_paged() ) : ?>
+		<section class="section section-alt guide-hub">
+			<div class="container">
+				<div class="sec-head reveal">
+					<span class="kicker">Guides</span>
+					<h2>คู่มือ EA และ MetaTrader 5 ภาษาไทย</h2>
+					<p>คู่มือแบบทีละขั้นตั้งแต่เปิดบัญชี ติดตั้ง ทดสอบ จนถึงรันบน VPS</p>
+				</div>
+				<ol class="guide-index reveal">
+					<?php $fenix_n = 0; ?>
+					<?php foreach ( array_merge( fenix_guide_links( array( 'guide', 'test' ) ), array( 'risk-disclosure' => array( 'label' => 'ประกาศความเสี่ยงของการใช้ EA', 'url' => home_url( '/risk-disclosure/' ) ) ) ) as $fenix_link ) : ?>
+						<?php $fenix_n++; ?>
+						<li>
+							<a href="<?php echo esc_url( $fenix_link['url'] ); ?>">
+								<span class="mono"><?php echo esc_html( sprintf( '%02d', $fenix_n ) ); ?></span>
+								<span><?php echo esc_html( $fenix_link['label'] ); ?></span>
+								<?php echo fenix_icon( 'arrow', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+							</a>
+						</li>
+					<?php endforeach; ?>
+				</ol>
+			</div>
+		</section>
+	<?php endif; ?>
 </main>
 
 <?php

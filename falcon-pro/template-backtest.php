@@ -23,12 +23,23 @@ fenix_page_hero( 'Backtest', $fenix_title ? $fenix_title : 'ผล Backtest', fe
 			<p class="lead reveal"><?php echo esc_html( fenix_mod( 'backtest_intro' ) ); ?></p>
 		<?php endif; ?>
 
+		<?php
+		$fenix_real_stats = 0;
+		for ( $i = 1; $i <= 8; $i++ ) {
+			if ( ! fenix_is_placeholder( fenix_mod( 'bt_stat' . $i . '_value' ) ) ) {
+				$fenix_real_stats++;
+			}
+		}
+		?>
+		<?php if ( ! $fenix_real_stats ) : ?>
+			<?php fenix_results_pending( 'backtest' ); ?>
+		<?php else : ?>
 		<div class="stats-grid stats-grid--4 reveal">
 			<?php
 			for ( $i = 1; $i <= 8; $i++ ) :
 				$s_label = fenix_mod( 'bt_stat' . $i . '_label' );
 				$s_value = fenix_mod( 'bt_stat' . $i . '_value' );
-				if ( ! $s_label && ! $s_value ) {
+				if ( ! $s_label || fenix_is_placeholder( $s_value ) ) {
 					continue;
 				}
 				?>
@@ -38,6 +49,7 @@ fenix_page_hero( 'Backtest', $fenix_title ? $fenix_title : 'ผล Backtest', fe
 				</div>
 			<?php endfor; ?>
 		</div>
+		<?php endif; ?>
 
 		<?php if ( fenix_mod( 'backtest_img' ) ) : ?>
 			<figure class="perf-figure reveal">
@@ -45,14 +57,6 @@ fenix_page_hero( 'Backtest', $fenix_title ? $fenix_title : 'ผล Backtest', fe
 				<?php if ( fenix_mod( 'backtest_img_caption' ) ) : ?>
 					<figcaption><?php echo esc_html( fenix_mod( 'backtest_img_caption' ) ); ?></figcaption>
 				<?php endif; ?>
-			</figure>
-		<?php else : ?>
-			<figure class="perf-figure shot-placeholder reveal">
-				<div class="shot-empty">
-					<img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/logo.png' ); ?>" alt="" loading="lazy" width="110" height="110">
-					<span class="chip">ภาพประกอบ</span>
-					<p>อัปโหลดภาพกราฟผล Backtest ได้ที่ ปรับแต่ง → หน้า Backtest</p>
-				</div>
 			</figure>
 		<?php endif; ?>
 
@@ -68,7 +72,9 @@ fenix_page_hero( 'Backtest', $fenix_title ? $fenix_title : 'ผล Backtest', fe
 	</div>
 </section>
 
-<?php fenix_line_cta( 'อยากดูผลทดสอบชุดอื่น?', 'สอบถามรายละเอียดผลการทดสอบและเงื่อนไขเพิ่มเติมได้ทาง LINE' ); ?>
+<?php fenix_page_longform( 'section section-alt' ); ?>
+
+<?php fenix_line_cta( 'อยากรู้วิธีทดสอบให้ตรงกับบัญชีของคุณ?', 'สอบถามวิธีตั้งค่า Strategy Tester และเงื่อนไขการทดสอบเพิ่มเติมได้ทาง LINE' ); ?>
 
 </main>
 

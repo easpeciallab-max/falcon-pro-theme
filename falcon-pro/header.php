@@ -19,9 +19,8 @@
 <header class="site-header" id="top">
 	<div class="container header-inner">
 
-		<a class="brand" href="<?php echo esc_url( home_url( '/' ) ); ?>">
-			<img class="brand-logo" src="<?php echo esc_url( fenix_logo_url() ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" width="46" height="46">
-			<span class="brand-name">FALCON <em>PRO</em><small>EA&nbsp;for&nbsp;MT5</small></span>
+		<a class="brand brand--wordmark" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?> · หน้าแรก">
+			<img class="brand-wordmark" src="<?php echo esc_url( fenix_wordmark_url( 'dark' ) ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" width="132" height="64">
 		</a>
 
 		<nav class="site-nav" id="site-nav" aria-label="เมนูหลัก">

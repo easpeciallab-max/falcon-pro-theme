@@ -272,8 +272,12 @@
 			d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
 			document.cookie = 'fenix_consent=' + value + '; expires=' + d.toUTCString() + '; path=/; SameSite=Lax';
 		};
+		var trackersLoaded = false;
 		var loadTrackers = function () {
+			if (trackersLoaded) return;
+			trackersLoaded = true;
 			if (trackingCfg.ga) {
+				window['ga-disable-' + trackingCfg.ga] = false;
 				var g = document.createElement('script');
 				g.async = true;
 				g.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(trackingCfg.ga);
@@ -329,6 +333,11 @@
 				declineBtn.addEventListener('click', function () {
 					setConsent('declined');
 					cookieBar.classList.remove('is-visible');
+					// เคยยอมรับแล้วเปลี่ยนใจ (ผ่านปุ่ม "ตั้งค่าคุกกี้") → หยุดส่งข้อมูลทันทีในหน้านี้
+					if (trackersLoaded) {
+						if (trackingCfg.ga) window['ga-disable-' + trackingCfg.ga] = true;
+						if (typeof window.fbq === 'function') window.fbq('consent', 'revoke');
+					}
 				});
 			}
 			if (closeBtn) {
@@ -338,5 +347,187 @@
 				});
 			}
 		}
+	}
+
+	/* ปุ่ม "ตั้งค่าคุกกี้" ใน footer · เปิดแบนเนอร์ความยินยอมอีกครั้ง */
+	document.querySelectorAll('.cookie-reopen').forEach(function (btn) {
+		btn.addEventListener('click', function () {
+			var bar = document.querySelector('.cookie-consent');
+			if (bar) bar.classList.add('is-visible');
+		});
+	});
+
+	/* LINE click tracking · ส่ง event แยกตามตำแหน่งปุ่ม (data-line-pos) เฉพาะเมื่อโหลด GA/Pixel แล้ว (ผ่าน consent) */
+	document.addEventListener('click', function (e) {
+		var link = e.target.closest ? e.target.closest('a[href]') : null;
+		if (!link) return;
+		var href = link.getAttribute('href') || '';
+		var isLine = /(^|\/\/)(lin\.ee|line\.me|page\.line\.me)\//i.test(href);
+		if (!isLine && !link.hasAttribute('data-line-pos')) return;
+		var pos = link.getAttribute('data-line-pos') || (link.closest('[id]') ? link.closest('[id]').id : 'unknown');
+		if (typeof window.gtag === 'function') {
+			window.gtag('event', 'line_click', { line_pos: pos, page_path: location.pathname });
+		}
+		if (typeof window.fbq === 'function') {
+			window.fbq('track', 'Contact', { content_name: pos });
+		}
+	});
+
+	/* สารบัญ (หน้าคู่มือ) · ไฮไลต์หัวข้อที่กำลังอ่าน */
+	var tocLinks = document.querySelectorAll('.longform-toc a[href^="#"]');
+	if (tocLinks.length && 'IntersectionObserver' in window) {
+		var tocMap = {};
+		tocLinks.forEach(function (a) { tocMap[decodeURIComponent(a.getAttribute('href').slice(1))] = a; });
+		var tocObs = new IntersectionObserver(function (entries) {
+			entries.forEach(function (entry) {
+				if (!entry.isIntersecting) return;
+				tocLinks.forEach(function (a) { a.classList.remove('is-active'); });
+				var link = tocMap[entry.target.id];
+				if (link) link.classList.add('is-active');
+			});
+		}, { rootMargin: '-20% 0px -70% 0px' });
+		Object.keys(tocMap).forEach(function (id) {
+			var h = document.getElementById(id);
+			if (h) tocObs.observe(h);
+		});
+	}
+
+	/* เครื่องคำนวณ [falcon_calc] · Lot size + Drawdown recovery */
+	var num = function (el) {
+		var v = parseFloat(el && el.value);
+		return isFinite(v) ? v : 0;
+	};
+	var fmt = function (v, d) {
+		return v.toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d });
+	};
+	document.querySelectorAll('.calc[data-calc="lot"]').forEach(function (box) {
+		var q = function (k) { return box.querySelector('[data-in="' + k + '"]'); };
+		var preset = q('preset');
+		var run = function () {
+			var money = num(q('balance')) * num(q('risk')) / 100;
+			var perLot = num(q('sl')) * num(q('pipval'));
+			var step = num(q('step'));
+			if (!(step > 0)) step = 0.01;
+			var lot = perLot > 0 ? Math.floor((money / perLot) / step + 1e-9) * step : 0;
+			var decimals = Math.max(0, Math.min(3, Math.ceil(-Math.log10(step))));
+			box.querySelector('[data-out="money"]').textContent = fmt(money, 2) + ' USD';
+			box.querySelector('[data-out="lot"]').textContent = perLot > 0 ? fmt(lot, decimals) + ' lot' : '–';
+			box.classList.toggle('is-under', perLot > 0 && lot < step);
+		};
+		if (preset) {
+			preset.addEventListener('change', function () {
+				if (preset.value !== 'custom') q('pipval').value = preset.value;
+				run();
+			});
+		}
+		box.addEventListener('input', run);
+		run();
+	});
+	document.querySelectorAll('.calc[data-calc="drawdown"]').forEach(function (box) {
+		var q = function (k) { return box.querySelector('[data-in="' + k + '"]'); };
+		var run = function () {
+			var dd = Math.min(99, Math.max(0, num(q('dd')))) / 100;
+			var bal = num(q('balance'));
+			var gain = dd < 1 ? dd / (1 - dd) * 100 : 0;
+			box.querySelector('[data-out="gain"]').textContent = fmt(gain, 1) + ' %';
+			box.querySelector('[data-out="left"]').textContent = bal > 0 ? fmt(bal * (1 - dd), 2) + ' USD' : '–';
+			var bar = box.querySelector('[data-out="bar"]');
+			if (bar) bar.style.width = Math.min(100, gain / 2) + '%';
+		};
+		box.addEventListener('input', run);
+		run();
+	});
+
+	/* Tabs (role=tablist) · คลิก/ลูกศรซ้ายขวาเพื่อสลับ */
+	document.querySelectorAll('[data-tabs]').forEach(function (wrap) {
+		var tabs = Array.prototype.slice.call(wrap.querySelectorAll('[role="tab"]'));
+		var select = function (tab, focus) {
+			tabs.forEach(function (t) {
+				var on = t === tab;
+				t.setAttribute('aria-selected', on ? 'true' : 'false');
+				t.tabIndex = on ? 0 : -1;
+				var panel = document.getElementById(t.getAttribute('aria-controls'));
+				if (panel) panel.hidden = !on;
+			});
+			if (focus) tab.focus();
+		};
+		tabs.forEach(function (tab, i) {
+			tab.addEventListener('click', function () { select(tab, false); });
+			tab.addEventListener('keydown', function (e) {
+				if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+				e.preventDefault();
+				var next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+				select(next, true);
+			});
+		});
+	});
+
+	/* Lightbox · a.lightbox (จัดกลุ่มด้วย data-group) */
+	var lbLinks = document.querySelectorAll('a.lightbox');
+	if (lbLinks.length) {
+		var arrow = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+		var lb = document.createElement('div');
+		lb.className = 'lb';
+		lb.setAttribute('role', 'dialog');
+		lb.setAttribute('aria-modal', 'true');
+		lb.setAttribute('aria-label', 'ภาพขนาดใหญ่');
+		lb.innerHTML = '<figure><img alt=""><figcaption></figcaption></figure>' +
+			'<button type="button" class="lb-close" aria-label="ปิด"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
+			'<button type="button" class="lb-prev" aria-label="ภาพก่อนหน้า">' + arrow + '</button>' +
+			'<button type="button" class="lb-next" aria-label="ภาพถัดไป">' + arrow + '</button>';
+		document.body.appendChild(lb);
+		var lbImg = lb.querySelector('img');
+		var lbCap = lb.querySelector('figcaption');
+		var group = [];
+		var idx = 0;
+		var lastFocus = null;
+		var show = function () {
+			var a = group[idx];
+			lbImg.src = a.getAttribute('href');
+			var img = a.querySelector('img');
+			lbImg.alt = img ? img.alt : '';
+			lbCap.textContent = a.getAttribute('data-caption') || '';
+			var multi = group.length > 1;
+			lb.querySelector('.lb-prev').hidden = !multi;
+			lb.querySelector('.lb-next').hidden = !multi;
+		};
+		var close = function () {
+			lb.classList.remove('is-open');
+			document.body.style.overflow = '';
+			if (lastFocus) lastFocus.focus();
+		};
+		lbLinks.forEach(function (a) {
+			a.addEventListener('click', function (e) {
+				e.preventDefault();
+				var g = a.getAttribute('data-group');
+				group = g ? Array.prototype.slice.call(document.querySelectorAll('a.lightbox[data-group="' + g + '"]')) : [a];
+				idx = Math.max(0, group.indexOf(a));
+				lastFocus = a;
+				show();
+				lb.classList.add('is-open');
+				document.body.style.overflow = 'hidden';
+				// รอให้ visibility เปลี่ยนก่อน แล้วค่อยย้ายโฟกัส (ปุ่มที่ยัง hidden รับโฟกัสไม่ได้)
+				setTimeout(function () { lb.querySelector('.lb-close').focus(); }, 30);
+			});
+		});
+		lb.addEventListener('click', function (e) {
+			if (e.target === lb) close();
+		});
+		lb.querySelector('.lb-close').addEventListener('click', close);
+		lb.querySelector('.lb-prev').addEventListener('click', function () { idx = (idx + group.length - 1) % group.length; show(); });
+		lb.querySelector('.lb-next').addEventListener('click', function () { idx = (idx + 1) % group.length; show(); });
+		document.addEventListener('keydown', function (e) {
+			if (!lb.classList.contains('is-open')) return;
+			if (e.key === 'Escape') close();
+			if (e.key === 'Tab') {
+				var btns = Array.prototype.filter.call(lb.querySelectorAll('button'), function (b) { return !b.hidden; });
+				var at = btns.indexOf(document.activeElement);
+				e.preventDefault();
+				var nextBtn = btns[(at + (e.shiftKey ? btns.length - 1 : 1) + btns.length) % btns.length];
+				if (nextBtn) nextBtn.focus();
+			}
+			if (e.key === 'ArrowRight' && group.length > 1) { idx = (idx + 1) % group.length; show(); }
+			if (e.key === 'ArrowLeft' && group.length > 1) { idx = (idx + group.length - 1) % group.length; show(); }
+		});
 	}
 })();

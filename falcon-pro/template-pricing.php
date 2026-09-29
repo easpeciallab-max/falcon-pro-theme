@@ -133,6 +133,8 @@ if ( count( $fenix_rows ) >= 2 ) :
 	</section>
 <?php endif; ?>
 
+<?php fenix_page_longform( 'section section-alt' ); ?>
+
 <?php fenix_line_cta( 'ยังไม่แน่ใจว่าแพ็กเกจไหนเหมาะ?', 'ทักมาปรึกษาทีมงานเพื่อเลือกแพ็กเกจที่เหมาะกับทุนและการใช้งานของคุณ' ); ?>
 
 </main>

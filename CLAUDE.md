@@ -3,7 +3,8 @@
 ไฟล์นี้เป็นบริบทสำหรับ Claude Code อ่านก่อนเริ่มงานในโปรเจกต์นี้
 
 ## โปรเจกต์คืออะไร
-ธีม WordPress แบบ **custom** สำหรับเว็บ Landing ขาย **FALCON PRO EA** — ระบบช่วยเทรดอัตโนมัติ (Expert Advisor) บน MetaTrader 5 เนื้อหาภาษาไทย **ดีไซน์มินิมอลพื้นขาว** สีเน้นฟ้าเทอร์คอยซ์ + เทาเงิน เน้นเรียบ–แบน–สีทึบ (ไม่มี gradient / glow / กราฟิกไฮเทค) โลโก้เหยี่ยวพื้นดำวางบนพื้นขาว
+ธีม WordPress แบบ **custom** สำหรับเว็บขาย **FALCON PRO EA** — ระบบช่วยเทรดอัตโนมัติ (Expert Advisor) บน MetaTrader 5 เนื้อหาภาษาไทย **ดีไซน์ตามแบนเนอร์แบรนด์ (Banner theme v3)**: พื้นขาว + บล็อกดำตัดทแยง + เขียว FALCON ทึบ ไอคอนในวงกลมดำ ปุ่ม pill สีเขียว ข้อความอังกฤษเว้นระยะกว้าง
+- **โครงเว็บยึดตาม ea2000.co** (หน้าแรกยาว + หน้าคู่มือ/ทดสอบ/แพ็กเกจ/เอกสาร ~18 เพจ + บทความ SEO) แต่เนื้อหาเขียนใหม่ทั้งหมดเป็นของ FALCON
 - **ไม่มี build step** — PHP + CSS + vanilla JS ตรง ๆ แก้ไฟล์แล้วใช้ได้เลย ไม่มี npm/compile
 - ธีมอยู่ในโฟลเดอร์ `falcon-pro/` (root ของ repo เก็บเอกสาร dev) WP Pusher ตั้ง subdirectory = `falcon-pro`
 - ต้องการ WordPress 6.0+ / PHP 7.4+
@@ -11,8 +12,11 @@
 
 ## หลักการสำคัญ — ห้ามทำผิด
 1. **Customizer-driven**: ทุกข้อความ/รูป/ราคา/ลิงก์ แก้ได้ผ่าน WordPress Customizer โดยไม่ต้องแตะโค้ด เวลาเพิ่มเนื้อหาใหม่ ให้เพิ่มเป็น **setting** เสมอ **ห้าม hardcode** ข้อความลงใน template
+   - ข้อยกเว้น: **เนื้อหายาว** ของหน้าคู่มือ/บทความอยู่ใน post_content (แก้ในหน้าแก้ไขเพจของ WP) โดยมีไฟล์ตั้งต้นใน `inc/content/` ที่ตัวช่วย FALCON Setup นำเข้า
+   - ตรวจว่า default ทุกตัวมี control: `php dev/check-settings.php` (ต้องได้ "(none)" ทั้งสองบรรทัด)
 2. **รีวิว**: `show_reviews` ปิดเป็น default จนกว่าจะมีรีวิวจริง — **ห้ามแต่งรีวิวปลอม**
-3. **ตัวเลขผลทดสอบ**: ค่า Backtest/Forward เป็น placeholder ("ระบุ...") — **ห้ามใส่ตัวเลขสมมติ** ให้เจ้าของกรอกเอง
+3. **ตัวเลขผลทดสอบ**: ค่า Backtest/Forward เป็น placeholder ("ระบุ...") — **ห้ามใส่ตัวเลขสมมติ** ให้เจ้าของกรอกเอง · ค่าที่ยังเป็น placeholder จะถูกซ่อน และแสดงการ์ด "ยังไม่มีผลทดสอบที่เผยแพร่" แทน (`fenix_results_pending()`)
+   - แบนเนอร์ใน `assets/img/banners/` มีตัวเลขในภาพ → ทุกจุดที่ใช้ต้องมีคำบรรยาย "ภาพประกอบ ไม่ใช่ผลการเทรดจริง" · ไม่ใช้ภาพที่อวดกำไรชัด ๆ (`account-growth`)
 4. **ห้ามลบหรือลดทอน** ข้อความ disclaimer และ risk warning (สำคัญต่อความถูกต้อง/ความน่าเชื่อถือ)
 5. **อังกฤษพิมพ์ใหญ่**: ทุกคำภาษาอังกฤษแสดงเป็นตัวพิมพ์ใหญ่อัตโนมัติด้วย CSS (`text-transform: uppercase` บน `body`) ยกเว้น `.keep-case` (อีเมล/URL) → เขียน HTML เป็นพิมพ์เล็กปกติได้ ปล่อยให้ CSS จัดการ
 6. **Escape เสมอ**: output ทุกจุดผ่าน `esc_html()` / `esc_url()` / `esc_attr()` (inline SVG จาก `fenix_icon()` มี phpcs:ignore เพราะ trusted)
@@ -35,7 +39,9 @@
   - `fenix_logo_url()` — URL โลโก้ (custom_logo หรือโลโก้ที่ฝังในธีม)
   - `fenix_fallback_menu()` — เมนูสำรองชี้ไป slug หน้าย่อย
   - `fenix_page_hero($kicker,$title,$subtitle)` — หัวหน้าเพจ ใช้ร่วมทุก template
-  - `fenix_line_cta($title,$sub)` — แถบ CTA ทัก LINE ปิดท้ายหน้าย่อย
+  - `fenix_line_cta($title,$sub)` — บล็อกติดต่อ (LINE OA / OpenChat / QR + สิ่งที่ทีมจะถาม) ปิดท้ายหน้าย่อย
+  - `fenix_page_longform()` — เนื้อหายาวจาก editor + สารบัญ ต่อท้ายเทมเพลตที่มีส่วนออกแบบด้านบน
+  - `fenix_wordmark_url('dark'|'light')`, `fenix_icon_badge($icon,'dark'|'green'|'soft')`, `fenix_breadcrumbs()`, `fenix_results_pending()`
   - `fenix_icon($name,$class)` — inline SVG icon (~20 ไอคอน)
 - `inc/customizer.php` — สร้าง Customizer panel + sections จาก array `$sections` ด้วย **loop เดียว** (auto-register setting/control/sanitizer) FAQ 10 ข้อ generate ด้วย for-loop
 - `header.php` / `footer.php` — โครง + เมนู (wp_nav_menu + fallback) + ปุ่ม LINE ลอย
@@ -44,9 +50,15 @@
 - `index.php` / `single.php` / `page.php` — บล็อก/เพจทั่วไป (เผื่อบทความ SEO)
 - `style.css` — design system ทั้งหมด (theme header comment อยู่บนสุด ห้ามย้าย)
 - `assets/js/main.js` — sticky header, mobile nav (aria-expanded), IntersectionObserver `.reveal`→`.in`, load more, consent banner
-- `assets/img/` — โลโก้ (**ต้องเปลี่ยนเป็นโลโก้ FALCON** — ดู readme.txt)
-- `screenshot.png` — ภาพ preview ธีม (**ต้องเปลี่ยนเป็นภาพ FALCON**)
+- `assets/img/` — โลโก้ FALCON (ไอคอนวงกลม `logo.png`) · `brand/` wordmark dark/light, favicon, การ์ดแชร์ 1200×630 · `banners/` แบนเนอร์แบรนด์ (ชื่อไฟล์ SEO)
+- `screenshot.png` — ภาพ preview ธีม FALCON
 - `readme.txt` — คู่มือผู้ใช้ (ภาษาไทย) สำหรับเจ้าของเว็บ
+- `inc/setup.php` — **`fenix_site_pages()`** (manifest ทุกเพจ: slug → template, ไฟล์เนื้อหา, กลุ่มเมนู) + `fenix_seed_articles()` + หน้า admin **รูปแบบ → FALCON Setup** (สร้างเพจที่ยังไม่มี, ตั้งหน้าแรก/หน้าบทความ, สร้างเมนู, นำเข้าบทความเป็นฉบับร่าง + รูปปก + meta Yoast)
+- `inc/content/pages/*.html`, `inc/content/articles/*.html` — เนื้อหาตั้งต้น (บรรทัดแรก `<!--meta {json} -->`) · สเปก/กติกาการเขียนอยู่ที่ `dev/content-spec.md`
+- `inc/shortcodes.php` — `[falcon_line]`, `[falcon_brand]`, `[falcon_broker]`, `[falcon_calc type="lot|drawdown"]`
+- `inc/seo.php` — FAQPage (หน้าแรก + ทุกเพจที่มี `details.faq-item`), SoftwareApplication (หน้าแรก/แพ็กเกจ), BreadcrumbList + favicon สำรอง (เมื่อไม่มีปลั๊กอิน SEO)
+- `inc/parts/ea-panel.php` — แผงควบคุม EA จำลองใน Hero (HTML ล้วน ไม่มีตัวเลขผลเทรด)
+- `template-guide.php` — หน้าคู่มือ/เอกสาร (สารบัญอัตโนมัติ + คู่มือที่เกี่ยวข้อง + บล็อกติดต่อ) · `template-go.php` — หน้าลิงก์รวม /go
 
 ## วิธีเพิ่ม setting ใหม่ (pattern ที่ต้องทำตาม)
 1. เพิ่ม default ใน `fenix_defaults()` (functions.php): `'my_key' => 'ค่าเริ่มต้น',`
@@ -57,36 +69,44 @@
    - รายการ (บรรทัดละ 1) → `fenix_lines()`
 - เพิ่ม **section** ใหม่: `$sections['fenix_xxx'] = array(...)` ก่อนบรรทัด `$priority = 10;`
 
-## Design tokens (style.css :root) — โทน FALCON (Light Minimal v2)
-- พื้น: `--void #FFFFFF` (พื้นเพจ), `--coal #F4F6F8` (section-alt / พื้นอ่อน), `--coal-2 #FFFFFF` (พื้นการ์ด), `--coal-3 #EDF0F3`
-- สีเน้น: `--ember #0C9384` (เทอร์คอยซ์หลัก = ปุ่ม/ลิงก์/ไฮไลต์, ใช้ทึบ ไม่ไล่สี), `--ember-deep #0A7C70` (hover), `--flare #0B8576` (ลิงก์/เน้น)
-- สีรอง: `--gold #5F6B77` (เทา/เงิน — เดิมคือทอง เปลี่ยนเป็นเทาเงินตามโทนใหม่)
-- ตัวอักษร: `--ink #14181E` (หัวข้อ/เนื้อหาเข้ม), `--ash #515A64` (body), `--ash-2 #6C757F` (รอง)
-- semantic: `--ok #1E9E73`, `--bad #D64545`, `--warn #B26C09` (ปรับให้เข้มพออ่านบนพื้นขาว), `--line-green #06C755` (ปุ่ม LINE เท่านั้น)
-- เส้นขอบ: `--border rgba(20,24,30,0.12)` (เส้นเข้มบางบนพื้นขาว), `--border-fire rgba(12,147,132,0.30)` (teal)
-- **สำคัญ**: `--grad-fire`/`--grad-text` ถูกทำให้เป็น **สีทึบ** (`var(--ember)` / `var(--ink)`) แล้ว — ทั้งธีม **ไม่มี gradient/glow/blur** เหลือเฉพาะ `mask-image` (fade ขอบแถบเลื่อน) เท่านั้น เวลาเพิ่มของใหม่ **ห้ามใส่ gradient/box-shadow แบบ glow** ให้ใช้สีทึบ + เส้นขอบบาง
-- **หมายเหตุ**: ชื่อ CSS var ยังเป็น `--ember`/`--flare`/`--gold`/`--void`/`--coal*` (คงชื่อเดิม เปลี่ยนเฉพาะ "ค่า") — `--void` ตอนนี้ = ขาว, `--ember` = เทอร์คอยซ์, `--gold` = เทาเงิน
+## Design tokens (style.css :root) — FALCON Banner theme v3
+- พื้น: ขาว `#FFFFFF` + เทาอ่อน `#F4F6F8` (`.section-alt`) + **ดำ** `--black #0B0D10` / `--black-2 #14171C` / `--black-3 #1E232A` (hero ทแยง, `.section-dark`, CTA, footer, page hero)
+- เขียว FALCON: `--ember #22C55E` (ปุ่ม/ไฮไลต์ ใช้ทึบ), `--ember-deep #16A34A` (hover / ตัวอักษรใหญ่บนขาว), `--flare #15803D` (ลิงก์/ข้อความเขียวบนขาว — ผ่าน AA), `--mint #4AF28E` (เขียวโลโก้ ใช้บนพื้นดำเท่านั้น)
+- **ตัวอักษรบนปุ่มเขียว = ดำเข้ม `--on-ember #06140B`** (ขาวบนเขียวไม่ผ่าน contrast) · บนพื้นดำใช้ `--on-black` / `--on-black-2`
+- ตัวอักษร: `--ink #0F1216`, `--ash #4B535C`, `--ash-2 #6C757F` · semantic: `--ok`, `--bad`, `--warn #B26C09`
+- เงา: อนุญาตเฉพาะเงานุ่มสีเทา `--shadow-soft` / `--shadow-lift` · **ห้าม gradient / glow สี** · มุมทแยงทำด้วย `clip-path` สีทึบ
+- คอมโพเนนต์: `.btn-fire` (เขียว), `.btn-dark`, `.btn-ghost`, `.ic-badge` (ไอคอนในวงกลมดำ), `.card` (ขาว มุม 18px เงานุ่ม), `.spaced` (อังกฤษเว้นระยะ — **ห้ามใช้กับข้อความไทย** สระ/วรรณยุกต์จะเพี้ยน)
+- เนื้อหายาว (`.guide-content` / `.entry-content`): `.callout--info|tip|warn`, `.checklist`, `.crosslist`, `.guide-steps`, `.table-wrap > .data-table`, `.faq-block > details.faq-item`, `.related-links`
+- สไตล์ v3 อยู่ **ท้าย style.css** (หัวข้อ 40–41 + บล็อก "v3 ·") เพื่อทับสไตล์เดิม — แก้ดีไซน์ให้แก้ที่ท้ายไฟล์
+- ชื่อ CSS var เดิม (`--ember`/`--flare`/`--gold`/`--void`/`--coal*`) คงไว้ เปลี่ยนเฉพาะค่า
 - ฟอนต์: **Noto Sans Thai** (display + body) จาก Google Fonts
-- การ์ด: พื้นขาว (`--card-bg #FFFFFF`) + เส้นขอบบาง 1px + มุมโค้งน้อย (`--radius 10px` / `--radius-lg 12px`) ไม่มีเงา
-- section: สลับ `.section` (ขาว) กับ `.section-alt` (เทาอ่อน `--coal`) + เส้นแบ่งบาง (`border-soft`)
-- ปุ่ม/ข้อความบนพื้นสี: ปุ่มเทอร์คอยซ์ (`.btn-fire`) ใช้ตัวอักษร **ขาว**, ปุ่ม LINE (`.btn-line`) เขียว + ตัวอักษรเขียวเข้ม `#03240F`
 
 ## เพจ & slug (สำคัญต่อการลิงก์)
-หน้าแรก = `front-page.php` เพจที่ต้องสร้างใน WP แล้วเลือก Template + ตั้ง slug ให้ตรง:
-| slug | Template |
-|------|----------|
-| `backtest` | FALCON — หน้า Backtest |
-| `forward-test` | FALCON — หน้า Forward Test |
-| `pricing` | FALCON — หน้า Pricing |
-| `how-to-install` | FALCON — หน้า How to Install |
-| `risk-disclosure` | FALCON — หน้า Risk Disclosure |
+แหล่งความจริงคือ `fenix_site_pages()` ใน `inc/setup.php` · เจ้าของเว็บกด **รูปแบบ → FALCON Setup → ตั้งค่าเว็บทั้งหมด** เพื่อสร้างเพจที่ขาด (ไม่แก้เพจที่มีอยู่ เว้นแต่ติ๊กเขียนทับ)
+| slug | Template | กลุ่ม |
+|------|----------|------|
+| `home` | front-page.php (ตั้งเป็นหน้าแรก) | hub |
+| `backtest` / `forward-test` | template-backtest.php / template-forward.php | test |
+| `how-to-install` | template-install.php | guide |
+| `open-mt5-account`, `mt5-login`, `vps-windows`, `vps-android`, `vps-ios`, `tools` | template-guide.php | guide |
+| `pricing` | template-pricing.php | pricing |
+| `risk-disclosure` | template-risk.php | doc |
+| `about` | template-guide.php | doc |
+| `privacy-policy`, `terms-of-use`, `data-deletion` | template-guide.php (สร้างเป็น **ฉบับร่าง** รอเจ้าของตรวจ) | doc |
+| `go` | template-go.php (หน้าลิงก์รวม) | hub |
+| `articles` | index.php (ตั้งเป็นหน้าบทความ) | hub |
 
+เมนู / footer / ดัชนีคู่มือ ดึงจาก manifest นี้ (`fenix_guide_links()`) — เพิ่มเพจคู่มือใหม่ = เพิ่มแถวใน manifest + ไฟล์ใน `inc/content/pages/`
 การ์ด hub บนหน้าแรกลิงก์ไป slug เหล่านี้ (แก้ URL ได้ที่ Customizer)
 **อย่าเปิดเพจเหล่านี้ด้วย Elementor** — จะทับการแสดงผลของ template
 
 ## ทดสอบก่อน commit
-- lint ทุกไฟล์ที่แก้ด้วย Laragon php: `& "C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe" -l <file>` (ต้อง "No syntax errors")
-- เช็ค render (ถ้าต้องการ): stub ฟังก์ชัน WP แล้ว require front-page.php / template-*.php ดูว่าไม่มี Fatal/Warning/Notice
+- lint ทุกไฟล์ที่แก้: PHP 8.4 (WinGet) `"C:/Users/THANAWUT HR/AppData/Local/Microsoft/WinGet/Packages/PHP.PHP.8.4_Microsoft.Winget.Source_8wekyb3d8bbwe/php.exe" -l <file>` (Laragon ไม่มีในเครื่องนี้แล้ว)
+- **พรีวิวในเบราว์เซอร์โดยไม่ต้องมี WordPress**: `.claude/launch.json` → `falcon-preview` (`php -S localhost:8765 dev/preview/router.php` + stub ใน `dev/preview/wp-stubs.php`)
+  - ทุก slug ใน manifest เปิดได้ เช่น `/`, `/vps-windows/`, `/go/`, `/articles/` · บทความ: `/article/<slug>/`
+  - ต้องเปิด extension: `-d extension_dir=<php>/ext -d extension=mbstring -d extension=gd`
+  - ค้นหา Fatal/Warning/Notice ในหน้าที่เรนเดอร์ก่อน commit
+- ตรวจ setting ครบ: `php -d extension=mbstring dev/check-settings.php`
 
 ## Deploy flow
 แก้โค้ด → `git commit` → `git push` → WP Pusher ดึงลงเว็บ FALCON (manual กด Update หรือเปิด Push-to-Deploy)
@@ -95,8 +115,12 @@
 - เว็บ FALCON เป็น WordPress คนละตัวกับ FENIX — WP Pusher / Customizer แยกขาดกัน
 
 ## เช็คลิสต์รีแบรนด์ที่ยัง "ค้าง" (ทำบนเว็บ/ไฟล์ก่อน go-live)
-- [ ] เปลี่ยนโลโก้: `assets/img/logo.png` + `assets/img/logo-128.png` เป็นโลโก้เหยี่ยว FALCON (หรืออัปผ่าน Customizer → Site Identity → Logo)
-- [ ] เปลี่ยน `screenshot.png` เป็นภาพ preview ของ FALCON
-- [ ] เปลี่ยนรูปขั้นตอนติดตั้ง `assets/img/install/step-0*.jpg` (ถ้าจอ/แบรนด์ต่างจาก FENIX)
+- [x] เปลี่ยนโลโก้ + wordmark + favicon + การ์ดแชร์ + `screenshot.png` เป็นของ FALCON
+- [ ] กด **FALCON Setup → ตั้งค่าเว็บทั้งหมด** บนเว็บจริง (หน้าย่อยบนเว็บจริงยัง 404)
+- [ ] ปิด "ขอให้ search engines ไม่ทำดัชนี" (ตั้งค่า → การอ่าน) + ตั้งลิงก์ถาวรเป็น Post name เมื่อพร้อมเปิดตัว
+- [ ] ตรวจ/กรอกเพจกฎหมาย (ค้นคำว่า "เจ้าของเว็บ:") แล้วกดเผยแพร่
+- [ ] ตรวจบทความฉบับร่างทีละบทความ แล้วทยอยเผยแพร่
+- [ ] ใส่ภาพหน้าจอจริงในหน้าคู่มือ (เปิดบัญชี / ล็อกอิน / VPS) ผ่าน editor
+- [ ] เปลี่ยนรูปขั้นตอนติดตั้ง `assets/img/install/step-0*.jpg` (ยังเป็นภาพจาก FENIX)
 - [ ] กรอกเนื้อหา/ราคา/ลิงก์ LINE จริงผ่าน Customizer
 - [ ] ใส่ตัวเลข Backtest/Forward จริง (ห้ามสมมติ)
