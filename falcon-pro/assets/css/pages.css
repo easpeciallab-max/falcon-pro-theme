@@ -1453,3 +1453,28 @@
 		padding: 26px 22px 22px;
 	}
 }
+
+/* เพจเอกสาร · บรรทัด Effective date / Version (หัวเอกสารกฎหมาย) + กล่องยอมรับท้ายหน้า */
+.doc-body .doc-meta {
+	margin: 0 0 22px;
+	padding: 10px 14px;
+	border-radius: 10px;
+	border: 1px solid var(--border);
+	background: #F4F6F8;
+	font-size: 0.82rem;
+	color: var(--ash-2);
+	letter-spacing: 0.02em;
+	text-transform: none;
+}
+
+.doc-body .doc-ack {
+	margin-top: 2.2em;
+	border-color: rgba(34, 197, 94, 0.35);
+	background: #EAF9F0;
+}
+
+.doc-body .doc-ack::before {
+	content: "✓";
+	background: var(--ember);
+	color: var(--on-ember);
+}
