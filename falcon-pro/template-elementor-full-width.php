@@ -6,6 +6,10 @@
  * @package falcon-pro
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 get_header();
 ?>
 

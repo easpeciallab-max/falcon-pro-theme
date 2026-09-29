@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'FALCON_VERSION', '2.0.0' );
+define( 'FALCON_VERSION', '3.0.0' );
 
 /* --------------------------------------------------------------
  * Theme setup
@@ -56,12 +56,27 @@ function fenix_assets() {
 
 	wp_enqueue_style(
 		'fenix-fonts',
-		'https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap',
+		get_template_directory_uri() . '/assets/css/fonts.css', // ฟอนต์ Noto Sans Thai แบบ self-host (ไม่โหลดจาก Google ก่อนยินยอมคุกกี้)
 		array(),
-		null
+		file_exists( get_template_directory() . '/assets/css/fonts.css' ) ? filemtime( get_template_directory() . '/assets/css/fonts.css' ) : FALCON_VERSION
 	);
 	wp_enqueue_style( 'fenix-style', get_stylesheet_uri(), array( 'fenix-fonts' ), $style_version );
 	wp_enqueue_script( 'fenix-main', get_template_directory_uri() . '/assets/js/main.js', array(), $script_version, true );
+
+	/* CSS/JS ของแต่ละโมดูล (assets/css/*.css, assets/js/*.js ยกเว้น main.js) · ไฟล์ที่ไม่มีจะถูกข้าม */
+	foreach ( fenix_asset_modules() as $fenix_module ) {
+		if ( ! fenix_asset_module_needed( $fenix_module ) ) {
+			continue;
+		}
+		$css = '/assets/css/' . $fenix_module . '.css';
+		if ( file_exists( get_template_directory() . $css ) ) {
+			wp_enqueue_style( 'fenix-' . $fenix_module, get_template_directory_uri() . $css, array( 'fenix-style' ), filemtime( get_template_directory() . $css ) );
+		}
+		$js = '/assets/js/' . $fenix_module . '.js';
+		if ( file_exists( get_template_directory() . $js ) ) {
+			wp_enqueue_script( 'fenix-' . $fenix_module . '-js', get_template_directory_uri() . $js, array( 'fenix-main' ), filemtime( get_template_directory() . $js ), true );
+		}
+	}
 	wp_localize_script(
 		'fenix-main',
 		'fenixLoadMore',
@@ -70,18 +85,39 @@ function fenix_assets() {
 			'nonce'   => wp_create_nonce( 'fenix_load_more' ),
 		)
 	);
-	if ( fenix_mod( 'ga_measurement_id' ) || fenix_mod( 'fb_pixel_id' ) ) {
-		wp_localize_script(
-			'fenix-main',
-			'fenixTracking',
-			array(
-				'ga'    => fenix_mod( 'ga_measurement_id' ),
-				'pixel' => fenix_mod( 'fb_pixel_id' ),
-			)
-		);
-	}
 }
 add_action( 'wp_enqueue_scripts', 'fenix_assets' );
+
+/**
+ * ลำดับโมดูล CSS/JS (โหลดหลัง style.css ตามลำดับนี้)
+ */
+function fenix_asset_modules() {
+	return apply_filters( 'fenix_asset_modules', array( 'components', 'chrome', 'home', 'guides', 'pages', 'go', 'consent' ) );
+}
+
+/**
+ * โหลด CSS/JS ของโมดูลเฉพาะหน้าที่ใช้ (ลด CSS ที่ไม่ได้ใช้ต่อหน้า) · แก้ได้ด้วยฟิลเตอร์ fenix_asset_module_needed
+ */
+function fenix_asset_module_needed( $module ) {
+	$is_go = is_page_template( 'template-go.php' );
+	switch ( $module ) {
+		case 'home':
+			$needed = is_front_page();
+			break;
+		case 'go':
+			$needed = $is_go;
+			break;
+		case 'guides':
+			$needed = is_page_template( 'template-guide.php' ) || is_page_template( 'template-install.php' );
+			break;
+		case 'chrome':
+			$needed = ! $is_go;
+			break;
+		default:
+			$needed = true;
+	}
+	return (bool) apply_filters( 'fenix_asset_module_needed', $needed, $module );
+}
 
 /* --------------------------------------------------------------
  * Builder compatibility
@@ -166,10 +202,35 @@ function fenix_body_classes( $classes ) {
 	if ( is_page() && fenix_is_elementor_page( get_queried_object_id() ) ) {
 		$classes[] = 'fenix-has-elementor';
 	}
+	if ( fenix_is_dark_mode() ) {
+		$classes[] = 'theme-dark';
+	}
 
 	return $classes;
 }
 add_filter( 'body_class', 'fenix_body_classes' );
+
+/**
+ * โหมดสีของเว็บ: 'dark' = โทนเข้มเป็นหลัก (#172125) · 'balanced' = ขาว/ดำสลับ
+ */
+function fenix_is_dark_mode() {
+	return 'balanced' !== fenix_mod( 'color_mode' );
+}
+
+/**
+ * คลาสโทนพื้นของ section · ในโหมดเข้ม section ตามรายการด้านล่างเป็นพื้นเข้ม (.is-dark)
+ * $alt = true → ใช้เฉดเข้มกว่า (สลับจังหวะ section ที่อยู่ติดกัน)
+ */
+function fenix_section_tone( $key, $alt = false ) {
+	if ( ! fenix_is_dark_mode() ) {
+		return '';
+	}
+	$light = array( 'gallery', 'install', 'faq', 'risk', 'assurance', 'longform', 'posts' );
+	if ( in_array( $key, $light, true ) ) {
+		return '';
+	}
+	return $alt ? ' is-dark is-dark-2' : ' is-dark';
+}
 
 /* --------------------------------------------------------------
  * Default content (ทุกค่าแก้ได้ในหน้า "ปรับแต่ง / Customize")
@@ -180,12 +241,13 @@ function fenix_defaults() {
 		return $d;
 	}
 
-	$install_assets = get_template_directory_uri() . '/assets/img/install/';
 	$banner_assets  = get_template_directory_uri() . '/assets/img/banners/';
 
 	$d = array(
 		/* ทั่วไป */
-		'line_url'        => '#',
+		'line_url'        => '',
+		'contact_fallback_text' => 'ดูช่องทางติดต่อทั้งหมด',
+		'color_mode'      => 'dark',
 		'wordmark_dark'   => '',
 		'wordmark_light'  => '',
 		'line_openchat_url'  => '',
@@ -220,7 +282,7 @@ function fenix_defaults() {
 		'contact_email'   => '',
 		'show_float_line' => false,
 		'float_line_text' => 'สอบถามทาง LINE',
-		'show_language_switcher' => true,
+		'show_language_switcher' => false,
 		'language_fallback_items' => "th|🇹🇭|TH|ไทย\nen|🇬🇧|EN|English\nzh|🇨🇳|ZH|中文\nfr|🇫🇷|FR|Français\nde|🇩🇪|DE|Deutsch\nru|🇷🇺|RU|Русский\nja|🇯🇵|JA|日本語\nko|🇰🇷|KO|한국어",
 
 		/* Mobile bottom bar */
@@ -600,22 +662,22 @@ function fenix_defaults() {
 			'install_req'       => "บัญชีเทรดของโบรกเกอร์ที่รองรับ MetaTrader 5\nโปรแกรม MetaTrader 5 (PC หรือ VPS)\nไฟล์ FALCON PRO EA ที่ได้รับหลังสั่งซื้อ\nแนะนำใช้ VPS เพื่อให้ระบบทำงานต่อเนื่อง 24 ชม.",
 			'inst_step1_title'  => 'ติดตั้ง MetaTrader 5 / เตรียม VPS',
 			'inst_step1_desc'   => 'ดาวน์โหลดและติดตั้ง MT5 จากโบรกเกอร์ของคุณ หากต้องการให้ระบบรันตลอด 24 ชม. แนะนำให้เช่า VPS แล้วติดตั้ง MT5 บน VPS แทนเครื่องส่วนตัว',
-			'inst_step1_img'    => $install_assets . 'step-01.jpg',
+			'inst_step1_img'    => '',
 			'inst_step2_title'  => 'เปิดโฟลเดอร์ Experts แล้วนำไฟล์ EA เข้า',
 			'inst_step2_desc'   => 'ใน MT5 ไปที่เมนู File → Open Data Folder → MQL5 → Experts จากนั้นวางไฟล์ FALCON PRO EA ลงในโฟลเดอร์นี้ แล้วปิด-เปิด MT5 หรือกด Refresh',
-			'inst_step2_img'    => $install_assets . 'step-02.jpg',
+			'inst_step2_img'    => '',
 			'inst_step3_title'  => 'ลาก EA ขึ้นกราฟและตั้งค่า',
 			'inst_step3_desc'   => 'เปิดกราฟคู่เงินที่ต้องการ แล้วลาก FALCON PRO EA จากหน้าต่าง Navigator ขึ้นกราฟ ตั้งค่าพารามิเตอร์ตามคำแนะนำ เช่น Lot และระดับความเสี่ยงให้เหมาะกับทุน',
-			'inst_step3_img'    => $install_assets . 'step-03.jpg',
+			'inst_step3_img'    => '',
 			'inst_step4_title'  => 'เปิด AutoTrading',
 			'inst_step4_desc'   => 'กดปุ่ม AutoTrading (Algo Trading) ด้านบนให้เป็นสีเขียว และตรวจสอบว่ามีไอคอนหน้ายิ้มมุมขวาบนของกราฟ แสดงว่า EA พร้อมทำงาน',
-			'inst_step4_img'    => $install_assets . 'step-04.jpg',
+			'inst_step4_img'    => '',
 			'inst_step5_title'  => 'ตรวจสอบการทำงานผ่าน Dashboard',
 			'inst_step5_desc'   => 'สังเกตสถานะระบบบนกราฟและแท็บ Experts/Journal ว่าทำงานปกติ ติดตามผลและเงื่อนไขการเทรดได้จาก Dashboard ของระบบ',
-			'inst_step5_img'    => $install_assets . 'step-05.jpg',
+			'inst_step5_img'    => '',
 			'inst_step6_title'  => 'ปรับความเสี่ยงให้เหมาะกับตัวเอง',
 			'inst_step6_desc'   => 'ทบทวนการตั้งค่าความเสี่ยงเป็นระยะ ใช้เงินเย็น และปรับ Lot ให้สอดคล้องกับทุน เพื่อให้ Drawdown อยู่ในระดับที่รับได้',
-			'inst_step6_img'    => $install_assets . 'step-06.jpg',
+			'inst_step6_img'    => '',
 			'install_note'      => 'ต้องการให้ทีมงานช่วยติดตั้งให้? ทักมาทาง LINE ได้เลย',
 
 			/* หน้า Pricing (เพิ่มเติม) */
@@ -626,7 +688,7 @@ function fenix_defaults() {
 			/* หน้า Risk Disclosure */
 			'riskpage_sub'     => 'ข้อมูลความเสี่ยงที่ควรอ่านก่อนเริ่มใช้งาน',
 			'riskpage_intro'   => 'โปรดอ่านและทำความเข้าใจข้อมูลความเสี่ยงต่อไปนี้อย่างละเอียดก่อนตัดสินใจใช้งาน FALCON PRO EA หรือทำการเทรดใด ๆ',
-			'riskpage_image'   => $install_assets . 'step-06.jpg',
+			'riskpage_image'   => '',
 			'riskpage_image_caption' => 'ตัวอย่างแนวทางตั้งค่าความเสี่ยงและ Lot Size ให้เหมาะสมกับทุน',
 			'rp_block1_title'  => 'ความเสี่ยงของการเทรด',
 			'rp_block1_text'   => 'การเทรด Forex, ทองคำ, CFD และสินทรัพย์ทางการเงินอื่น ๆ มีความเสี่ยงสูงต่อเงินทุนของคุณ ราคาอาจเคลื่อนไหวผันผวนรุนแรง คุณอาจสูญเสียเงินลงทุนบางส่วนหรือทั้งหมด จึงควรใช้เฉพาะเงินเย็นที่พร้อมรับความเสี่ยงได้',
@@ -686,6 +748,9 @@ function fenix_defaults() {
 			'blog_all_label' => 'ดูบทความทั้งหมด',
 		)
 	);
+
+	/* โมดูล (inc/modules/*.php) เพิ่มค่าเริ่มต้นของตัวเองผ่านฟิลเตอร์นี้ */
+	$d = apply_filters( 'fenix_defaults', $d );
 
 	return $d;
 }
@@ -781,27 +846,9 @@ function fenix_icon_badge( $name, $variant = 'dark' ) {
  * ชี้ไปยังหน้าย่อยตาม slug ที่แนะนำ (ปรับเมนูจริงได้ที่ รูปแบบ → เมนู)
  */
 function fenix_fallback_menu() {
-	$groups = array(
-		'การทดสอบ'       => array( '/backtest/', fenix_guide_links( array( 'test' ) ) ),
-		'คู่มือการใช้งาน' => array( '/how-to-install/', fenix_guide_links( array( 'guide' ) ) ),
-	);
-	echo '<ul class="nav-list">';
-	echo '<li' . ( is_front_page() ? ' class="current-menu-item"' : '' ) . '><a href="' . esc_url( home_url( '/' ) ) . '">หน้าแรก</a></li>';
-	foreach ( $groups as $label => $group ) {
-		echo '<li class="menu-item-has-children"><a href="' . esc_url( home_url( $group[0] ) ) . '">' . esc_html( $label ) . '</a><ul class="sub-menu">';
-		foreach ( $group[1] as $link ) {
-			echo '<li><a href="' . esc_url( $link['url'] ) . '">' . esc_html( $link['label'] ) . '</a></li>';
-		}
-		echo '</ul></li>';
+	if ( function_exists( 'fenix_chrome_fallback_menu' ) ) {
+		fenix_chrome_fallback_menu();
 	}
-	foreach ( array(
-		'/pricing/'  => 'แพ็กเกจ',
-		'/articles/' => 'บทความ',
-		'/go/'       => 'ติดต่อ',
-	) as $path => $label ) {
-		echo '<li><a href="' . esc_url( home_url( $path ) ) . '">' . esc_html( $label ) . '</a></li>';
-	}
-	echo '</ul>';
 }
 
 /**
@@ -819,10 +866,7 @@ function fenix_language_switcher() {
 	$plugin_markup = '';
 	$plugin_class  = '';
 
-	if ( shortcode_exists( 'gtranslate' ) ) {
-		$plugin_markup = do_shortcode( '[gtranslate]' );
-		$plugin_class  = ' language-switcher--gtranslate';
-	} elseif ( shortcode_exists( 'language-switcher' ) ) {
+	if ( shortcode_exists( 'language-switcher' ) ) {
 		$plugin_markup = do_shortcode( '[language-switcher]' );
 	} elseif ( function_exists( 'pll_the_languages' ) ) {
 		$plugin_markup = pll_the_languages(
@@ -981,7 +1025,7 @@ function fenix_results_pending( $type = 'backtest' ) {
 	<div class="results-pending reveal">
 		<?php echo fenix_icon_badge( 'backtest' === $type ? 'candles' : 'pulse' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 		<div>
-			<span class="card-label"><?php echo esc_html( 'backtest' === $type ? 'Backtest Status' : 'Forward Test Status' ); ?></span>
+			<span class="card-label"><?php echo esc_html( fenix_mod( 'results_pending_label' ) ? fenix_mod( 'results_pending_label' ) : ( 'backtest' === $type ? 'Backtest' : 'Forward Test' ) ); ?></span>
 			<h2><?php echo esc_html( fenix_mod( 'results_pending_title' ) ); ?></h2>
 			<p><?php echo esc_html( fenix_mod( 'results_pending_text' ) ); ?></p>
 		</div>
@@ -995,7 +1039,7 @@ function fenix_results_pending( $type = 'backtest' ) {
 function fenix_breadcrumbs( $title = '' ) {
 	$crumbs = array(
 		array(
-			'name' => 'หน้าแรก',
+			'name' => fenix_mod( 'nav_home_label' ) ? fenix_mod( 'nav_home_label' ) : 'หน้าแรก',
 			'url'  => home_url( '/' ),
 		),
 	);
@@ -1021,10 +1065,11 @@ function fenix_breadcrumbs( $title = '' ) {
 		$pages  = fenix_site_pages();
 		$group  = isset( $pages[ $slug ]['group'] ) ? $pages[ $slug ]['group'] : '';
 		$parent = array(
-			'test'  => array( 'การทดสอบ', '/backtest/' ),
-			'guide' => array( 'คู่มือการใช้งาน', '/how-to-install/' ),
+			'test'  => array( fenix_mod( 'nav_test_label' ) ? fenix_mod( 'nav_test_label' ) : 'การทดสอบ', '/backtest/' ),
+			'guide' => array( fenix_mod( 'nav_guide_label' ) ? fenix_mod( 'nav_guide_label' ) : 'คู่มือการใช้งาน', '/how-to-install/' ),
 		);
-		if ( isset( $parent[ $group ] ) && ! in_array( $slug, array( 'backtest', 'how-to-install' ), true ) ) {
+		// เมื่อมีปลั๊กอิน SEO: ให้ breadcrumb ที่มองเห็นตรงกับ BreadcrumbList ของปลั๊กอิน (ไม่ใส่ระดับกลุ่มที่ปลั๊กอินไม่รู้จัก)
+		if ( isset( $parent[ $group ] ) && ! in_array( $slug, array( 'backtest', 'how-to-install' ), true ) && ! ( function_exists( 'fenix_has_seo_plugin' ) && fenix_has_seo_plugin() ) ) {
 			$crumbs[] = array(
 				'name' => $parent[ $group ][0],
 				'url'  => home_url( $parent[ $group ][1] ),
@@ -1060,9 +1105,9 @@ function fenix_page_longform( $section_class = 'section' ) {
 		<div class="container">
 			<div class="longform-layout<?php echo count( $toc ) > 2 ? '' : ' longform-layout--solo'; ?>">
 				<?php if ( count( $toc ) > 2 ) : ?>
-					<aside class="longform-toc" aria-label="สารบัญ">
+					<aside class="longform-toc" aria-label="<?php echo esc_attr( fenix_mod( 'doc_toc_label' ) ? fenix_mod( 'doc_toc_label' ) : 'สารบัญ' ); ?>">
 						<details open>
-							<summary>สารบัญ</summary>
+							<summary><?php echo esc_html( fenix_mod( 'doc_toc_label' ) ? fenix_mod( 'doc_toc_label' ) : 'สารบัญ' ); ?></summary>
 							<ol>
 								<?php foreach ( $toc as $fenix_item ) : ?>
 									<li><a href="#<?php echo esc_attr( $fenix_item['id'] ); ?>"><?php echo esc_html( $fenix_item['text'] ); ?></a></li>
@@ -1084,50 +1129,21 @@ function fenix_page_longform( $section_class = 'section' ) {
  * บล็อกติดต่อทีมงาน (LINE OA / OpenChat / QR + สิ่งที่ทีมจะถาม) · ใช้ปิดท้ายทุกหน้าย่อย
  */
 function fenix_line_cta( $title = '', $sub = '' ) {
-	$title    = $title ? $title : fenix_mod( 'contact_title' );
-	$sub      = $sub ? $sub : fenix_mod( 'contact_text' );
-	$openchat = fenix_mod( 'line_openchat_url' );
-	$qr       = fenix_mod( 'line_qr_image' );
-	$ask      = fenix_lines( fenix_mod( 'footer_prep_items' ) );
+	/* โมดูล chrome (inc/modules/chrome.php) เป็นผู้วาดแถบติดต่อท้ายหน้า · ที่นี่แค่ส่งต่อ */
+	if ( has_action( 'fenix_line_cta' ) ) {
+		do_action( 'fenix_line_cta', $title, $sub );
+		return;
+	}
+	$title = $title ? $title : fenix_mod( 'contact_title' );
+	$sub   = $sub ? $sub : fenix_mod( 'contact_text' );
 	?>
-	<section class="section contact-block" id="cta">
-		<div class="container">
+	<section class="section contact-block<?php echo esc_attr( fenix_section_tone( 'contact', true ) ); ?>" id="cta">
+		<div class="container container-narrow">
 			<div class="contact-console reveal">
 				<div class="contact-main">
-					<span class="kicker">Contact</span>
 					<h2><?php echo esc_html( $title ); ?></h2>
 					<p><?php echo esc_html( $sub ); ?></p>
-					<div class="contact-actions">
-						<a class="btn btn-fire btn-lg" href="<?php echo esc_url( fenix_mod( 'line_url' ) ); ?>" target="_blank" rel="noopener" data-line-pos="page-cta">
-							<?php echo fenix_icon( 'line' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-							<?php echo esc_html( fenix_mod( 'footer_line_text' ) ); ?>
-							<?php echo fenix_icon( 'arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-						</a>
-						<?php if ( $openchat ) : ?>
-							<a class="btn btn-ghost btn-lg" href="<?php echo esc_url( $openchat ); ?>" target="_blank" rel="noopener" data-line-pos="page-cta-openchat">
-								<?php echo fenix_icon( 'chat' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-								<?php echo esc_html( fenix_mod( 'line_openchat_text' ) ); ?>
-							</a>
-						<?php endif; ?>
-					</div>
-				</div>
-				<div class="contact-side">
-					<?php if ( $qr ) : ?>
-						<figure class="contact-qr">
-							<img src="<?php echo esc_url( $qr ); ?>" alt="QR Code LINE Official Account" width="140" height="140" loading="lazy">
-							<figcaption>สแกนเพื่อเพิ่มเพื่อน</figcaption>
-						</figure>
-					<?php endif; ?>
-					<?php if ( $ask ) : ?>
-						<div class="contact-ask">
-							<h3><?php echo esc_html( fenix_mod( 'footer_prep_title' ) ); ?></h3>
-							<ol>
-								<?php foreach ( $ask as $fenix_item ) : ?>
-									<li><?php echo esc_html( $fenix_item ); ?></li>
-								<?php endforeach; ?>
-							</ol>
-						</div>
-					<?php endif; ?>
+					<div class="contact-actions"><?php fenix_contact_button( array( 'class' => 'btn btn-fire btn-lg', 'pos' => 'page-cta' ) ); ?></div>
 				</div>
 			</div>
 		</div>
@@ -1182,6 +1198,16 @@ function fenix_icon( $name, $class = 'icon' ) {
 		'apple'    => '<path d="M16.4 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9-.7 0-1.9-.9-3.1-.8-1.6 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3.1.7c1.3 0 2.1-1.1 2.8-2.3.9-1.3 1.3-2.6 1.3-2.6s-2.5-1-2.5-3.8zM14.1 5.8c.6-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.1 1.8-1 2.9 1.1.1 2.1-.6 2.8-1.4z"/>',
 		'android'  => '<path d="M6 10v6.5a1 1 0 0 0 1 1h1v3h2v-3h4v3h2v-3h1a1 1 0 0 0 1-1V10H6z"/><path d="M6.5 9a5.5 5.5 0 0 1 11 0z"/><path d="M8 4l1.5 2M16 4l-1.5 2"/>',
 		'external' => '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+		'image'    => '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M21 16l-5.5-5.5L6 20"/>',
+		'flask'    => '<path d="M9 3h6"/><path d="M10 3v6L4.8 18.2A1.8 1.8 0 0 0 6.4 21h11.2a1.8 1.8 0 0 0 1.6-2.8L14 9V3"/><path d="M7.5 15h9"/>',
+		'macos'    => '<rect x="3" y="4" width="18" height="12" rx="1.8"/><path d="M2 20h20"/>',
+		'users'    => '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 20a6.5 6.5 0 0 0-3-5.5"/>',
+		'terminal' => '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M12.5 15H17"/>',
+		'qr'       => '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/>',
+		'instagram' => '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="0.6"/>',
+		'tiktok'   => '<path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.5 2.6 2.3 4.3 5 4.5"/>',
+		'youtube'  => '<rect x="2.5" y="5.5" width="19" height="13" rx="4"/><path d="M10 9.5v5l4.5-2.5z"/>',
+		'dollar'   => '<path d="M12 2v20"/><path d="M17 6.5c-1-1.3-2.7-2-5-2-2.8 0-4.5 1.4-4.5 3.4 0 4.6 10 2.4 10 7.2 0 2-1.9 3.4-5 3.4-2.4 0-4.3-.8-5.3-2.3"/>',
 	);
 
 	// แบรนด์ไอคอน LINE (โลโก้จริง) · เป็น path แบบ fill ไม่ใช่ stroke จึง render แยก.
@@ -1221,112 +1247,7 @@ add_action(
 	}
 );
 
-/* --------------------------------------------------------------
- * Open Graph / Twitter meta (รูปแชร์ LINE/Facebook)
- * ปิดอัตโนมัติถ้ามีปลั๊ก SEO (Yoast/Rank Math) เพื่อไม่ให้แท็กซ้ำ
- * -------------------------------------------------------------- */
-function fenix_open_graph() {
-	$site        = get_bloginfo( 'name' );
-	$default_img = fenix_share_image();
 
-	if ( is_singular() ) {
-		$title = get_the_title();
-		$desc  = fenix_meta_description();
-		$url   = get_permalink();
-		$img   = get_the_post_thumbnail_url( get_the_ID(), 'full' );
-		if ( ! $img ) {
-			$img = $default_img;
-		}
-		$type = is_singular( 'post' ) ? 'article' : 'website';
-	} else {
-		$title = is_front_page() ? $site : wp_strip_all_tags( wp_get_document_title() );
-		$desc  = fenix_mod( 'og_default_description' );
-		$url   = home_url( '/' );
-		$img   = $default_img;
-		$type  = 'website';
-	}
-
-	$desc = trim( (string) $desc );
-
-	if ( '' !== $desc ) {
-		printf( '<meta name="description" content="%s">' . "\n", esc_attr( $desc ) );
-	}
-
-	$tags = array(
-		'og:site_name'   => $site,
-		'og:locale'      => get_locale(),
-		'og:type'        => $type,
-		'og:title'       => $title,
-		'og:description' => $desc,
-		'og:url'         => $url,
-		'og:image'       => $img,
-	);
-
-	foreach ( $tags as $property => $value ) {
-		if ( '' === (string) $value ) {
-			continue;
-		}
-		printf( '<meta property="%1$s" content="%2$s">' . "\n", esc_attr( $property ), esc_attr( $value ) );
-	}
-
-	if ( '' !== (string) $img ) {
-		printf( '<meta property="og:image:alt" content="%s">' . "\n", esc_attr( $title ) );
-	}
-
-	if ( 'article' === $type ) {
-		printf( '<meta property="article:published_time" content="%s">' . "\n", esc_attr( get_the_date( 'c' ) ) );
-		printf( '<meta property="article:modified_time" content="%s">' . "\n", esc_attr( get_the_modified_date( 'c' ) ) );
-	}
-
-	echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
-	printf( '<meta name="twitter:title" content="%s">' . "\n", esc_attr( $title ) );
-	if ( '' !== $desc ) {
-		printf( '<meta name="twitter:description" content="%s">' . "\n", esc_attr( $desc ) );
-	}
-	if ( '' !== (string) $img ) {
-		printf( '<meta name="twitter:image" content="%s">' . "\n", esc_attr( $img ) );
-		printf( '<meta name="twitter:image:alt" content="%s">' . "\n", esc_attr( $title ) );
-	}
-}
-if ( ! defined( 'WPSEO_VERSION' ) && ! class_exists( 'RankMath' ) && ! defined( 'SEOPRESS_VERSION' ) ) {
-	add_action( 'wp_head', 'fenix_open_graph', 5 );
-}
-
-/* --------------------------------------------------------------
- * Structured data: Organization + WebSite (ทั้งเว็บ) + FAQPage (หน้าแรก)
- * ปิดอัตโนมัติถ้ามีปลั๊ก SEO
- * -------------------------------------------------------------- */
-function fenix_schema_jsonld() {
-	$blocks = array();
-
-	$org = array(
-		'@context' => 'https://schema.org',
-		'@type'    => 'Organization',
-		'name'     => get_bloginfo( 'name' ),
-		'url'      => home_url( '/' ),
-		'logo'     => fenix_logo_url(),
-	);
-	if ( fenix_mod( 'facebook_url' ) ) {
-		$org['sameAs'] = array( fenix_mod( 'facebook_url' ) );
-	}
-	$blocks[] = $org;
-
-	$blocks[] = array(
-		'@context' => 'https://schema.org',
-		'@type'    => 'WebSite',
-		'name'     => get_bloginfo( 'name' ),
-		'url'      => home_url( '/' ),
-	);
-
-	/* FAQPage ย้ายไป inc/seo.php (ทำงานแม้มีปลั๊กอิน SEO) */
-
-	foreach ( $blocks as $fenix_block ) {
-		echo '<script type="application/ld+json">' . wp_json_encode( $fenix_block, JSON_UNESCAPED_UNICODE ) . '</script>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput
-	}
-}
-if ( ! defined( 'WPSEO_VERSION' ) && ! class_exists( 'RankMath' ) && ! defined( 'SEOPRESS_VERSION' ) ) {
-	add_action( 'wp_head', 'fenix_schema_jsonld', 6 );
-}
 
 /* --------------------------------------------------------------
  * Table of Contents · เก็บหัวข้อ H2/H3 จากเนื้อหาบทความ + ใส่ id ให้ลิงก์
@@ -1381,7 +1302,7 @@ function fenix_post_card() {
 	<article <?php post_class( 'post-card' ); ?>>
 		<?php if ( has_post_thumbnail() ) : ?>
 			<a class="post-card-thumb" href="<?php the_permalink(); ?>">
-				<?php the_post_thumbnail( 'medium_large', array( 'alt' => esc_attr( get_the_title() ) ) ); ?>
+				<?php the_post_thumbnail( 'medium_large', array( 'alt' => function_exists( 'fenix_pages_featured_alt' ) ? fenix_pages_featured_alt( get_the_ID() ) : get_the_title() ) ); ?>
 				<?php if ( $cat ) : ?>
 					<span class="post-card-cat"><?php echo esc_html( $cat->name ); ?></span>
 				<?php endif; ?>
@@ -1389,7 +1310,7 @@ function fenix_post_card() {
 		<?php endif; ?>
 		<div class="post-card-body">
 			<span class="post-meta"><?php echo esc_html( get_the_date() ); ?></span>
-			<h2><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
+			<h3><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
 			<p><?php echo esc_html( wp_trim_words( get_the_excerpt(), 22 ) ); ?></p>
 			<span class="post-card-more">อ่านต่อ <?php echo fenix_icon( 'arrow', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
 		</div>
@@ -1457,7 +1378,13 @@ add_action( 'wp_ajax_nopriv_fenix_load_more', 'fenix_load_more' );
 /* --------------------------------------------------------------
  * Customizer
  * -------------------------------------------------------------- */
+require get_template_directory() . '/inc/components.php';
 require get_template_directory() . '/inc/customizer.php';
 require get_template_directory() . '/inc/setup.php';
 require get_template_directory() . '/inc/shortcodes.php';
 require get_template_directory() . '/inc/seo.php';
+
+/* โมดูลเพิ่มเติม (หน้าแรก, header/footer, คู่มือ, หน้าย่อย, /go, คุกกี้ ฯลฯ) · โหลดตามลำดับชื่อไฟล์ */
+foreach ( (array) glob( get_template_directory() . '/inc/modules/*.php' ) as $fenix_module_file ) {
+	require $fenix_module_file;
+}

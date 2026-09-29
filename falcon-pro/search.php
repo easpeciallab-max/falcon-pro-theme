@@ -1,44 +1,41 @@
 <?php
 /**
- * Search results (หน้าผลการค้นหา)
+ * หน้าผลการค้นหา
+ *
+ * โครง: หัวเพจ (คำค้น) → แถบจำนวนผล + ค้นหาอีกครั้ง → การ์ดบทความ + โหลดเพิ่ม
+ *       ไม่พบผล: ข้อความแนะนำ + รายการคู่มือพร้อมคำอธิบาย (เฉพาะเพจที่เผยแพร่แล้ว)
  *
  * @package falcon-pro
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 get_header();
 
 $fenix_found = (int) $GLOBALS['wp_query']->found_posts;
+$fenix_has   = have_posts();
+$fenix_query = get_search_query();
+
+fenix_page_hero( '', fenix_mod( 'search_title' ) . ( '' !== $fenix_query ? ': “' . $fenix_query . '”' : '' ) );
 ?>
 
-<main id="main">
+<main id="main" class="search-page">
 
-	<div class="page-hero archive-hero">
+	<div class="search-bar">
 		<div class="container">
-
-			<nav class="breadcrumb breadcrumb-center" aria-label="เส้นทางนำทาง">
-				<a href="<?php echo esc_url( home_url( '/' ) ); ?>">หน้าแรก</a>
-				<span class="breadcrumb-sep" aria-hidden="true">›</span>
-				<span class="breadcrumb-current">ค้นหา</span>
-			</nav>
-
-			<h1>ผลการค้นหา: “<?php echo esc_html( get_search_query() ); ?>”</h1>
-
 			<?php if ( $fenix_found ) : ?>
-				<p class="archive-count"><?php echo esc_html( 'พบ ' . number_format_i18n( $fenix_found ) . ' ผลลัพธ์' ); ?></p>
+				<p class="archive-count"><?php echo esc_html( fenix_pages_count_text( 'search_count_text', $fenix_found ) ); ?></p>
 			<?php endif; ?>
-
-			<form class="error-search search-hero-form" role="search" method="get" action="<?php echo esc_url( home_url( '/' ) ); ?>">
-				<input type="search" name="s" placeholder="ค้นหาอีกครั้ง…" aria-label="ค้นหา" spellcheck="false" autocomplete="off" value="<?php echo esc_attr( get_search_query() ); ?>">
-				<button type="submit" aria-label="ค้นหา"><?php echo fenix_icon( 'arrow', 'icon' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
-			</form>
-
+			<?php fenix_pages_search_form( fenix_mod( 'search_placeholder' ), 'error-search search-bar-form' ); ?>
 		</div>
 	</div>
 
 	<div class="posts-wrap">
 		<div class="container">
 
-			<?php if ( have_posts() ) : ?>
+			<?php if ( $fenix_has ) : ?>
 
 				<div class="posts-grid">
 					<?php
@@ -49,32 +46,18 @@ $fenix_found = (int) $GLOBALS['wp_query']->found_posts;
 					?>
 				</div>
 
-				<?php if ( $GLOBALS['wp_query']->max_num_pages > 1 ) : ?>
-					<div class="load-more">
-						<button type="button" class="btn btn-ghost load-more-btn"
-							data-page="<?php echo esc_attr( (string) max( 1, (int) get_query_var( 'paged' ) ) ); ?>"
-							data-max="<?php echo esc_attr( (string) (int) $GLOBALS['wp_query']->max_num_pages ); ?>"
-							data-query="<?php echo esc_attr( wp_json_encode( $GLOBALS['wp_query']->query ) ); ?>">
-							โหลดเพิ่ม
-						</button>
-					</div>
-					<noscript>
-						<div class="pagination">
-							<?php
-							echo paginate_links( // phpcs:ignore WordPress.Security.EscapeOutput
-								array(
-									'prev_text' => '&larr; ก่อนหน้า',
-									'next_text' => 'ถัดไป &rarr;',
-								)
-							);
-							?>
-						</div>
-					</noscript>
-				<?php endif; ?>
+				<?php fenix_pages_load_more(); ?>
 
 			<?php else : ?>
 
-				<p class="no-posts">ไม่พบบทความที่ตรงกับ “<?php echo esc_html( get_search_query() ); ?>” ลองค้นด้วยคำอื่นดูครับ</p>
+				<?php $fenix_guides = fenix_pages_guide_items(); ?>
+				<div class="articles-empty">
+					<p class="no-posts"><?php echo fenix_icon( 'book', 'icon' ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo esc_html( fenix_mod( 'search_empty_text' ) ); ?></span></p>
+					<?php if ( $fenix_guides ) : ?>
+						<h2 class="guide-more-title"><?php echo fenix_text( fenix_mod( 'articles_guides_title' ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?></h2>
+						<?php fenix_pages_guide_grid( $fenix_guides ); ?>
+					<?php endif; ?>
+				</div>
 
 			<?php endif; ?>
 

@@ -1,0 +1,601 @@
+/* ==========================================================
+   FALCON PRO EA · PDPA consent card
+   HTML: inc/modules/consent.php · พฤติกรรม: assets/js/consent.js
+
+   - พื้น #1D2A2F โค้ง 20px เส้นบาง 1px เงาสีเทาดำแบบนุ่ม · ไม่ใช้ gradient และไม่มีแสงเรือง
+   - ไม่ครอบหน้าเว็บด้วยม่านมืด ผู้เข้าชมยังเลื่อนอ่านได้ · หน้าแรกของการ์ดให้ปุ่มปฏิเสธและยอมรับหน้าตาเหมือนกัน
+   - เดสก์ท็อปลอยซ้ายล่าง เว้นฝั่งขวาไว้ให้ปุ่ม LINE · มือถือกว้างเต็มจอ อยู่เหนือแถบเมนูล่าง
+     (consent.js วัดตำแหน่งแถบจริงแล้วส่งเป็น --consent-dock)
+   - ชั้น z-index 125 = สูงกว่าแถบล่าง 120 และปุ่ม LINE 90/95 แต่ต่ำกว่า header 130 ที่ถือเมนูมือถือ
+   ========================================================== */
+
+.consent {
+	--consent-bg: var(--black-2, #1D2A2F);
+	--consent-inset: var(--black, #172125);
+	--consent-raise: var(--black-3, #25343A);
+	--consent-text: var(--on-black, #EEF3F4);
+	--consent-muted: var(--on-black-2, #A3B3B8);
+	--consent-line: var(--border-dark, rgba(255, 255, 255, 0.10));
+	--consent-edge: rgba(255, 255, 255, 0.14);
+	--consent-line-strong: rgba(255, 255, 255, 0.2);
+	--consent-accent: var(--mint, #4AF28E);
+	--consent-green: var(--ember, #22C55E);
+	--consent-green-deep: var(--ember-deep, #16A34A);
+	--consent-on-green: var(--on-ember, #06140B);
+
+	position: fixed;
+	left: 24px;
+	bottom: 24px;
+	z-index: 125;
+	display: flex;
+	flex-direction: column;
+	width: min(460px, calc(100vw - 48px));
+	max-height: calc(100vh - var(--header-h, 78px) - 40px);
+	max-height: calc(100dvh - var(--header-h, 78px) - 40px);
+	padding: 20px 20px 18px;
+	border: 1px solid var(--consent-edge);
+	border-radius: 20px;
+	background: var(--consent-bg);
+	color: var(--consent-text);
+	box-shadow: 0 2px 6px rgba(6, 12, 14, 0.18), 0 22px 48px rgba(6, 12, 14, 0.32);
+	font-family: var(--font-body, "Noto Sans Thai", sans-serif);
+	font-size: 1rem;
+	font-weight: 400;
+	line-height: 1.6;
+	text-align: left;
+}
+
+.consent[hidden],
+.consent [hidden] {
+	display: none !important;
+}
+
+/* ---------- หัวการ์ด ---------- */
+.consent-head {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex: 0 0 auto;
+	padding-right: 40px;
+	margin-bottom: 12px;
+}
+
+.consent-badge {
+	display: inline-grid;
+	place-items: center;
+	flex: 0 0 auto;
+	width: 42px;
+	height: 42px;
+	border-radius: 50%;
+	background: var(--consent-green);
+	color: var(--consent-on-green);
+}
+
+.consent-badge .icon {
+	width: 21px;
+	height: 21px;
+}
+
+.consent-head-text {
+	min-width: 0;
+}
+
+.consent .consent-kicker {
+	margin: 0 0 2px;
+	color: var(--consent-accent);
+	font-size: 0.74rem;
+	font-weight: 600;
+	line-height: 1.4;
+	letter-spacing: 0.04em;
+}
+
+.consent .consent-title {
+	margin: 0;
+	color: var(--consent-text);
+	font-family: var(--font-display, "Noto Sans Thai", sans-serif);
+	font-size: 1.06rem;
+	font-weight: 600;
+	line-height: 1.45;
+	letter-spacing: 0.01em;
+	text-wrap: balance;
+}
+
+/* หัวข้อรับโฟกัสจากสคริปต์เท่านั้น (tabindex -1) ให้โปรแกรมอ่านจอเริ่มอ่านที่นี่ · ไม่ใช่ปุ่มจึงไม่ต้องมีกรอบโฟกัส */
+.consent .consent-title:focus,
+.consent .consent-title:focus-visible {
+	outline: none;
+}
+
+/* ---------- เนื้อหา (เลื่อนได้เมื่อสูงเกินจอ · หัวและปุ่มค้างไว้) ---------- */
+.consent-body {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	margin: 0 -6px;
+	padding: 0 6px;
+	scrollbar-width: thin;
+	scrollbar-color: var(--consent-raise) transparent;
+}
+
+.consent .consent-text,
+.consent .consent-note {
+	margin: 0 0 12px;
+	color: var(--consent-muted);
+	font-size: 0.9rem;
+	font-weight: 400;
+	line-height: 1.7;
+}
+
+.consent .consent-note:last-child {
+	margin-bottom: 4px;
+}
+
+.consent-note--none {
+	padding: 10px 12px;
+	border: 1px solid var(--consent-line);
+	border-radius: 12px;
+	background: var(--consent-inset);
+}
+
+.consent a {
+	color: var(--consent-accent);
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3px;
+}
+
+.consent a:hover {
+	color: #FFFFFF;
+}
+
+.consent .consent-policy {
+	white-space: nowrap;
+}
+
+/* ---------- หมวดคุกกี้ ---------- */
+.consent-cats {
+	display: grid;
+	gap: 10px;
+	margin: 0 0 12px;
+	padding: 0;
+	list-style: none;
+}
+
+.consent-cat {
+	padding: 12px 12px 12px 14px;
+	border: 1px solid var(--consent-line);
+	border-radius: 14px;
+	background: var(--consent-inset);
+}
+
+.consent-cat-row {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 12px;
+}
+
+.consent-cat-icon {
+	display: inline-grid;
+	place-items: center;
+	width: 34px;
+	height: 34px;
+	border-radius: 50%;
+	background: rgba(74, 242, 142, 0.1);
+	color: var(--consent-accent);
+	align-self: start;
+}
+
+.consent-cat-icon .icon {
+	width: 17px;
+	height: 17px;
+}
+
+.consent .consent-cat-name {
+	margin: 0 0 2px;
+	color: var(--consent-text);
+	font-family: var(--font-display, "Noto Sans Thai", sans-serif);
+	font-size: 0.93rem;
+	font-weight: 600;
+	line-height: 1.45;
+}
+
+.consent .consent-cat-desc {
+	margin: 0;
+	color: var(--consent-muted);
+	font-size: 0.82rem;
+	line-height: 1.6;
+}
+
+.consent-always {
+	display: inline-flex;
+	align-items: center;
+	padding: 4px 10px;
+	border: 1px solid rgba(74, 242, 142, 0.3);
+	border-radius: 999px;
+	background: rgba(74, 242, 142, 0.08);
+	color: var(--consent-accent);
+	font-size: 0.72rem;
+	font-weight: 600;
+	line-height: 1.3;
+	white-space: nowrap;
+}
+
+/* สวิตช์เปิด/ปิดหมวด · input จริงโปร่งใสวางทับทั้งกล่อง เป้ากดใหญ่พอสำหรับนิ้ว · เริ่มต้นเป็นปิด */
+.consent-switch {
+	position: relative;
+	display: inline-grid;
+	place-items: center;
+	width: 52px;
+	height: 44px;
+	margin: -6px -4px -6px 0;
+	cursor: pointer;
+}
+
+.consent-switch input {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	opacity: 0;
+	cursor: pointer;
+}
+
+.consent-track {
+	position: relative;
+	width: 46px;
+	height: 26px;
+	border: 1px solid var(--consent-line-strong);
+	border-radius: 999px;
+	background: var(--consent-raise);
+	transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.consent-track::after {
+	content: "";
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	background: var(--consent-muted);
+	transition: transform 0.18s ease, background-color 0.18s ease;
+}
+
+.consent-switch input:checked + .consent-track {
+	border-color: var(--consent-green);
+	background: var(--consent-green);
+}
+
+.consent-switch input:checked + .consent-track::after {
+	transform: translateX(20px);
+	background: #FFFFFF;
+}
+
+.consent-switch input:focus-visible + .consent-track {
+	outline: 2px solid var(--consent-accent);
+	outline-offset: 3px;
+}
+
+/* รายละเอียดคุกกี้ของแต่ละหมวด */
+.consent-more {
+	margin: 8px 0 0 46px;
+}
+
+.consent-more summary {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 32px;
+	color: var(--consent-accent);
+	font-size: 0.8rem;
+	font-weight: 600;
+	cursor: pointer;
+	list-style: none;
+	border-radius: 6px;
+}
+
+.consent-more summary::-webkit-details-marker {
+	display: none;
+}
+
+.consent-more-icon {
+	width: 14px;
+	height: 14px;
+	transform: rotate(90deg);
+	transition: transform 0.18s ease;
+}
+
+.consent-more[open] .consent-more-icon {
+	transform: rotate(-90deg);
+}
+
+.consent-detail-list {
+	margin: 6px 0 0;
+	padding: 4px 12px;
+	border: 1px solid var(--consent-line);
+	border-radius: 10px;
+	background: var(--consent-bg);
+	list-style: none;
+}
+
+.consent-detail-list li {
+	padding: 7px 0;
+	color: var(--consent-muted);
+	font-size: 0.78rem;
+	line-height: 1.6;
+}
+
+.consent-detail-list li + li {
+	border-top: 1px solid var(--consent-line);
+}
+
+.consent .consent-code {
+	display: inline-block;
+	padding: 0 6px;
+	border-radius: 6px;
+	background: rgba(74, 242, 142, 0.1);
+	color: var(--consent-accent);
+	font-family: inherit;
+	font-size: 0.95em;
+	font-weight: 600;
+	line-height: 1.5;
+	word-break: break-all;
+}
+
+/* ---------- ปุ่ม ---------- */
+.consent-actions {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: 10px;
+	flex: 0 0 auto;
+	margin-top: 14px;
+}
+
+.consent .consent-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-width: 0;
+	min-height: 46px;
+	margin: 0;
+	padding: 10px 16px;
+	border: 1px solid var(--consent-green);
+	border-radius: 999px;
+	background: var(--consent-green);
+	color: var(--consent-on-green);
+	font-family: var(--font-display, "Noto Sans Thai", sans-serif);
+	font-size: 0.92rem;
+	font-weight: 600;
+	line-height: 1.3;
+	letter-spacing: 0.01em;
+	text-align: center;
+	white-space: normal;
+	cursor: pointer;
+	transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.consent .consent-btn--save,
+.consent .consent-btn--ok,
+.consent .consent-btn--link {
+	grid-column: 1 / -1;
+}
+
+/* หน้าเลือกทีละหมวด: "บันทึกตัวเลือก" เป็นปุ่มหลัก · ยอมรับ/ปฏิเสธทั้งหมดเป็นปุ่มรองเท่ากัน */
+.consent[data-view="prefs"] .consent-btn--choice {
+	border-color: var(--consent-line-strong);
+	background: transparent;
+	color: var(--consent-text);
+}
+
+.consent .consent-btn--link {
+	justify-self: center;
+	min-height: 40px;
+	padding: 6px 12px;
+	border-color: transparent;
+	background: transparent;
+	color: var(--consent-text);
+	font-weight: 500;
+	text-decoration: underline;
+	text-decoration-color: var(--consent-line-strong);
+	text-underline-offset: 4px;
+}
+
+.consent .consent-btn--link .icon {
+	width: 15px;
+	height: 15px;
+	color: var(--consent-accent);
+}
+
+.consent .consent-btn:focus-visible,
+.consent .consent-close:focus-visible,
+.consent .consent-more summary:focus-visible,
+.consent a:focus-visible {
+	outline: 2px solid var(--consent-accent);
+	outline-offset: 2px;
+}
+
+.consent .consent-btn:active {
+	transform: translateY(1px);
+}
+
+/* ---------- ปุ่มปิด ---------- */
+.consent .consent-close {
+	position: absolute;
+	top: 14px;
+	right: 14px;
+	display: inline-grid;
+	place-items: center;
+	width: 38px;
+	height: 38px;
+	margin: 0;
+	padding: 0;
+	border: 1px solid var(--consent-line);
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.04);
+	color: var(--consent-muted);
+	cursor: pointer;
+	transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.consent-close .icon {
+	width: 16px;
+	height: 16px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.consent .consent-btn:hover {
+		border-color: var(--consent-green-deep);
+		background: var(--consent-green-deep);
+		color: var(--consent-on-green);
+	}
+
+	.consent[data-view="prefs"] .consent-btn--choice:hover {
+		border-color: var(--consent-accent);
+		background: transparent;
+		color: var(--consent-accent);
+	}
+
+	.consent .consent-btn--link:hover {
+		border-color: transparent;
+		background: transparent;
+		color: #FFFFFF;
+		text-decoration-color: var(--consent-accent);
+	}
+
+	.consent .consent-close:hover {
+		border-color: var(--consent-line-strong);
+		background: rgba(255, 255, 255, 0.1);
+		color: #FFFFFF;
+	}
+
+	.consent-more summary:hover {
+		color: #FFFFFF;
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.consent:not([hidden]) {
+		animation: fenix-consent-in 0.22s ease-out both;
+	}
+
+	@keyframes fenix-consent-in {
+		from {
+			opacity: 0;
+			transform: translateY(12px);
+		}
+
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.consent-track,
+	.consent-track::after,
+	.consent-more-icon,
+	.consent .consent-btn {
+		transition: none;
+	}
+}
+
+/* ---------- แท็บเล็ต / มือถือ ---------- */
+@media (max-width: 760px) {
+	.consent {
+		left: 10px;
+		right: 10px;
+		bottom: max(calc(10px + env(safe-area-inset-bottom)), calc(var(--consent-dock, 0px) + 8px));
+		width: auto;
+		max-height: calc(100vh - var(--consent-dock, 0px) - var(--header-h, 78px) - 24px);
+		max-height: calc(100dvh - var(--consent-dock, 0px) - var(--header-h, 78px) - 24px);
+		padding: 16px 16px 14px;
+		border-radius: 18px;
+	}
+
+	.consent-head {
+		margin-bottom: 10px;
+	}
+
+	.consent-badge {
+		width: 36px;
+		height: 36px;
+	}
+
+	.consent-badge .icon {
+		width: 18px;
+		height: 18px;
+	}
+
+	.consent .consent-title {
+		font-size: 1rem;
+	}
+
+	.consent .consent-text,
+	.consent .consent-note {
+		margin-bottom: 10px;
+		font-size: 0.86rem;
+		line-height: 1.65;
+	}
+
+	.consent .consent-close {
+		top: 12px;
+		right: 12px;
+	}
+
+	.consent-actions {
+		gap: 8px;
+		margin-top: 12px;
+	}
+
+	.consent .consent-btn {
+		min-height: 44px;
+		padding: 9px 12px;
+		font-size: 0.88rem;
+	}
+}
+
+@media (max-width: 640px) {
+	.consent-cat {
+		padding: 11px 10px 11px 12px;
+	}
+
+	.consent-cat-row {
+		gap: 10px;
+	}
+
+	.consent-cat-icon {
+		width: 30px;
+		height: 30px;
+	}
+
+	.consent-more {
+		margin-left: 40px;
+	}
+}
+
+@media (max-width: 380px) {
+	.consent-cat-icon {
+		display: none;
+	}
+
+	.consent-cat-row {
+		grid-template-columns: minmax(0, 1fr) auto;
+	}
+
+	.consent-more {
+		margin-left: 0;
+	}
+}
+
+@media print {
+	.consent {
+		display: none !important;
+	}
+}

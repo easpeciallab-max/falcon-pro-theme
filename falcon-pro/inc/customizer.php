@@ -16,6 +16,27 @@ function fenix_sanitize_checkbox( $checked ) {
 	return ( isset( $checked ) && true === (bool) $checked );
 }
 
+/**
+ * ลิงก์ที่รับได้ทั้ง /slug/, #anchor และ URL เต็ม (ไม่ตัด %XX) · ใช้กับฟิลด์ชนิด 'path'
+ */
+function fenix_sanitize_path( $value ) {
+	$value = trim( (string) $value );
+	if ( '' === $value ) {
+		return '';
+	}
+	if ( preg_match( '#^(https?:)?//#i', $value ) || preg_match( '#^(mailto|tel):#i', $value ) ) {
+		return esc_url_raw( $value );
+	}
+	if ( '#' === $value[0] || '/' === $value[0] ) {
+		return preg_replace( '/[\x00-\x1F\x7F<>"\'\\\\]/', '', $value );
+	}
+	return sanitize_text_field( $value );
+}
+
+function fenix_sanitize_color_mode( $value ) {
+	return in_array( $value, array( 'dark', 'balanced' ), true ) ? $value : 'dark';
+}
+
 function fenix_sanitize_pricing_mode( $value ) {
 	return in_array( $value, array( 'price', 'contact' ), true ) ? $value : 'contact';
 }
@@ -45,6 +66,7 @@ function fenix_customize_register( $wp_customize ) {
 			'title'       => '1) ช่องทางติดต่อ (สำคัญ ตั้งค่าก่อน)',
 			'description' => 'ลิงก์ LINE จะถูกใช้กับปุ่มทุกปุ่มบนเว็บโดยอัตโนมัติ',
 			'fields'      => array(
+				'color_mode'      => array( 'โหมดสีของเว็บ', 'radio', array( 'dark' => 'โทนเข้มเป็นหลัก (#172125)', 'balanced' => 'ขาว/ดำสลับกัน' ) ),
 				'line_url'        => array( 'ลิงก์ LINE OA', 'url', 'เช่น https://lin.ee/xxxxx หรือ https://line.me/R/ti/p/@xxxxx' ),
 				'facebook_url'    => array( 'ลิงก์ Facebook Page (ถ้ามี)', 'url' ),
 				'contact_email'   => array( 'อีเมลติดต่อ (ถ้ามี)', 'text' ),
@@ -652,6 +674,9 @@ function fenix_customize_register( $wp_customize ) {
 		),
 	);
 
+	/* โมดูล (inc/modules/*.php) เพิ่ม section ของตัวเองผ่านฟิลเตอร์นี้ */
+	$sections = apply_filters( 'fenix_customizer_sections', $sections, $d );
+
 	$priority = 10;
 
 	foreach ( $sections as $section_id => $section ) {
@@ -681,11 +706,15 @@ function fenix_customize_register( $wp_customize ) {
 				case 'image':
 					$sanitize = 'esc_url_raw';
 					break;
+				case 'path':
+					$sanitize = 'fenix_sanitize_path';
+					$type     = 'text';
+					break;
 				case 'textarea':
 					$sanitize = 'sanitize_textarea_field';
 					break;
 				case 'radio':
-					$sanitize = 'fenix_sanitize_pricing_mode';
+					$sanitize = 'color_mode' === $field_id ? 'fenix_sanitize_color_mode' : 'fenix_sanitize_pricing_mode';
 					break;
 				default:
 					$sanitize = 'sanitize_text_field';

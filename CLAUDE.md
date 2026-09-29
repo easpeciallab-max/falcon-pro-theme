@@ -58,7 +58,15 @@
 - `inc/shortcodes.php` — `[falcon_line]`, `[falcon_brand]`, `[falcon_broker]`, `[falcon_calc type="lot|drawdown"]`
 - `inc/seo.php` — FAQPage (หน้าแรก + ทุกเพจที่มี `details.faq-item`), SoftwareApplication (หน้าแรก/แพ็กเกจ), BreadcrumbList + favicon สำรอง (เมื่อไม่มีปลั๊กอิน SEO)
 - `inc/parts/ea-panel.php` — แผงควบคุม EA จำลองใน Hero (HTML ล้วน ไม่มีตัวเลขผลเทรด)
-- `template-guide.php` — หน้าคู่มือ/เอกสาร (สารบัญอัตโนมัติ + คู่มือที่เกี่ยวข้อง + บล็อกติดต่อ) · `template-go.php` — หน้าลิงก์รวม /go
+- `template-guide.php` — หน้าคู่มือ (ขั้นตอน + ช่องรูป + เช็กลิสต์ + เนื้อหายาว + คู่มือที่เกี่ยวข้อง) · `template-go.php` — หน้าลิงก์รวม /go แบบ**หน้าเดี่ยว** (ไม่มี header/footer/dock แต่มี wp_head/wp_footer จึงยังมีการ์ดคุกกี้) · `page.php` — เพจเอกสาร (about/privacy/terms/data-deletion)
+
+### สถาปัตยกรรม v3 (โมดูล) · โครงตาม ea2000 ลุค FALCON
+- `inc/components.php` — ส่วนประกอบกลาง: `fenix_has_line_url()`, `fenix_contact_target()`/`fenix_contact_button()` (LINE → /go/ ที่เผยแพร่ → ซ่อนปุ่ม · **ห้ามมีปุ่มชี้ `#`**), `fenix_text()`, `fenix_rich_text()` (textarea → HTML: ย่อหน้า, `- ` รายการ, `1. ` ลำดับ, `### ` h3, ` | ` ตาราง, `[ข้อความ](/slug/)` ลิงก์ภายใน), `fenix_page_sections()`, `fenix_media_slot()`/`fenix_media_fields()` (ช่องรูป `{key}_img/_img_mobile/_img_alt/_img_caption/_img_note` · ไม่มีรูป = คนทั่วไปไม่เห็น แอดมินเห็นกรอบเส้นประ), `fenix_chapter_head()`
+- `inc/modules/*.php` — **auto-require ทุกไฟล์** (glob) · โมดูลเพิ่ม default ผ่านฟิลเตอร์ `fenix_defaults` และ section ผ่าน `fenix_customizer_sections` · โมดูล = `home` (หน้าแรก 9 บท + rail), `chrome` (header/footer launch console/dock/CTA band `fenix_line_cta` hook), `consent` (คุกกี้ PDPA 3 หมวด, cookie `fenix_consent` มีเลขรุ่น), `guides` (คู่มือ 5 หน้า + install: ข้อมูลใน Customizer ตาม prefix `fenix_guide_map()`), `pages` (backtest/forward/pricing/risk/docs/articles/single/404/search), `go` (หน้า /go), `infra` (REST `falcon/v1/authcheck|mods`, hardening, robots, ฟอนต์ self-host, verification)
+- `assets/css/<module>.css` + `assets/js/<module>.js` — **auto-enqueue** ตามลำดับ `fenix_asset_modules()` (components, chrome, home, guides, pages, go, consent) หลัง style.css · `assets/css/fonts.css` + `assets/fonts/` = Noto Sans Thai self-host (ไม่โหลดจาก Google)
+- โทนเข้ม: `body.theme-dark` (Customizer `color_mode`, ค่าเริ่มต้น dark) + `fenix_section_tone($key,$alt)` ให้คลาส `.is-dark` · **ส่วนอ่านยาว (longform/บทความ/เอกสาร) ต้องเป็นพื้นขาวเสมอ** (กฎอยู่ท้าย style.css)
+- `dev/check-brand.php` — ตรวจแบรนด์รั่ว (FENIX/ea2000/Zaurix) และไฟล์ .zip/.ex5 ต้องได้ "no brand leaks" · `dev/image-shot-list.md` — รายการภาพหน้าจอที่เจ้าของต้องถ่ายลงช่องรูปของคู่มือ
+- **ห้าม** ใช้กรอบ HUD มุมเหลี่ยม/ปุ่มคีย์แคป/ฟอนต์ mono/dot-grid ของ ea2000 และ**ห้ามคัดลอกข้อความ** ระหว่างแบรนด์ (duplicate content) · ทำได้แค่ "โครงเหมือน" เท่านั้น
 
 ## วิธีเพิ่ม setting ใหม่ (pattern ที่ต้องทำตาม)
 1. เพิ่ม default ใน `fenix_defaults()` (functions.php): `'my_key' => 'ค่าเริ่มต้น',`
@@ -106,7 +114,9 @@
   - ทุก slug ใน manifest เปิดได้ เช่น `/`, `/vps-windows/`, `/go/`, `/articles/` · บทความ: `/article/<slug>/`
   - ต้องเปิด extension: `-d extension_dir=<php>/ext -d extension=mbstring -d extension=gd`
   - ค้นหา Fatal/Warning/Notice ในหน้าที่เรนเดอร์ก่อน commit
-- ตรวจ setting ครบ: `php -d extension=mbstring dev/check-settings.php`
+- ตรวจ setting ครบ: `php -d extension=mbstring dev/check-settings.php` · เนื้อหาตั้งต้น: `dev/check-content.php` · แบรนด์รั่ว: `dev/check-brand.php` (ทั้งสามต้องผ่านก่อน commit)
+- ก่อน push ทุกครั้งที่แก้เยอะ: รัน workflow รีวิวก่อนปล่อย (มุมมอง: WP runtime จริง, security, front-end, Customizer/data, SEO+Yoast, เนื้อหา · ยืนยันทุก finding ด้วย 2 skeptic) แล้วแก้ที่ยืนยันแล้วให้ครบ
+- push ต้องใช้บัญชี gh `easpeciallab-max`: `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin main`
 
 ## Deploy flow
 แก้โค้ด → `git commit` → `git push` → WP Pusher ดึงลงเว็บ FALCON (manual กด Update หรือเปิด Push-to-Deploy)
@@ -120,7 +130,8 @@
 - [ ] ปิด "ขอให้ search engines ไม่ทำดัชนี" (ตั้งค่า → การอ่าน) + ตั้งลิงก์ถาวรเป็น Post name เมื่อพร้อมเปิดตัว
 - [ ] ตรวจ/กรอกเพจกฎหมาย (ค้นคำว่า "เจ้าของเว็บ:") แล้วกดเผยแพร่
 - [ ] ตรวจบทความฉบับร่างทีละบทความ แล้วทยอยเผยแพร่
-- [ ] ใส่ภาพหน้าจอจริงในหน้าคู่มือ (เปิดบัญชี / ล็อกอิน / VPS) ผ่าน editor
-- [ ] เปลี่ยนรูปขั้นตอนติดตั้ง `assets/img/install/step-0*.jpg` (ยังเป็นภาพจาก FENIX)
-- [ ] กรอกเนื้อหา/ราคา/ลิงก์ LINE จริงผ่าน Customizer
+- [ ] ถ่ายภาพหน้าจอตาม `dev/image-shot-list.md` (36 ภาพ) แล้วอัปโหลดลงช่องรูปของคู่มือใน Customizer (รูป FENIX ถูกลบแล้ว ตอนนี้ยังไม่มีรูปขั้นตอน)
+- [ ] กรอกลิงก์ LINE จริง (จนกว่าจะกรอก ปุ่มติดต่อทุกปุ่มจะไปที่ /go/ แทน) · ราคาแพ็กเกจ · โบรกเกอร์ (29) · โซเชียล (15)
+- [ ] ปิดปลั๊กอินที่ยิง GA/Pixel เอง (Site Kit/PixelYourSite) แล้วใส่ ID ที่ 18) คุกกี้ เท่านั้น เพื่อให้โหลดหลังยินยอม
+- [ ] ถ้าเคยกด FALCON Setup ไปแล้ว: เนื้อหา seed ที่แก้ใหม่ (คู่มือ/backtest/forward) จะไม่ทับเพจเดิม ต้องติ๊ก "เขียนทับ" หรือแก้เอง
 - [ ] ใส่ตัวเลข Backtest/Forward จริง (ห้ามสมมติ)

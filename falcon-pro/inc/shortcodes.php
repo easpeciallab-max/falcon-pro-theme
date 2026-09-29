@@ -20,8 +20,16 @@ function fenix_sc_line( $atts, $content = '' ) {
 	if ( '' === $text ) {
 		$text = 'สอบถามทีมงานทาง LINE';
 	}
-	return '<span class="sc-line"><a class="btn btn-fire" href="' . esc_url( fenix_mod( 'line_url' ) ) . '" target="_blank" rel="noopener" data-line-pos="' . esc_attr( sanitize_key( $atts['pos'] ) ) . '">'
-		. fenix_icon( 'line' ) . '<span>' . esc_html( $text ) . '</span>' . fenix_icon( 'arrow' ) . '</a></span>';
+	// ไม่มี LINE → ใช้หน้า /go/ แทน · ไม่มีทั้งคู่ = ไม่แสดงปุ่ม (ไม่ชี้ไปที่ '#')
+	$target = fenix_contact_target();
+	if ( '' === $target['url'] ) {
+		return '';
+	}
+	if ( ! $target['is_line'] ) {
+		$text = fenix_mod( 'contact_fallback_text' );
+	}
+	return '<span class="sc-line"><a class="btn btn-fire" href="' . esc_url( $target['url'] ) . '"' . ( $target['is_line'] ? ' target="_blank" rel="noopener"' : '' ) . ' data-line-pos="' . esc_attr( sanitize_key( $atts['pos'] ) ) . '">'
+		. fenix_icon( $target['is_line'] ? 'line' : 'chat' ) . '<span>' . esc_html( $text ) . '</span>' . fenix_icon( 'arrow' ) . '</a></span>';
 }
 add_shortcode( 'falcon_line', 'fenix_sc_line' );
 

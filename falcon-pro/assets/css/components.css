@@ -1,0 +1,250 @@
+/*
+ * FALCON PRO EA · ส่วนประกอบกลาง (inc/components.php)
+ * โหลดหลัง style.css · ใช้ token ใน :root ของ style.css เท่านั้น (ห้าม gradient/glow สี)
+ */
+
+/* ---------- หัวบท "01 / 09 · KICKER" ---------- */
+.ch-head {
+	max-width: 760px;
+	margin: 0 auto 48px;
+}
+
+.ch-head--center {
+	text-align: center;
+}
+
+.ch-head--left {
+	margin-left: 0;
+	text-align: left;
+}
+
+.ch-index {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 2px;
+	margin-bottom: 14px;
+	font-size: 0.78rem;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	font-variant-numeric: tabular-nums;
+	color: var(--flare);
+}
+
+.ch-num {
+	font-size: 1rem;
+}
+
+.ch-total {
+	color: var(--ash-2);
+}
+
+.ch-kicker {
+	margin-left: 12px;
+	padding-left: 12px;
+	border-left: 2px solid var(--ember);
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+}
+
+.ch-head h2 {
+	margin: 0 0 12px;
+}
+
+.ch-sub {
+	margin: 0;
+	color: var(--ash);
+}
+
+.is-dark .ch-index,
+.phero .ch-index {
+	color: var(--mint);
+}
+
+.is-dark .ch-total {
+	color: rgba(255, 255, 255, 0.4);
+}
+
+.is-dark .ch-sub {
+	color: var(--on-black-2);
+}
+
+/* ---------- ช่องรูป ---------- */
+.media-frame {
+	position: relative;
+	margin: 0;
+}
+
+.media-open {
+	position: relative;
+	display: block;
+	overflow: hidden;
+	border-radius: 18px;
+	border: 1px solid var(--border);
+	background: #F4F6F8;
+	box-shadow: var(--shadow-lift);
+	cursor: zoom-in;
+}
+
+.media-open img,
+.media-open picture {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.media-open-hint {
+	position: absolute;
+	right: 12px;
+	bottom: 12px;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 10px;
+	border-radius: 999px;
+	background: rgba(16, 24, 27, 0.82);
+	color: #FFFFFF;
+	font-size: 0.74rem;
+	opacity: 0;
+	transform: translateY(4px);
+	transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.media-open:hover .media-open-hint,
+.media-open:focus-visible .media-open-hint {
+	opacity: 1;
+	transform: none;
+}
+
+@media (hover: none) {
+	.media-open-hint {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+.media-cap {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 10px;
+	margin-top: 10px;
+	font-size: 0.8rem;
+	line-height: 1.55;
+	color: var(--ash-2);
+}
+
+.media-cap-label {
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	color: var(--flare);
+}
+
+.is-dark .media-open {
+	border-color: var(--border-dark);
+	background: var(--black-2);
+	box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35);
+}
+
+.is-dark .media-cap {
+	color: var(--on-black-2);
+}
+
+.is-dark .media-cap-label {
+	color: var(--mint);
+}
+
+/* ช่องว่างรอรูป (เห็นเฉพาะแอดมิน) */
+.media-slot-empty {
+	display: grid;
+	place-items: center;
+	gap: 10px;
+	min-height: 220px;
+	padding: 24px;
+	border-radius: 18px;
+	border: 2px dashed rgba(178, 108, 9, 0.45);
+	background: #FFFBF3;
+	color: var(--warn);
+	text-align: center;
+	font-size: 0.86rem;
+}
+
+.media-slot-empty .icon {
+	width: 32px;
+	height: 32px;
+}
+
+.media-slot-note strong {
+	display: block;
+	margin-bottom: 4px;
+}
+
+.admin-hint {
+	display: inline-block;
+	padding: 8px 12px;
+	border-radius: 10px;
+	border: 1px dashed rgba(178, 108, 9, 0.5);
+	background: #FFFBF3;
+	color: var(--warn);
+	font-size: 0.82rem;
+}
+
+/* ---------- ตารางจาก fenix_rich_text: จอแคบเรียงเป็นการ์ด ---------- */
+@media (max-width: 640px) {
+	.table-wrap--stack {
+		overflow: visible;
+		border: 0;
+		background: none;
+	}
+
+	.table-wrap--stack .data-table {
+		min-width: 0;
+	}
+
+	.table-wrap--stack thead {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+	}
+
+	.table-wrap--stack tr {
+		display: block;
+		margin-bottom: 12px;
+		border: 1px solid var(--border);
+		border-radius: 14px;
+		background: #FFFFFF;
+		overflow: hidden;
+	}
+
+	.table-wrap--stack td {
+		display: grid;
+		grid-template-columns: minmax(96px, 38%) 1fr;
+		gap: 10px;
+		border-bottom: 1px solid var(--border);
+	}
+
+	.table-wrap--stack td::before {
+		content: attr(data-label);
+		font-weight: 600;
+		font-size: 0.8rem;
+		color: var(--ash-2);
+	}
+
+	.table-wrap--stack tr:nth-child(even) td {
+		background: #FFFFFF;
+	}
+
+	.table-wrap--stack td:last-child {
+		border-bottom: 0;
+	}
+}
+
+/* ---------- หัวข้อเนื้อหาจาก Customizer ---------- */
+.doc-section + .doc-section {
+	margin-top: 2.2em;
+}
+
+/* ---------- อื่น ๆ ---------- */
+.nobr {
+	white-space: nowrap;
+}

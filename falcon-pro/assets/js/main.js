@@ -1,8 +1,51 @@
 /**
- * FALCON PRO EA · theme scripts
+ * FALCON PRO EA · theme scripts (main.js)
+ * - โมดูลอื่น (assets/js/<module>.js) โหลดหลังไฟล์นี้ · ใช้ window.fenix.observe / window.fenix.reduced ได้
+ * - การขอความยินยอมคุกกี้ + โหลด GA/Pixel อยู่ใน assets/js/consent.js (ไม่ใช่ไฟล์นี้)
  */
 (function () {
 	'use strict';
+
+	var mq = function (q) {
+		return window.matchMedia ? window.matchMedia(q) : { matches: false };
+	};
+	var reduced = mq('(prefers-reduced-motion: reduce)').matches;
+	var cfg = window.fenixChrome || {};
+
+	/* observe(el, cb) · เรียก cb(el) ครั้งเดียวเมื่อเลื่อนมาถึง · ไม่มี IntersectionObserver หรือลดการเคลื่อนไหว = เรียกทันที */
+	var observers = {};
+	function observe(el, cb, opts) {
+		opts = opts || {};
+		if (!el || typeof cb !== 'function') {
+			return;
+		}
+		if (!('IntersectionObserver' in window) || reduced) {
+			cb(el);
+			return;
+		}
+		var threshold = typeof opts.threshold === 'number' ? opts.threshold : 0.12;
+		var key = String(threshold);
+		if (!observers[key]) {
+			observers[key] = new IntersectionObserver(function (entries, io) {
+				entries.forEach(function (entry) {
+					if (!entry.isIntersecting) {
+						return;
+					}
+					var task = entry.target.fenixTask;
+					io.unobserve(entry.target);
+					entry.target.fenixTask = null;
+					if (typeof task === 'function') {
+						task(entry.target);
+					}
+				});
+			}, { threshold: threshold, rootMargin: '0px 0px -40px 0px' });
+		}
+		el.fenixTask = cb;
+		observers[key].observe(el);
+	}
+	window.fenix = window.fenix || {};
+	window.fenix.reduced = reduced;
+	window.fenix.observe = observe;
 
 	/* Header scrolled state */
 	var header = document.querySelector('.site-header');
@@ -14,133 +57,260 @@
 	onScroll();
 	window.addEventListener('scroll', onScroll, { passive: true });
 
-	/* Mobile navigation */
-	var toggle = document.querySelector('.nav-toggle');
-	var nav = document.getElementById('site-nav');
-
-	if (toggle && nav) {
-		toggle.addEventListener('click', function () {
-			var open = document.body.classList.toggle('nav-open');
-			toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-		});
-
-		nav.addEventListener('click', function (e) {
-			if (e.target.closest('a')) {
-				document.body.classList.remove('nav-open');
-				toggle.setAttribute('aria-expanded', 'false');
-			}
-		});
-
-		document.addEventListener('keydown', function (e) {
-			if (e.key === 'Escape' && document.body.classList.contains('nav-open')) {
-				document.body.classList.remove('nav-open');
-				toggle.setAttribute('aria-expanded', 'false');
-				toggle.focus();
+	/* เมนูหลัก · หัวข้อที่มีเมนูย่อยเปิด/ปิดเมนูย่อย (ทั้ง dropdown เดสก์ท็อปและในลิ้นชักมือถือ) */
+	function setParent(li, open) {
+		li.classList.toggle('is-open', open);
+		var link = li.querySelector(':scope > a');
+		if (link) {
+			link.setAttribute('aria-expanded', open ? 'true' : 'false');
+		}
+	}
+	function closeParents(except) {
+		document.querySelectorAll('.nav-list .menu-item-has-children.is-open').forEach(function (li) {
+			if (li !== except) {
+				setParent(li, false);
 			}
 		});
 	}
 
-	/* Parent menu items with a submenu toggle the dropdown instead of navigating */
-	var parentLinks = document.querySelectorAll('.nav-list .menu-item-has-children > a');
-	parentLinks.forEach(function (link) {
+	document.querySelectorAll('.nav-list .menu-item-has-children > a').forEach(function (link) {
 		link.setAttribute('aria-haspopup', 'true');
 		link.setAttribute('aria-expanded', 'false');
 		link.addEventListener('click', function (e) {
 			e.preventDefault();
 			var li = link.parentNode;
 			var willOpen = !li.classList.contains('is-open');
-
-			var siblings = li.parentNode.querySelectorAll('.menu-item-has-children.is-open');
-			siblings.forEach(function (other) {
-				if (other !== li) {
-					other.classList.remove('is-open');
-					var otherLink = other.querySelector(':scope > a');
-					if (otherLink) {
-						otherLink.setAttribute('aria-expanded', 'false');
-					}
-				}
-			});
-
-			li.classList.toggle('is-open', willOpen);
-			link.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+			closeParents(li);
+			setParent(li, willOpen);
 		});
 	});
 
 	document.addEventListener('click', function (e) {
-		if (e.target.closest('.nav-list .menu-item-has-children')) {
+		if (e.target.closest && e.target.closest('.nav-list .menu-item-has-children')) {
 			return;
 		}
-		document.querySelectorAll('.nav-list .menu-item-has-children.is-open').forEach(function (li) {
-			li.classList.remove('is-open');
-			var openLink = li.querySelector(':scope > a');
-			if (openLink) {
-				openLink.setAttribute('aria-expanded', 'false');
-			}
-		});
+		if (document.body.classList.contains('nav-open')) {
+			return; // ในลิ้นชัก เมนูย่อยที่เปิดไว้ค้างได้จนกว่าจะปิดลิ้นชัก
+		}
+		closeParents(null);
 	});
 
-	/* Mobile app-style bottom navigation */
-	var mobileNav = document.querySelector('.mobile-app-nav');
-	if (mobileNav) {
-		document.body.classList.add('has-mobile-app-nav');
+	/* ลิ้นชักเมนูมือถือ (≤960px) · ลิงก์ปกติปิดลิ้นชัก · หัวข้อที่มีเมนูย่อยแค่เปิด/ปิดเมนูย่อย · Esc ปิดแล้วคืนโฟกัสให้ปุ่ม */
+	var toggle = document.querySelector('.nav-toggle');
+	var nav = document.getElementById('site-nav');
+	var drawerMq = mq('(max-width: 960px)');
 
-		var currentPath = window.location.pathname.replace(/\/+$/, '') || '/';
-		var activeItem = null;
-		var activeLength = 0;
-		var mobileItems = mobileNav.querySelectorAll('.mobile-app-nav-item');
-
-		mobileItems.forEach(function (item) {
-			var itemUrl = new URL(item.href, window.location.origin);
-			var itemPath = itemUrl.pathname.replace(/\/+$/, '') || '/';
-			var isMatch = itemPath === '/' ? currentPath === '/' : (currentPath === itemPath || currentPath.indexOf(itemPath + '/') === 0);
-
-			if (!item.classList.contains('is-action') && isMatch && itemPath.length >= activeLength) {
-				activeItem = item;
-				activeLength = itemPath.length;
+	function setDrawer(open, refocus) {
+		document.body.classList.toggle('nav-open', open);
+		toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+		if (open) {
+			/* เปิดกลุ่มเมนูของหน้าปัจจุบันไว้ให้เห็นทันที */
+			nav.querySelectorAll('.nav-list > .menu-item-has-children').forEach(function (li) {
+				if (li.classList.contains('current-menu-ancestor') || li.classList.contains('current-menu-parent')) {
+					setParent(li, true);
+				}
+			});
+		} else {
+			closeParents(null);
+			if (refocus) {
+				toggle.focus();
 			}
-
-			item.addEventListener('pointerdown', function () {
-				item.classList.add('is-pressing');
-			});
-
-			item.addEventListener('pointerup', function () {
-				item.classList.remove('is-pressing');
-			});
-
-			item.addEventListener('pointerleave', function () {
-				item.classList.remove('is-pressing');
-			});
-		});
-
-		if (activeItem) {
-			activeItem.classList.add('is-active');
 		}
 	}
 
-	/* Reveal on scroll */
-	var items = document.querySelectorAll('.reveal');
-	var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	if (toggle && nav) {
+		toggle.addEventListener('click', function () {
+			setDrawer(!document.body.classList.contains('nav-open'), false);
+		});
 
-	if ('IntersectionObserver' in window && !reduced) {
-		var io = new IntersectionObserver(
-			function (entries) {
-				entries.forEach(function (entry) {
-					if (entry.isIntersecting) {
-						entry.target.classList.add('in');
-						io.unobserve(entry.target);
-					}
-				});
-			},
-			{ threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
-		);
-		items.forEach(function (el) {
-			io.observe(el);
+		nav.addEventListener('click', function (e) {
+			var link = e.target.closest ? e.target.closest('a') : null;
+			if (!link || !document.body.classList.contains('nav-open')) {
+				return;
+			}
+			var li = link.parentNode;
+			if (li && li.classList && li.classList.contains('menu-item-has-children')) {
+				return;
+			}
+			setDrawer(false, false);
 		});
-	} else {
-		items.forEach(function (el) {
-			el.classList.add('in');
+
+		document.addEventListener('keydown', function (e) {
+			if (e.key !== 'Escape') {
+				return;
+			}
+			if (document.body.classList.contains('nav-open')) {
+				setDrawer(false, true);
+				return;
+			}
+			var open = document.querySelector('.nav-list .menu-item-has-children.is-open > a');
+			closeParents(null);
+			if (open) {
+				open.focus();
+			}
 		});
+
+		/* ขยายหน้าต่างพ้นโหมดลิ้นชักขณะเปิดอยู่ → ปิดลิ้นชัก */
+		var onDrawerMq = function () {
+			if (!drawerMq.matches && document.body.classList.contains('nav-open')) {
+				setDrawer(false, false);
+			}
+		};
+		if (drawerMq.addEventListener) {
+			drawerMq.addEventListener('change', onDrawerMq);
+		} else if (drawerMq.addListener) {
+			drawerMq.addListener(onDrawerMq);
+		}
 	}
+
+	/* บาร์ล่างมือถือ · PHP ส่ง is-active / aria-current / --dock-x มากับ HTML แล้ว (ปิด JS ก็ถูก)
+	   บล็อกนี้เพิ่มแค่ลูกเล่น: แรงกด, ไฟวิ่งไปช่องที่กด, ย่อบาร์ตอนเลื่อนลง (ย่อ ไม่ซ่อน) · เว้นที่ท้ายหน้าด้วย div.dock-spacer */
+	var dock = document.querySelector('.mobile-app-nav.dock');
+
+	if (dock) {
+		var dockKeys = Array.prototype.slice.call(dock.querySelectorAll('.dock-key'));
+		var dockSeats = Math.max(1, dockKeys.length);
+		var dockNarrow = mq('(max-width: 760px)');
+		var dockWait = 0;
+		var dockLastY = Math.max(0, window.pageYOffset || 0);
+		var dockDrift = 0;
+
+		var dockLight = function (seat) {
+			if (seat < 0 || seat >= dockSeats) {
+				return;
+			}
+			dock.style.setProperty('--dock-x', ((seat + 0.5) * (100 / dockSeats)).toFixed(3) + '%');
+			dock.classList.add('is-lit');
+		};
+
+		var dockRest = function () {
+			window.clearTimeout(dockWait);
+			dock.classList.remove('is-going');
+			dockKeys.forEach(function (key) {
+				key.classList.remove('is-going');
+				key.classList.remove('is-press');
+			});
+		};
+
+		/* กันเหนียว: PHP หาช่องของหน้านี้ไม่เจอ (เช่นปลั๊กอินเปลี่ยน URL) → หาด้วย path */
+		if (!dock.querySelector('.dock-key.is-active')) {
+			var here = window.location.pathname.replace(/\/+$/, '') || '/';
+			var best = -1;
+			var pick = null;
+			var pickSeat = -1;
+			dockKeys.forEach(function (key, seat) {
+				if (key.classList.contains('is-action')) {
+					return;
+				}
+				var path;
+				try {
+					path = new URL(key.href, window.location.href).pathname.replace(/\/+$/, '') || '/';
+				} catch (err) {
+					return;
+				}
+				var hit = path === '/' ? here === '/' : (here === path || here.indexOf(path + '/') === 0);
+				if (hit && path.length > best) {
+					best = path.length;
+					pick = key;
+					pickSeat = seat;
+				}
+			});
+			if (pick) {
+				pick.classList.add('is-active');
+				pick.setAttribute('aria-current', 'page');
+				dockLight(pickSeat);
+			}
+		}
+
+		dockKeys.forEach(function (key) {
+			key.addEventListener('pointerdown', function () {
+				key.classList.add('is-press');
+			});
+			['pointerup', 'pointercancel', 'pointerleave', 'blur'].forEach(function (evt) {
+				key.addEventListener(evt, function () {
+					key.classList.remove('is-press');
+				});
+			});
+		});
+
+		dock.addEventListener('pointerdown', function () {
+			dock.classList.remove('is-slim');
+			dockDrift = 0;
+		});
+
+		dock.addEventListener('click', function (e) {
+			var key = e.target && e.target.closest ? e.target.closest('.dock-key') : null;
+			if (!key || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) {
+				return;
+			}
+			if (key.target === '_blank') {
+				return;
+			}
+			var href = key.getAttribute('href') || '';
+			if (href === '' || href.charAt(0) === '#' || key.href === window.location.href) {
+				return;
+			}
+			var seat = parseInt(key.getAttribute('data-slot'), 10);
+			if (!isNaN(seat)) {
+				dockLight(seat);
+			}
+			key.classList.add('is-going');
+			dock.classList.add('is-going');
+			window.clearTimeout(dockWait);
+			dockWait = window.setTimeout(dockRest, 8000);
+		});
+
+		window.addEventListener('pageshow', dockRest);
+
+		var dockScroll = function () {
+			if (!dockNarrow.matches || reduced) {
+				return;
+			}
+			var y = Math.max(0, window.pageYOffset || 0);
+			var step = y - dockLastY;
+			dockLastY = y;
+			if (Math.abs(step) < 2) {
+				return;
+			}
+			var toEnd = document.documentElement.scrollHeight - window.innerHeight - y;
+			if (y < 220 || toEnd < 140) {
+				dockDrift = 0;
+				dock.classList.remove('is-slim');
+				return;
+			}
+			dockDrift = (dockDrift > 0) === (step > 0) ? dockDrift + step : step;
+			if (dockDrift > 56) {
+				dockDrift = 0;
+				dock.classList.add('is-slim');
+			} else if (dockDrift < -18) {
+				dockDrift = 0;
+				dock.classList.remove('is-slim');
+			}
+		};
+		window.addEventListener('scroll', dockScroll, { passive: true });
+
+		var dockRecalibrate = function () {
+			dockLastY = Math.max(0, window.pageYOffset || 0);
+			dockDrift = 0;
+			if (!dockNarrow.matches || document.documentElement.scrollHeight - window.innerHeight < 260) {
+				dock.classList.remove('is-slim');
+			}
+		};
+		window.addEventListener('resize', dockRecalibrate, { passive: true });
+		window.addEventListener('orientationchange', dockRecalibrate);
+		if (dockNarrow.addEventListener) {
+			dockNarrow.addEventListener('change', dockRecalibrate);
+		} else if (dockNarrow.addListener) {
+			dockNarrow.addListener(dockRecalibrate);
+		}
+	}
+
+	/* Reveal on scroll · .reveal (เลื่อนขึ้นจาง) และ .watch (สถานะอย่างเดียว) ได้คลาส .in ครั้งเดียว */
+	document.querySelectorAll('.reveal, .watch').forEach(function (el) {
+		observe(el, function (target) {
+			target.classList.add('in');
+		});
+	});
 
 	/* Related posts rail · arrow scroll + show controls only when overflowing */
 	document.querySelectorAll('.related-section').forEach(function (section) {
@@ -159,7 +329,7 @@
 				var dir = parseInt(btn.getAttribute('data-dir'), 10) || 1;
 				var card = rail.querySelector('.post-card');
 				var step = card ? card.offsetWidth + 18 : rail.clientWidth * 0.8;
-				rail.scrollBy({ left: dir * step, behavior: 'smooth' });
+				rail.scrollBy({ left: dir * step, behavior: reduced ? 'auto' : 'smooth' });
 			});
 		});
 
@@ -214,6 +384,7 @@
 	var loadMoreBtn = document.querySelector('.load-more-btn');
 	if (loadMoreBtn && window.fenixLoadMore) {
 		var loadMoreLabel = loadMoreBtn.textContent.trim();
+		var loadingText = loadMoreBtn.getAttribute('data-loading') || cfg.loadingText || '…';
 		loadMoreBtn.addEventListener('click', function () {
 			var page = parseInt(loadMoreBtn.getAttribute('data-page'), 10) || 1;
 			var max = parseInt(loadMoreBtn.getAttribute('data-max'), 10) || 1;
@@ -222,7 +393,7 @@
 				return;
 			}
 			loadMoreBtn.classList.add('is-loading');
-			loadMoreBtn.textContent = 'กำลังโหลด…';
+			loadMoreBtn.textContent = loadingText;
 
 			var data = new FormData();
 			data.append('action', 'fenix_load_more');
@@ -258,118 +429,48 @@
 		});
 	}
 
-	/* Cookie consent + gated tracking (โหลด GA/Pixel เฉพาะหลังยอมรับ; ผู้ที่เคยยอมรับโหลดต่อแม้ปิดแบนเนอร์) */
-	var trackingCfg = window.fenixTracking || {};
-	var cookieBar = document.querySelector('.cookie-consent');
-
-	if (trackingCfg.ga || trackingCfg.pixel || cookieBar) {
-		var getConsent = function () {
-			var m = document.cookie.match(/(?:^|;\s*)fenix_consent=([^;]+)/);
-			return m ? m[1] : '';
-		};
-		var setConsent = function (value) {
-			var d = new Date();
-			d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
-			document.cookie = 'fenix_consent=' + value + '; expires=' + d.toUTCString() + '; path=/; SameSite=Lax';
-		};
-		var trackersLoaded = false;
-		var loadTrackers = function () {
-			if (trackersLoaded) return;
-			trackersLoaded = true;
-			if (trackingCfg.ga) {
-				window['ga-disable-' + trackingCfg.ga] = false;
-				var g = document.createElement('script');
-				g.async = true;
-				g.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(trackingCfg.ga);
-				document.head.appendChild(g);
-				window.dataLayer = window.dataLayer || [];
-				window.gtag = function () { window.dataLayer.push(arguments); };
-				window.gtag('js', new Date());
-				window.gtag('config', trackingCfg.ga);
-			}
-			if (trackingCfg.pixel) {
-				!function (f, b, e, v, n, t, s) {
-					if (f.fbq) return;
-					n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
-					if (!f._fbq) f._fbq = n;
-					n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = [];
-					t = b.createElement(e); t.async = !0; t.src = v;
-					s = b.getElementsByTagName(e)[0];
-					if (s && s.parentNode) { s.parentNode.insertBefore(t, s); } else { (b.head || b.documentElement).appendChild(t); }
-				}(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-				window.fbq('init', trackingCfg.pixel);
-				window.fbq('track', 'PageView');
-			}
-		};
-
-		if (getConsent() === 'accepted') {
-			loadTrackers();
-		}
-
-		if (cookieBar) {
-			var sessionDismissed = function () {
-				try { return sessionStorage.getItem('fenixConsentDismissed') === '1'; } catch (e) { return false; }
-			};
-			var setSessionDismissed = function () {
-				try { sessionStorage.setItem('fenixConsentDismissed', '1'); } catch (e) {}
-			};
-
-			var consent = getConsent();
-			if (consent !== 'accepted' && consent !== 'declined' && !sessionDismissed()) {
-				cookieBar.classList.add('is-visible');
-			}
-
-			var acceptBtn = cookieBar.querySelector('.cookie-accept');
-			var declineBtn = cookieBar.querySelector('.cookie-decline');
-			var closeBtn = cookieBar.querySelector('.cookie-consent-close');
-			if (acceptBtn) {
-				acceptBtn.addEventListener('click', function () {
-					setConsent('accepted');
-					cookieBar.classList.remove('is-visible');
-					loadTrackers();
-				});
-			}
-			if (declineBtn) {
-				declineBtn.addEventListener('click', function () {
-					setConsent('declined');
-					cookieBar.classList.remove('is-visible');
-					// เคยยอมรับแล้วเปลี่ยนใจ (ผ่านปุ่ม "ตั้งค่าคุกกี้") → หยุดส่งข้อมูลทันทีในหน้านี้
-					if (trackersLoaded) {
-						if (trackingCfg.ga) window['ga-disable-' + trackingCfg.ga] = true;
-						if (typeof window.fbq === 'function') window.fbq('consent', 'revoke');
-					}
-				});
-			}
-			if (closeBtn) {
-				closeBtn.addEventListener('click', function () {
-					setSessionDismissed();
-					cookieBar.classList.remove('is-visible');
-				});
-			}
-		}
-	}
-
-	/* ปุ่ม "ตั้งค่าคุกกี้" ใน footer · เปิดแบนเนอร์ความยินยอมอีกครั้ง */
-	document.querySelectorAll('.cookie-reopen').forEach(function (btn) {
-		btn.addEventListener('click', function () {
-			var bar = document.querySelector('.cookie-consent');
-			if (bar) bar.classList.add('is-visible');
-		});
-	});
-
-	/* LINE click tracking · ส่ง event แยกตามตำแหน่งปุ่ม (data-line-pos) เฉพาะเมื่อโหลด GA/Pixel แล้ว (ผ่าน consent) */
+	/* นับคลิก LINE · แยก LINE OA (line_click) กับ OpenChat (openchat_click)
+	   ส่งเฉพาะเมื่อ gtag / fbq ถูกโหลดแล้ว (หลังผู้ใช้ยินยอม ผ่าน consent.js) · Meta Contact เฉพาะ LINE OA
+	   ตำแหน่งปุ่มอ่านจาก data-line-pos ถ้าไม่มีใช้ id ของกล่องที่ใกล้ที่สุด · data-line-pkg = ชื่อแพ็กเกจ (ถ้ามี) */
 	document.addEventListener('click', function (e) {
-		var link = e.target.closest ? e.target.closest('a[href]') : null;
-		if (!link) return;
-		var href = link.getAttribute('href') || '';
-		var isLine = /(^|\/\/)(lin\.ee|line\.me|page\.line\.me)\//i.test(href);
-		if (!isLine && !link.hasAttribute('data-line-pos')) return;
-		var pos = link.getAttribute('data-line-pos') || (link.closest('[id]') ? link.closest('[id]').id : 'unknown');
-		if (typeof window.gtag === 'function') {
-			window.gtag('event', 'line_click', { line_pos: pos, page_path: location.pathname });
+		var link = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+		if (!link) {
+			return;
 		}
-		if (typeof window.fbq === 'function') {
-			window.fbq('track', 'Contact', { content_name: pos });
+		var url;
+		try {
+			url = new URL(link.getAttribute('href') || '', window.location.href);
+		} catch (err) {
+			return;
+		}
+		var host = url.hostname.replace(/^www\./, '').toLowerCase();
+		var isLine = host === 'line.me' || host === 'lin.ee' || host === 'liff.line.me' || host === 'page.line.me' || url.protocol === 'line:';
+		if (!isLine) {
+			return;
+		}
+		var isOpenChat = (host === 'line.me' && /^\/(?:R\/)?ti\/g2\//i.test(url.pathname)) || /openchat/i.test(link.getAttribute('data-line-pos') || '');
+		var copy = link.cloneNode(true);
+		Array.prototype.forEach.call(copy.querySelectorAll('.sr-only'), function (node) {
+			node.parentNode.removeChild(node);
+		});
+		var box = link.parentNode && link.parentNode.closest ? link.parentNode.closest('[id]') : null;
+		var payload = {
+			link_url: url.href,
+			link_text: (link.getAttribute('aria-label') || copy.textContent || 'LINE').replace(/\s+/g, ' ').trim(),
+			line_pos: link.getAttribute('data-line-pos') || (box ? box.id : ''),
+			page_path: window.location.pathname,
+			page_title: document.title
+		};
+		if (link.getAttribute('data-line-pkg')) {
+			payload.package_name = link.getAttribute('data-line-pkg');
+		}
+		/* เช็กความยินยอม ณ ตอนคลิก (consent.js โหลดหลังไฟล์นี้) · กันปลั๊กอินอื่นที่ประกาศ gtag/fbq ไว้ก่อนผู้ใช้ยินยอม */
+		var consent = window.fenixConsent && typeof window.fenixConsent.has === 'function' ? window.fenixConsent : null;
+		if (typeof window.gtag === 'function' && (!consent || consent.has('analytics'))) {
+			window.gtag('event', isOpenChat ? 'openchat_click' : 'line_click', payload);
+		}
+		if (!isOpenChat && typeof window.fbq === 'function' && (!consent || consent.has('marketing'))) {
+			window.fbq('track', 'Contact', { content_name: payload.line_pos || 'line' });
 		}
 	});
 
@@ -529,5 +630,23 @@
 			if (e.key === 'ArrowRight' && group.length > 1) { idx = (idx + 1) % group.length; show(); }
 			if (e.key === 'ArrowLeft' && group.length > 1) { idx = (idx + group.length - 1) % group.length; show(); }
 		});
+	}
+
+	/* Footer · นาฬิกาเวลาไทย (นาทีละครั้ง) · ไม่มี JS = ซ่อนทั้งแถว (CSS) */
+	var clockEl = document.querySelector('[data-clock-out]');
+	if (clockEl) {
+		try {
+			var clockFmt = new Intl.DateTimeFormat('th-TH', { timeZone: clockEl.getAttribute('data-tz') || 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', hour12: false });
+			var tick = function () {
+				var now = new Date();
+				clockEl.textContent = clockFmt.format(now);
+				clockEl.setAttribute('datetime', now.toISOString());
+			};
+			tick();
+			setTimeout(function () {
+				tick();
+				setInterval(tick, 60000);
+			}, 60000 - (Date.now() % 60000));
+		} catch (e) {}
 	}
 })();

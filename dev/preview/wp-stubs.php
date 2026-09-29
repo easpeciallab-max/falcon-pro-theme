@@ -32,7 +32,8 @@ function apply_filters( $h, $v, ...$args ) {
 	foreach ( $GLOBALS['fx_hooks'][ $h ] as $cbs ) { foreach ( $cbs as $cb ) { $v = call_user_func_array( $cb[0], array_slice( array_merge( array( $v ), $args ), 0, max( 1, $cb[1] ) ) ); } }
 	return $v;
 }
-function has_filter() { return false; }
+function has_filter( $h = "" ) { return ! empty( $GLOBALS["fx_hooks"][ $h ] ); }
+function has_action( $h = "" ) { return ! empty( $GLOBALS["fx_hooks"][ $h ] ); }
 function add_theme_support() {}
 function load_theme_textdomain() {}
 function register_nav_menus() {}
@@ -56,7 +57,7 @@ function untrailingslashit( $s ) { return rtrim( (string) $s, '/\\' ); }
 function trailingslashit( $s ) { return untrailingslashit( $s ) . '/'; }
 function get_post_field( $f, $id = 0 ) { return 'post_name' === $f ? $GLOBALS['fx_post']['slug'] : ''; }
 function get_post_status() { return 'publish'; }
-function get_post( $id = 0 ) { return (object) array( 'ID' => 1, 'post_content' => $GLOBALS['fx_post']['content'], 'post_excerpt' => '', 'post_title' => $GLOBALS['fx_post']['title'] ); }
+function get_post( $id = 0 ) { return (object) array( 'ID' => 1, 'post_content' => $GLOBALS['fx_post']['content'], 'post_excerpt' => '', 'post_title' => $GLOBALS['fx_post']['title'], 'post_parent' => 0, 'post_name' => $GLOBALS['fx_post']['slug'], 'post_status' => 'publish', 'post_type' => $GLOBALS['fx_post']['type'], 'post_date' => '2026-09-29 09:00:00', 'post_modified' => '2026-09-29 09:00:00' ); }
 function has_site_icon() { return false; }
 function wp_get_nav_menu_object() { return false; }
 function register_post_meta() {}
@@ -138,7 +139,7 @@ function get_comments_number() { return 0; }
 
 function is_front_page() { return $GLOBALS['fx_route']['front']; }
 function is_home() { return $GLOBALS['fx_route']['home']; }
-function is_page( $s = null ) { return 'page' === $GLOBALS['fx_post']['type'] && ! $GLOBALS['fx_route']['home']; }
+function is_page( $s = null ) { $ok = 'page' === $GLOBALS['fx_post']['type'] && ! $GLOBALS['fx_route']['home']; return null === $s ? $ok : ( $ok && in_array( $GLOBALS['fx_post']['slug'], (array) $s, true ) ); }
 function is_single() { return 'post' === $GLOBALS['fx_post']['type']; }
 function is_singular( $t = null ) { return ! $GLOBALS['fx_route']['home'] && ( null === $t || $t === $GLOBALS['fx_post']['type'] || ( is_array( $t ) && in_array( $GLOBALS['fx_post']['type'], $t, true ) ) ); }
 function is_archive() { return false; }
@@ -149,7 +150,7 @@ function is_main_query() { return true; }
 function in_the_loop() { return true; }
 
 function have_posts() { return $GLOBALS['fx_loop'] < 1 && ! $GLOBALS['fx_route']['home']; }
-function the_post() { $GLOBALS['fx_loop']++; }
+function the_post() { $GLOBALS['fx_loop']++; $GLOBALS['post'] = get_post(); }
 function rewind_posts() { $GLOBALS['fx_loop'] = 0; }
 function wp_reset_postdata() {}
 function get_the_title() { return $GLOBALS['fx_post']['title']; }
@@ -159,7 +160,7 @@ function the_content() { echo apply_filters( 'the_content', get_the_content() );
 function get_the_excerpt() { return wp_trim_words( get_the_content(), 30 ); }
 function the_excerpt() { echo esc_html( get_the_excerpt() ); }
 function has_excerpt() { return false; }
-function get_permalink() { return home_url( $GLOBALS['fx_post']['slug'] . '/' ); }
+function get_permalink( $p = 0 ) { if ( is_object( $p ) && isset( $p->post_title ) && ! isset( $p->post_content ) ) { return home_url( $p->post_title . '/' ); } return home_url( $GLOBALS['fx_post']['slug'] . '/' ); }
 function the_permalink() { echo esc_url( get_permalink() ); }
 function get_the_date( $f = '' ) { return 'c' === $f ? '2026-09-29T09:00:00+07:00' : '29 ก.ย. 2026'; }
 function get_the_modified_date( $f = '' ) { return get_the_date( $f ); }
@@ -230,3 +231,17 @@ function is_paged() { return false; }
 function get_edit_post_link() { return '#'; }
 $GLOBALS['wp_query'] = new WP_Query();
 function post_password_required() { return false; }
+function wp_parse_args( $args, $defaults = array() ) { return array_merge( (array) $defaults, is_array( $args ) ? $args : array() ); }
+function attachment_url_to_postid() { return 0; }
+function wp_get_attachment_metadata() { return false; }
+function wp_get_attachment_image_srcset() { return false; }
+function wp_get_nav_menu_name() { return ''; }
+function get_nav_menu_locations() { return array(); }
+function wp_script_add_data() {}
+function wp_style_add_data() {}
+function wp_add_inline_script_safe() {}
+
+/* stub เพิ่มเติมของแต่ละโมดูล: dev/preview/stubs-<module>.php (ห่อด้วย function_exists) */
+foreach ( (array) glob( __DIR__ . '/stubs-*.php' ) as $fx_stub_file ) {
+	require $fx_stub_file;
+}

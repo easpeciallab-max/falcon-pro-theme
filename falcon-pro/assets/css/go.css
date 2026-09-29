@@ -1,0 +1,782 @@
+/*
+ * FALCON PRO EA · หน้า /go (ลิงก์รวม) · template-go.php + inc/modules/go.php
+ * หน้าเดี่ยว: พื้นเพจเข้ม #172125 + การ์ดกลางจอ (โหมดเข้ม = การ์ดเข้ม · โหมดขาว/ดำสลับ = การ์ดขาว)
+ * ไม่พึ่ง CSS ของ header/footer · ทุกคลาสขึ้นต้นด้วย .link-hub / .lh-
+ * สไตล์ FALCON: มุมโค้ง ปุ่มทรงแคปซูล ไอคอนในวงกลม เส้นขอบบาง เงานุ่มสีกลาง · ไม่มี gradient / แสงเรือง
+ */
+
+/* ---------- พื้นเพจ ---------- */
+body.link-hub-page {
+	background: var(--black);
+}
+
+.link-hub {
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
+	min-height: 100vh;
+	min-height: 100dvh;
+	padding: 48px 16px 56px;
+	padding-bottom: max(56px, calc(env(safe-area-inset-bottom) + 32px));
+	background: var(--black);
+}
+
+/* ---------- การ์ด + โทเคนสีของการ์ด ---------- */
+.lh-card {
+	width: 100%;
+	max-width: 460px;
+	padding: 34px 26px 26px;
+	border-radius: 20px;
+	border: 1px solid var(--lh-line);
+	background: var(--lh-bg);
+	color: var(--lh-body);
+	text-align: center;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18), 0 24px 56px rgba(0, 0, 0, 0.26);
+}
+
+.lh-card--dark {
+	--lh-bg: var(--black-2);
+	--lh-surface: rgba(255, 255, 255, 0.035);
+	--lh-surface-2: var(--black-3);
+	--lh-text: #FFFFFF;
+	--lh-body: var(--on-black);
+	--lh-muted: var(--on-black-2);
+	--lh-line: rgba(255, 255, 255, 0.10);
+	--lh-line-strong: rgba(255, 255, 255, 0.20);
+	--lh-accent: var(--mint);
+	--lh-accent-soft: rgba(74, 242, 142, 0.10);
+	--lh-accent-line: rgba(74, 242, 142, 0.32);
+	--lh-hover: rgba(34, 197, 94, 0.09);
+	--lh-focus: var(--mint);
+}
+
+.lh-card--light {
+	--lh-bg: #FFFFFF;
+	--lh-surface: var(--coal);
+	--lh-surface-2: var(--coal-3);
+	--lh-text: var(--ink);
+	--lh-body: var(--ash);
+	--lh-muted: var(--ash-2);
+	--lh-line: var(--border);
+	--lh-line-strong: rgba(20, 24, 30, 0.22);
+	--lh-accent: var(--flare);
+	--lh-accent-soft: #EAF9F0;
+	--lh-accent-line: var(--border-fire);
+	--lh-hover: rgba(34, 197, 94, 0.07);
+	--lh-focus: var(--ember-deep);
+	border-color: transparent;
+}
+
+.lh-card a:focus-visible,
+.lh-card button:focus-visible {
+	outline: 2px solid var(--lh-focus);
+	outline-offset: 3px;
+}
+
+/* ---------- ส่วนหัว ---------- */
+.lh-logo {
+	width: 84px;
+	height: 84px;
+	margin: 0 auto 16px;
+	border-radius: 50%;
+	overflow: hidden;
+	border: 1px solid var(--lh-line-strong);
+	background: var(--black-deep);
+}
+
+.lh-logo img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.lh-card .lh-title {
+	margin: 0;
+	font-size: 1.55rem;
+	font-weight: 700;
+	line-height: 1.25;
+	letter-spacing: 0.04em;
+	color: var(--lh-text);
+}
+
+.lh-tagline {
+	max-width: 30em;
+	margin: 8px auto 0;
+	font-size: 0.9rem;
+	line-height: 1.65;
+	color: var(--lh-muted);
+	text-wrap: balance;
+}
+
+.lh-badges {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 6px;
+	margin: 16px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.lh-badges li {
+	padding: 4px 11px;
+	border-radius: 999px;
+	border: 1px solid var(--lh-accent-line);
+	background: var(--lh-accent-soft);
+	color: var(--lh-accent);
+	max-width: 100%;
+	font-size: 0.74rem;
+	font-weight: 600;
+	line-height: 1.5;
+	text-wrap: balance;
+}
+
+/* ---------- กลุ่ม (ติดต่อทีม / ขั้นตอน / ข้อมูลก่อนเริ่ม) ---------- */
+.lh-group {
+	margin: 24px 0 0;
+	padding-top: 22px;
+	border-top: 1px solid var(--lh-line);
+}
+
+.lh-card .lh-section-title,
+.lh-card .lh-steps-title {
+	margin: 0 0 14px;
+	font-size: 1rem;
+	font-weight: 700;
+	line-height: 1.4;
+	letter-spacing: 0.02em;
+	color: var(--lh-text);
+	text-align: center;
+	text-wrap: balance;
+}
+
+.lh-card .lh-steps-title {
+	margin-bottom: 20px;
+	font-size: 1.08rem;
+}
+
+.lh-group > .lh-btn:last-child {
+	margin-bottom: 0;
+}
+
+/* ---------- ปุ่ม ---------- */
+.lh-btn {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	min-height: 56px;
+	margin: 0 0 10px;
+	padding: 9px 18px 9px 11px;
+	border-radius: 999px;
+	border: 1px solid var(--lh-line);
+	background: var(--lh-surface);
+	color: var(--lh-text);
+	font-family: var(--font-display);
+	font-size: 0.95rem;
+	font-weight: 600;
+	line-height: 1.3;
+	letter-spacing: 0.02em;
+	text-align: left;
+	text-decoration: none;
+	transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.16s ease, color 0.16s ease;
+}
+
+a.lh-btn:hover {
+	border-color: var(--ember);
+	background: var(--lh-hover);
+	color: var(--lh-text);
+	transform: translateY(-1px);
+}
+
+.lh-ic {
+	display: grid;
+	place-items: center;
+	flex: 0 0 auto;
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	background: var(--lh-accent-soft);
+	color: var(--lh-accent);
+}
+
+.lh-ic .icon {
+	width: 18px;
+	height: 18px;
+}
+
+.lh-lbl {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.lh-ar {
+	display: inline-flex;
+	flex: 0 0 auto;
+	color: var(--lh-muted);
+	transition: color 0.16s ease, transform 0.16s ease;
+}
+
+.lh-ar .icon {
+	width: 16px;
+	height: 16px;
+}
+
+a.lh-btn:hover .lh-ar {
+	color: var(--lh-accent);
+	transform: translateX(2px);
+}
+
+/* LINE (ปุ่มหลัก + ปุ่มในขั้นตอน) · เขียว LINE ตัวอักษรเขียวเข้ม */
+.lh-card .lh-btn-line {
+	justify-content: center;
+	gap: 10px;
+	padding: 9px 20px;
+	border-color: var(--line-green);
+	background: var(--line-green);
+	color: #03240F;
+	font-weight: 700;
+}
+
+.lh-card a.lh-btn-line:hover {
+	border-color: var(--line-green-dark);
+	background: var(--line-green-dark);
+	color: #03240F;
+}
+
+.lh-btn-line > .icon {
+	width: 22px;
+	height: 22px;
+	flex: 0 0 auto;
+}
+
+.lh-btn-line > span,
+.lh-btn-line .lh-lbl {
+	flex: 0 1 auto;
+	text-align: center;
+}
+
+/* OpenChat · ปุ่มเส้นขอบ */
+.lh-card .lh-btn-openchat {
+	justify-content: center;
+	gap: 10px;
+	padding: 9px 20px;
+	border-color: var(--lh-line-strong);
+	background: transparent;
+}
+
+.lh-btn-openchat .lh-ic {
+	width: auto;
+	height: auto;
+	background: none;
+}
+
+.lh-btn-openchat .lh-ic .icon {
+	width: 22px;
+	height: 22px;
+}
+
+.lh-btn-openchat .lh-lbl {
+	flex: 0 1 auto;
+	text-align: center;
+}
+
+/* ปุ่มสมัคร / ปุ่มเด่นในขั้นตอน · เขียว FALCON */
+.lh-card .lh-btn-signup,
+.lh-card .lh-btn-accent {
+	border-color: var(--ember);
+	background: var(--ember);
+	color: var(--on-ember);
+	font-weight: 700;
+}
+
+.lh-card a.lh-btn-signup:hover,
+.lh-card a.lh-btn-accent:hover {
+	border-color: var(--ember-deep);
+	background: var(--ember-deep);
+	color: var(--on-ember);
+}
+
+.lh-btn-signup .lh-ic,
+.lh-btn-accent .lh-ic {
+	background: rgba(6, 20, 11, 0.12);
+	color: var(--on-ember);
+}
+
+.lh-btn-signup .lh-ar,
+.lh-btn-accent .lh-ar,
+.lh-card a.lh-btn-signup:hover .lh-ar,
+.lh-card a.lh-btn-accent:hover .lh-ar {
+	color: var(--on-ember);
+}
+
+/* ปุ่มรอง (คู่มือในแต่ละขั้น) */
+.lh-mini-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	width: 100%;
+	min-height: 46px;
+	padding: 7px 16px;
+	border-radius: 999px;
+	border: 1px solid var(--lh-line);
+	background: transparent;
+	color: var(--lh-body);
+	font-family: var(--font-display);
+	font-size: 0.86rem;
+	font-weight: 600;
+	line-height: 1.3;
+	text-align: center;
+	text-decoration: none;
+	transition: border-color 0.16s ease, color 0.16s ease, background-color 0.16s ease;
+}
+
+a.lh-mini-btn:hover {
+	border-color: var(--ember);
+	background: var(--lh-hover);
+	color: var(--lh-text);
+}
+
+.lh-mini-btn .lh-ic {
+	width: auto;
+	height: auto;
+	background: none;
+}
+
+.lh-mini-btn .lh-ic .icon {
+	width: 17px;
+	height: 17px;
+}
+
+.lh-mini-btn .lh-lbl {
+	flex: 0 1 auto;
+}
+
+/* ปุ่มที่ยังไม่มีลิงก์ · เส้นประ กดไม่ได้ + ป้าย "เร็ว ๆ นี้" */
+.lh-card .is-pending {
+	cursor: default;
+	border-style: dashed;
+	border-color: var(--lh-line-strong);
+	background: transparent;
+	color: var(--lh-muted);
+	transform: none;
+}
+
+.lh-card .is-pending .lh-ic,
+.lh-card .is-pending .lh-lbl,
+.lh-card .is-pending .lh-tile-ic,
+.lh-card .is-pending .lh-tile-lbl {
+	opacity: 0.62;
+}
+
+.lh-pending-tag {
+	flex: 0 0 auto;
+	padding: 2px 9px;
+	border-radius: 999px;
+	border: 1px solid var(--lh-line);
+	background: var(--lh-surface-2);
+	color: var(--lh-muted);
+	font-size: 0.7rem;
+	font-weight: 600;
+	line-height: 1.5;
+	white-space: nowrap;
+}
+
+/* ---------- ขั้นตอนเริ่มใช้งาน ---------- */
+.lh-journey {
+	text-align: left;
+}
+
+.lh-steps {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.lh-step {
+	position: relative;
+	padding: 0 0 24px 50px;
+}
+
+/* เส้นเชื่อมระหว่างขั้น */
+.lh-step::before {
+	content: "";
+	position: absolute;
+	top: 42px;
+	bottom: 8px;
+	left: 17px;
+	width: 2px;
+	border-radius: 2px;
+	background: var(--lh-line);
+}
+
+.lh-step:last-child {
+	padding-bottom: 2px;
+}
+
+.lh-step:last-child::before {
+	display: none;
+}
+
+.lh-step-num {
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: grid;
+	place-items: center;
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	background: var(--ember);
+	color: var(--on-ember);
+	font-size: 0.98rem;
+	font-weight: 700;
+	line-height: 1;
+	font-variant-numeric: tabular-nums;
+}
+
+.lh-step-head {
+	min-height: 36px;
+	margin: 0 0 12px;
+}
+
+.lh-card .lh-step-title {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 8px;
+	margin: 0;
+	padding-top: 6px;
+	font-size: 1rem;
+	font-weight: 700;
+	line-height: 1.4;
+	letter-spacing: 0.01em;
+	color: var(--lh-text);
+}
+
+.lh-step-badge {
+	padding: 1px 9px;
+	border-radius: 999px;
+	border: 1px solid var(--lh-accent-line);
+	background: var(--lh-accent-soft);
+	color: var(--lh-accent);
+	font-size: 0.7rem;
+	font-weight: 700;
+	line-height: 1.6;
+	white-space: nowrap;
+}
+
+.lh-step-desc {
+	margin: 4px 0 0;
+	font-size: 0.86rem;
+	line-height: 1.65;
+	color: var(--lh-muted);
+}
+
+/* หมายเหตุ (เช่น เปิดเผยความเป็นพันธมิตร) · อยู่ก่อนปุ่มของขั้น */
+.lh-step-note {
+	margin: 10px 0 0;
+	padding: 8px 12px;
+	border-radius: 12px;
+	border: 1px solid var(--lh-line);
+	background: var(--lh-surface);
+	font-size: 0.8rem;
+	line-height: 1.6;
+	color: var(--lh-muted);
+}
+
+.lh-step-body > * {
+	margin-top: 0;
+	margin-bottom: 8px;
+}
+
+.lh-step-body > :last-child {
+	margin-bottom: 0;
+}
+
+.lh-step-body .lh-btn {
+	min-height: 52px;
+}
+
+/* ตารางปุ่มตามอุปกรณ์ (แอป MT5 / VPS) */
+.lh-tiles {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px;
+}
+
+.lh-tiles--1 {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+.lh-tiles--3 {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.lh-tile {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-width: 0;
+	min-height: 78px;
+	padding: 10px 6px;
+	border-radius: 16px;
+	border: 1px solid var(--lh-line);
+	background: var(--lh-surface);
+	color: var(--lh-text);
+	text-align: center;
+	text-decoration: none;
+	transition: border-color 0.16s ease, background-color 0.16s ease;
+}
+
+a.lh-tile:hover {
+	border-color: var(--ember);
+	background: var(--lh-hover);
+	color: var(--lh-text);
+}
+
+.lh-tile-ic {
+	display: inline-flex;
+	color: var(--lh-accent);
+}
+
+.lh-tile-ic .icon {
+	width: 24px;
+	height: 24px;
+}
+
+.lh-tile-lbl {
+	max-width: 100%;
+	font-size: 0.8rem;
+	font-weight: 600;
+	line-height: 1.25;
+	color: var(--lh-body);
+	overflow-wrap: anywhere;
+	text-wrap: balance;
+}
+
+a.lh-tile:hover .lh-tile-lbl {
+	color: var(--lh-text);
+}
+
+.lh-tile .lh-pending-tag {
+	padding: 1px 7px;
+	font-size: 0.64rem;
+}
+
+/* การ์ดดาวน์โหลดไฟล์ EA (รูป 1200×630) */
+.lh-feature {
+	display: block;
+	overflow: hidden;
+	border-radius: 16px;
+	border: 1px solid var(--lh-line);
+	background: var(--lh-surface);
+	transition: border-color 0.16s ease;
+}
+
+.lh-feature:hover {
+	border-color: var(--ember);
+}
+
+.lh-feature img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+/* ---------- โซเชียล ---------- */
+.lh-socials {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 10px;
+	margin: 24px 0 0;
+}
+
+.lh-soc {
+	display: grid;
+	place-items: center;
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	border: 1px solid var(--lh-line-strong);
+	background: var(--lh-surface);
+	color: var(--lh-text);
+	transition: border-color 0.16s ease, color 0.16s ease, background-color 0.16s ease;
+}
+
+.lh-soc:hover {
+	border-color: var(--ember);
+	background: var(--lh-hover);
+	color: var(--lh-accent);
+}
+
+.lh-soc .icon {
+	width: 20px;
+	height: 20px;
+}
+
+/* ---------- เนื้อหาเพจ (เปิดได้ใน Customizer) ---------- */
+.lh-card .lh-doc {
+	margin: 24px 0 0;
+	padding-top: 22px;
+	border-top: 1px solid var(--lh-line);
+	color: var(--lh-body);
+	font-size: 0.92rem;
+	line-height: 1.75;
+	text-align: left;
+}
+
+.lh-card .lh-doc h2,
+.lh-card .lh-doc h3,
+.lh-card .lh-doc h4,
+.lh-card .lh-doc strong {
+	color: var(--lh-text);
+}
+
+.lh-card .lh-doc h2 {
+	margin: 1.4em 0 0.5em;
+	font-size: 1.1rem;
+}
+
+.lh-card .lh-doc h2:first-child {
+	margin-top: 0;
+}
+
+.lh-card .lh-doc h3 {
+	font-size: 1rem;
+}
+
+.lh-card .lh-doc p,
+.lh-card .lh-doc li {
+	color: var(--lh-body);
+}
+
+.lh-card .lh-doc a {
+	color: var(--lh-accent);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+/* ---------- คำเตือนความเสี่ยง + ลิงก์เอกสาร ---------- */
+.lh-note {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	margin: 24px 0 0;
+	padding: 14px 16px;
+	border-radius: 14px;
+	border: 1px solid var(--lh-line);
+	background: var(--lh-surface);
+	color: var(--lh-muted);
+	font-size: 0.8rem;
+	line-height: 1.7;
+	text-align: left;
+}
+
+.lh-note > .icon {
+	flex: 0 0 auto;
+	width: 16px;
+	height: 16px;
+	margin-top: 4px;
+	color: var(--warn);
+}
+
+.lh-legal {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 6px 16px;
+	margin: 16px 0 0;
+	font-size: 0.8rem;
+	line-height: 1.6;
+}
+
+.lh-legal a {
+	color: var(--lh-muted);
+	text-decoration: underline;
+	text-decoration-color: var(--lh-line-strong);
+	text-underline-offset: 3px;
+}
+
+.lh-legal a:hover {
+	color: var(--lh-accent);
+	text-decoration-color: currentColor;
+}
+
+/* คำแนะนำสำหรับแอดมิน (จาก fenix_contact_button) */
+.lh-group .admin-hint {
+	display: block;
+	margin: 0 0 10px;
+	text-align: left;
+}
+
+/* ---------- หน้าเดี่ยว: ไม่แสดงส่วนของเว็บที่ปลั๊กอิน/โมดูลอื่นอาจพิมพ์ผ่าน wp_footer ---------- */
+.link-hub-page .mobile-app-nav,
+.link-hub-page .dock,
+.link-hub-page .float-line,
+.link-hub-page .line-fab,
+.link-hub-page .language-switcher,
+.link-hub-page .back-to-top {
+	display: none !important;
+}
+
+/* ---------- จอเล็ก ---------- */
+@media (max-width: 640px) {
+	.link-hub {
+		padding: 16px 16px 40px;
+		padding-bottom: max(40px, calc(env(safe-area-inset-bottom) + 24px));
+	}
+
+	.lh-card {
+		padding: 28px 18px 22px;
+		border-radius: 18px;
+	}
+
+	.lh-card .lh-title {
+		font-size: 1.4rem;
+	}
+
+	.lh-step {
+		padding-left: 46px;
+	}
+
+	.lh-btn {
+		gap: 10px;
+		padding-right: 14px;
+		font-size: 0.92rem;
+	}
+}
+
+@media (max-width: 360px) {
+	.lh-card {
+		padding-left: 14px;
+		padding-right: 14px;
+	}
+
+	.lh-step {
+		padding-left: 42px;
+	}
+
+	.lh-tiles--3 {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.lh-btn,
+	.lh-ar,
+	.lh-tile,
+	.lh-soc,
+	.lh-mini-btn {
+		transition: none;
+	}
+
+	a.lh-btn:hover,
+	a.lh-btn:hover .lh-ar {
+		transform: none;
+	}
+}

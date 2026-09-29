@@ -2,82 +2,52 @@
 /**
  * Template Name: FALCON · หน้า How to Install
  *
+ * hero → เกริ่นนำ + ภาพรวมขั้นตอน + สิ่งที่ต้องเตรียม → 6 ขั้นตอนติดตั้ง (ข้อความ | ภาพ) → เช็กว่า EA พร้อมทำงาน
+ * → เนื้อหายาวจากหน้าแก้ไขเพจ (สารบัญ + ตารางแก้ปัญหา + FAQ) → คู่มือที่ควรอ่านต่อ → ติดต่อทีมงาน
+ * ข้อความและช่องรูปของแต่ละขั้นแก้ที่ ปรับแต่ง → 22) หน้า How to Install
+ *
  * @package falcon-pro
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 get_header();
 
 if ( have_posts() ) {
 	the_post();
 }
-$fenix_title = get_the_title();
-fenix_page_hero( 'How to Install', $fenix_title ? $fenix_title : 'วิธีติดตั้ง', fenix_mod( 'install_sub' ) );
+$fenix_title  = get_the_title();
+$fenix_kicker = fenix_mod( 'inst_kicker' );
+$fenix_sub    = fenix_mod( 'install_sub' );
+fenix_page_hero( $fenix_kicker, $fenix_title ? $fenix_title : $fenix_kicker, fenix_is_placeholder( $fenix_sub ) ? '' : $fenix_sub );
 ?>
 
-<main id="main">
+<main id="main" class="guide-page gd-page gd-page--install">
 
-<section class="section">
-	<div class="container container-narrow">
+<?php
+fenix_guide_top(
+	array(
+		'intro'       => fenix_mod( 'install_intro' ),
+		'quick_title' => fenix_mod( 'inst_quick_title' ),
+		'quick'       => fenix_mod( 'inst_quick' ),
+		'prep_title'  => fenix_mod( 'inst_req_title' ),
+		'prep'        => fenix_mod( 'install_req' ),
+		'prep_note'   => fenix_mod( 'inst_req_note' ),
+	)
+);
 
-		<?php if ( fenix_mod( 'install_intro' ) ) : ?>
-			<p class="lead reveal"><?php echo esc_html( fenix_mod( 'install_intro' ) ); ?></p>
-		<?php endif; ?>
+fenix_guide_steps( 'inst_step', '', fenix_mod( 'install_note' ) );
 
-		<?php
-		$fenix_reqs = fenix_lines( fenix_mod( 'install_req' ) );
-		if ( ! empty( $fenix_reqs ) ) :
-			?>
-			<div class="req-box reveal">
-				<h3><?php echo fenix_icon( 'check' ); // phpcs:ignore WordPress.Security.EscapeOutput ?> สิ่งที่ต้องเตรียม</h3>
-				<ul>
-					<?php foreach ( $fenix_reqs as $fenix_req ) : ?>
-						<li><?php echo fenix_icon( 'check', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo esc_html( $fenix_req ); ?></span></li>
-					<?php endforeach; ?>
-				</ul>
-			</div>
-		<?php endif; ?>
+fenix_guide_check( fenix_mod( 'inst_check_title' ), fenix_mod( 'inst_check' ), fenix_mod( 'inst_check_note' ) );
 
-	</div>
+fenix_guide_longform();
 
-	<div class="container">
-		<ol class="guide">
-			<?php
-			for ( $i = 1; $i <= 6; $i++ ) :
-				$g_title = fenix_mod( 'inst_step' . $i . '_title' );
-				$g_desc  = fenix_mod( 'inst_step' . $i . '_desc' );
-				$g_img   = fenix_mod( 'inst_step' . $i . '_img' );
-				if ( ! $g_title && ! $g_desc ) {
-					continue;
-				}
-				?>
-				<li class="guide-step reveal">
-					<div class="guide-body">
-						<span class="guide-num"><?php echo esc_html( str_pad( (string) $i, 2, '0', STR_PAD_LEFT ) ); ?></span>
-						<div class="guide-text">
-							<h3><?php echo esc_html( $g_title ); ?></h3>
-							<p><?php echo esc_html( $g_desc ); ?></p>
-						</div>
-					</div>
-					<?php if ( $g_img ) : ?>
-						<figure class="guide-img">
-							<img src="<?php echo esc_url( $g_img ); ?>" alt="<?php echo esc_attr( $g_title ); ?>" loading="lazy">
-						</figure>
-					<?php endif; ?>
-				</li>
-			<?php endfor; ?>
-		</ol>
-	</div>
+fenix_guide_related( 'how-to-install' );
 
-	<?php if ( fenix_mod( 'install_note' ) ) : ?>
-		<div class="container container-narrow">
-			<p class="sec-note reveal"><?php echo esc_html( fenix_mod( 'install_note' ) ); ?></p>
-		</div>
-	<?php endif; ?>
-</section>
-
-<?php fenix_page_longform( 'section section-alt' ); ?>
-
-<?php fenix_line_cta( 'อยากให้ทีมงานช่วยติดตั้ง?', 'ทักมาทาง LINE ทีมงานช่วยติดตั้งและตั้งค่าให้จนระบบพร้อมใช้งาน' ); ?>
+fenix_line_cta( fenix_mod( 'inst_cta_title' ), fenix_mod( 'inst_cta_text' ) );
+?>
 
 </main>
 

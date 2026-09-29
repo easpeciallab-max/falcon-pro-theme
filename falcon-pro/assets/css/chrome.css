@@ -1,0 +1,1105 @@
+/*
+ * FALCON PRO EA · Site chrome (header · ลิ้นชักเมนู · แถบติดต่อท้ายหน้าย่อย · footer · บาร์ล่างมือถือ)
+ * โหลดหลัง style.css + components.css · ใช้ token ใน :root ของ style.css
+ * หน้าตา FALCON: มุมโค้ง ปุ่ม pill เส้นบาง เงานุ่ม เขียวทึบ · ห้าม gradient / glow
+ */
+
+:root {
+	--header-bg: var(--black);
+	--header-bg-scrolled: var(--black-deep);
+	--header-text: var(--on-black);
+	--header-muted: var(--on-black-2);
+	--header-panel: var(--black-2);
+	--header-chip: rgba(255, 255, 255, 0.06);
+	--header-accent: var(--mint);
+	--dock-h: 68px;
+}
+
+/* ==========================================================
+   1) Header โทนเข้ม · พื้นทึบ (ไม่ใช้ backdrop-filter / transform บน .site-header
+      เพราะจะทำให้ header เป็น containing block ของลิ้นชัก position:fixed)
+   ========================================================== */
+.theme-dark .site-header,
+.theme-dark .site-header.scrolled {
+	background: var(--header-bg);
+	border-bottom-color: var(--border-dark);
+	-webkit-backdrop-filter: none;
+	backdrop-filter: none;
+	transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.theme-dark .site-header.scrolled {
+	background: var(--header-bg-scrolled);
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+}
+
+.theme-dark .nav-list a {
+	color: var(--header-text);
+}
+
+.theme-dark .nav-list a:hover {
+	color: #FFFFFF;
+}
+
+.theme-dark .nav-list .current-menu-item > a,
+.theme-dark .nav-list .current-menu-ancestor > a,
+.theme-dark .nav-list .current-menu-parent > a {
+	color: var(--header-accent);
+}
+
+.theme-dark .nav-list .sub-menu {
+	border-color: var(--border-dark);
+	background: var(--header-panel);
+	box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.theme-dark .nav-list .sub-menu a {
+	color: var(--header-muted);
+}
+
+/* แถวที่ชี้อยู่: ขีดซ้ายเขียวทึบ 2px (พื้นโปร่งอย่างเดียวบนแผงเข้มมองแทบไม่ออก) */
+.theme-dark .nav-list .sub-menu a:hover,
+.theme-dark .nav-list .sub-menu a:focus-visible {
+	background: rgba(74, 242, 142, 0.10);
+	box-shadow: inset 2px 0 0 var(--header-accent);
+	color: #FFFFFF;
+}
+
+.theme-dark .nav-list .sub-menu .current-menu-item > a {
+	color: var(--header-accent);
+}
+
+/* ปุ่มเปิดเมนูมือถือ · ไม่มีกรอบ ขีดขาว 3 เส้น 24×3 (ห่าง 5px → ไขว้กันที่ 8px) */
+.theme-dark .nav-toggle {
+	border-color: transparent;
+	background: transparent;
+}
+
+.theme-dark .nav-toggle span {
+	width: 24px;
+	height: 3px;
+	background: var(--header-text);
+}
+
+.theme-dark.nav-open .nav-toggle span:nth-child(1) {
+	transform: translateY(8px) rotate(45deg);
+}
+
+.theme-dark.nav-open .nav-toggle span:nth-child(3) {
+	transform: translateY(-8px) rotate(-45deg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.theme-dark .nav-toggle:hover span {
+		background: var(--header-accent);
+	}
+}
+
+.theme-dark .language-switcher summary {
+	border-color: var(--border-dark);
+	background: var(--header-chip);
+	color: var(--header-text);
+}
+
+.theme-dark .language-switcher-menu {
+	border-color: var(--border-dark);
+	background: var(--header-panel);
+}
+
+/* วงแหวนโฟกัสบนพื้นเข้ม: เขียวสว่าง (เขียวหลักบนพื้นเข้มจางเกิน) */
+.theme-dark .site-header :focus-visible,
+.site-footer--console :focus-visible,
+.cta-console :focus-visible,
+.mobile-app-nav.dock :focus-visible {
+	outline: 2px solid var(--mint);
+	outline-offset: 3px;
+}
+
+/* ไม่มี JS ลิ้นชักเปิดไม่ได้ · ซ่อนปุ่มที่กดแล้วไม่เกิดอะไร (บาร์ล่าง + ดัชนีท้ายเว็บยังพาไปทุกหน้า) */
+.no-js .nav-toggle {
+	display: none !important;
+}
+
+/* แถวโซเชียลในลิ้นชัก (แสดงเฉพาะโหมดมือถือ) */
+.nav-social {
+	display: none;
+}
+
+/* ==========================================================
+   2) ลิ้นชักเมนูมือถือ (≤960px)
+   - แก้ ghost-tap: ลิ้นชักที่ปิดอยู่ไม่รับการแตะ (pointer-events) และเมนูย่อยใช้ visibility: inherit
+     (เดิม visible → ลิงก์ล่องหนทับครึ่งบนของจอแม้ลิ้นชักปิด)
+   - หัวข้อที่มีเมนูย่อย = ปุ่มเปิด/ปิดเมนูย่อย (ลูกศรขวา) ไม่ปิดลิ้นชัก
+   - selector `.nav-list li.is-open > .sub-menu` ต้องซ้ำกับกฎเดสก์ท็อปเป๊ะ เพื่อชนะ translate(-50%) ด้วยลำดับไฟล์
+   ========================================================== */
+@media (max-width: 960px) {
+	/* ปุ่มเมนูชิดขวาเสมอ (style.css ตั้ง margin-left:0 เผื่อตัวสลับภาษา ซึ่งปิดอยู่เป็นค่าเริ่มต้น) */
+	.header-inner > .nav-toggle {
+		margin-left: auto;
+	}
+
+	.header-inner > .language-switcher ~ .nav-toggle {
+		margin-left: 0;
+	}
+
+	.site-nav {
+		pointer-events: none;
+	}
+
+	.nav-open .site-nav {
+		pointer-events: auto;
+	}
+
+	.nav-list .sub-menu {
+		display: none;
+		visibility: inherit;
+		opacity: 1;
+		transform: none;
+	}
+
+	.nav-list li.is-open > .sub-menu {
+		display: grid;
+		left: auto;
+		visibility: inherit;
+		opacity: 1;
+		transform: none;
+	}
+
+	.nav-list .menu-item-has-children > a {
+		padding-right: 48px;
+	}
+
+	.nav-list .menu-item-has-children > a::before {
+		display: block;
+		right: 20px;
+	}
+
+	.nav-social {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		margin-top: 18px;
+		padding: 18px 14px 0;
+		border-top: 1px solid var(--border);
+	}
+
+	.nav-social .social-link {
+		display: inline-grid;
+		place-items: center;
+		width: 44px;
+		height: 44px;
+		border-radius: 50%;
+		border: 1px solid var(--border);
+		color: var(--ink);
+		transition: border-color 0.16s ease, color 0.16s ease;
+	}
+
+	.nav-social .social-link .icon {
+		width: 20px;
+		height: 20px;
+	}
+
+	.nav-social .social-link:hover {
+		border-color: var(--ember);
+		color: var(--flare);
+	}
+
+	/* ลิ้นชักโทนเข้ม · ตั้งที่ breakpoint เดียวกับลิ้นชัก (960) */
+	.theme-dark .site-nav {
+		background: var(--header-bg);
+		border-top: 0;
+	}
+
+	.theme-dark .nav-list a {
+		color: var(--header-text);
+	}
+
+	.theme-dark .nav-list a:hover,
+	.theme-dark .nav-list a:focus-visible {
+		background: rgba(74, 242, 142, 0.10);
+		box-shadow: inset 2px 0 0 var(--header-accent);
+		color: #FFFFFF;
+	}
+
+	.theme-dark .nav-list .sub-menu {
+		border-left: 2px solid rgba(74, 242, 142, 0.45);
+		border-radius: 0;
+		background: transparent;
+		box-shadow: none;
+	}
+
+	.theme-dark .nav-social {
+		border-top-color: var(--border-dark);
+	}
+
+	.theme-dark .nav-social .social-link {
+		border-color: var(--border-dark);
+		background: var(--header-chip);
+		color: var(--header-text);
+	}
+
+	.theme-dark .nav-social .social-link:hover {
+		border-color: var(--header-accent);
+		color: var(--header-accent);
+	}
+}
+
+/* 961–1024px เมนูยังเป็นแถวในแถบหัว · ไม่ต้องมีพื้นของลิ้นชัก */
+@media (min-width: 961px) and (max-width: 1024px) {
+	.theme-dark .site-nav {
+		background: transparent;
+	}
+}
+
+/* ==========================================================
+   3) ป้ายเล็กร่วม (แถบติดต่อ + footer) · pill ขอบเขียวบาง + จุดสถานะ
+   ========================================================== */
+.chrome-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 16px;
+	padding: 6px 14px 6px 10px;
+	border: 1px solid rgba(74, 242, 142, 0.28);
+	border-radius: 999px;
+	background: rgba(74, 242, 142, 0.08);
+	color: var(--mint);
+	font-size: 0.8rem;
+	font-weight: 600;
+	line-height: 1.3;
+	letter-spacing: 0.04em;
+}
+
+.chrome-dot {
+	flex: 0 0 auto;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--mint);
+}
+
+/* ==========================================================
+   4) แถบติดต่อท้ายหน้าย่อย (.cta-console) · เข้มเต็มความกว้าง ตัดทแยงแบบแบนเนอร์
+   ========================================================== */
+.cta-console {
+	position: relative;
+	isolation: isolate;
+	overflow: hidden;
+	padding: 72px 0;
+	border-top: 1px solid var(--border-dark);
+	background: var(--black);
+	color: var(--on-black-2);
+}
+
+.cta-console::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	background: var(--black-2);
+	clip-path: polygon(70% 0, 100% 0, 100% 100%, 58% 100%);
+}
+
+.cta-console-inner {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 28px 48px;
+	align-items: center;
+}
+
+.cta-console-title {
+	margin: 0 0 12px;
+	color: #FFFFFF;
+	font-size: clamp(1.5rem, 3vw, 2.25rem);
+	line-height: 1.28;
+	text-wrap: balance;
+}
+
+.cta-console-sub {
+	margin: 0;
+	max-width: 40em;
+	color: var(--on-black-2);
+}
+
+.cta-console-action .btn {
+	white-space: normal;
+	text-align: center;
+}
+
+/* ==========================================================
+   5) Footer "Console"
+   ========================================================== */
+.site-footer--console {
+	padding: 0;
+	border-top: 1px solid var(--border-dark);
+	background: var(--black-deep);
+	color: var(--on-black-2);
+}
+
+.site-footer--console::before {
+	display: none;
+}
+
+.ft-inner {
+	padding-top: 56px;
+}
+
+/* ---------- แถว 1 · ช่องทางติดต่อ ---------- */
+.ft-launch {
+	position: relative;
+	isolation: isolate;
+	display: grid;
+	grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+	border: 1px solid var(--border-dark);
+	border-radius: 20px;
+	background: var(--black);
+	box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+}
+
+.ft-launch::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: inherit;
+	background: var(--black-2);
+	clip-path: polygon(64% 0, 100% 0, 100% 100%, 52% 100%);
+}
+
+/* ไม่มีกล่องเตรียมข้อความ/เวลาตอบแชท → แถวเดียวเต็มความกว้าง */
+.ft-launch--solo {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+.ft-launch--solo::before {
+	clip-path: polygon(78% 0, 100% 0, 100% 100%, 70% 100%);
+}
+
+.ft-launch-main,
+.ft-launch-side {
+	min-width: 0;
+	padding: 40px;
+}
+
+.ft-launch-side {
+	display: grid;
+	gap: 22px;
+	align-content: start;
+	padding-left: 24px;
+}
+
+.ft-launch-title {
+	margin: 0 0 12px;
+	color: #FFFFFF;
+	font-size: clamp(1.55rem, 2.8vw, 2.2rem);
+	line-height: 1.28;
+	text-wrap: balance;
+}
+
+.ft-launch-sub {
+	margin: 0;
+	max-width: 34em;
+	color: var(--on-black-2);
+}
+
+.ft-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+	margin-top: 26px;
+}
+
+.ft-actions .btn {
+	white-space: normal;
+	text-align: center;
+}
+
+.ft-contact {
+	position: relative;
+}
+
+.ft-openchat.btn-ghost {
+	border-color: rgba(255, 255, 255, 0.24);
+	background: transparent;
+	color: #FFFFFF;
+}
+
+.ft-openchat.btn-ghost:hover {
+	border-color: var(--mint);
+	background: rgba(74, 242, 142, 0.08);
+	color: #FFFFFF;
+}
+
+.ft-launch .admin-hint {
+	margin: 16px 0 0;
+}
+
+/* QR · เดสก์ท็อปลอยขึ้นเมื่อชี้/โฟกัสปุ่ม · มือถือ/จอสัมผัสใช้ <details> */
+.ft-qr-flyout {
+	display: none;
+}
+
+.ft-qr-mobile {
+	margin-top: 16px;
+}
+
+.ft-qr-mobile summary {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 16px;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	border-radius: 999px;
+	color: var(--on-black);
+	font-size: 0.88rem;
+	cursor: pointer;
+	list-style: none;
+}
+
+.ft-qr-mobile summary::-webkit-details-marker {
+	display: none;
+}
+
+.ft-qr-mobile[open] summary {
+	border-color: var(--mint);
+	color: var(--mint);
+}
+
+.ft-qr-mobile img {
+	width: 180px;
+	height: 180px;
+	margin-top: 12px;
+	padding: 10px;
+	border-radius: 16px;
+	background: #FFFFFF;
+}
+
+@media (hover: hover) and (min-width: 761px) {
+	.ft-qr-flyout {
+		display: block;
+		position: absolute;
+		left: 0;
+		bottom: calc(100% + 12px);
+		z-index: 5;
+		padding: 10px;
+		border-radius: 16px;
+		background: #FFFFFF;
+		box-shadow: 0 14px 30px rgba(0, 0, 0, 0.30);
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(6px);
+		pointer-events: none;
+		transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+	}
+
+	.ft-qr-flyout img {
+		width: 150px;
+		height: 150px;
+	}
+
+	.ft-contact:hover .ft-qr-flyout,
+	.ft-contact:focus-within .ft-qr-flyout {
+		opacity: 1;
+		visibility: visible;
+		transform: none;
+	}
+
+	.ft-qr-mobile {
+		display: none;
+	}
+}
+
+/* ด้านข้าง · กล่องเตรียมข้อความแรก + เวลาตอบแชท */
+.ft-side-title {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 8px;
+	color: #FFFFFF;
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+.ft-side-title .icon {
+	color: var(--mint);
+}
+
+.ft-side-text {
+	margin: 0 0 14px;
+	color: var(--on-black-2);
+	font-size: 0.9rem;
+	line-height: 1.65;
+}
+
+.ft-prep-list {
+	display: grid;
+	gap: 10px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ft-prep-list li {
+	display: grid;
+	grid-template-columns: 30px minmax(0, 1fr);
+	gap: 12px;
+	align-items: start;
+	color: var(--on-black);
+	font-size: 0.92rem;
+	line-height: 1.55;
+}
+
+.ft-prep-list li > span:last-child {
+	padding-top: 4px;
+}
+
+.ft-prep-num {
+	display: inline-grid;
+	place-items: center;
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	background: var(--black-3);
+	color: var(--mint);
+	font-size: 0.74rem;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+.ft-hours {
+	padding-top: 18px;
+	border-top: 1px dashed rgba(255, 255, 255, 0.14);
+}
+
+.ft-hours .ft-side-text {
+	margin: 0;
+}
+
+/* ---------- แถว 2 · ดัชนี ---------- */
+/* คอลัมน์ที่ว่าง (เช่น ยังไม่มีช่องทางใดกรอก) ถูกซ่อน → auto-fit ให้คอลัมน์ที่เหลือขยายเต็มแถว */
+.ft-index {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 32px 36px;
+	padding: 52px 0 40px;
+}
+
+.ft-col-title {
+	margin: 0 0 16px;
+	color: #FFFFFF;
+	font-size: 0.95rem;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+}
+
+.ft-list {
+	display: grid;
+	gap: 10px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ft-list a {
+	display: inline-flex;
+	align-items: flex-start;
+	gap: 10px;
+	color: var(--on-black-2);
+	font-size: 0.92rem;
+	line-height: 1.5;
+	transition: color 0.16s ease;
+}
+
+.ft-list a:hover {
+	color: var(--mint);
+}
+
+.ft-idx {
+	flex: 0 0 auto;
+	min-width: 22px;
+	color: var(--mint);
+	font-size: 0.78rem;
+	font-weight: 700;
+	line-height: 1.95;
+	font-variant-numeric: tabular-nums;
+}
+
+.ft-list--chan a {
+	align-items: center;
+}
+
+.ft-chan-ic {
+	display: inline-grid;
+	place-items: center;
+	flex: 0 0 auto;
+	width: 30px;
+	height: 30px;
+	border: 1px solid var(--border-dark);
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.04);
+	color: var(--on-black);
+	transition: border-color 0.16s ease, color 0.16s ease;
+}
+
+.ft-chan:hover .ft-chan-ic {
+	border-color: var(--mint);
+	color: var(--mint);
+}
+
+.ft-chan.is-line .ft-chan-ic,
+.ft-chan.is-line:hover .ft-chan-ic {
+	border-color: var(--line-green);
+	background: var(--line-green);
+	color: #03240F;
+}
+
+.ft-spec {
+	display: grid;
+	margin: 0;
+	border-top: 1px solid var(--border-dark);
+}
+
+.ft-spec-row {
+	display: grid;
+	gap: 2px;
+	padding: 10px 0;
+	border-bottom: 1px solid var(--border-dark);
+}
+
+.ft-spec dt {
+	color: var(--on-black-2);
+	font-size: 0.76rem;
+	letter-spacing: 0.04em;
+}
+
+.ft-spec dd {
+	margin: 0;
+	color: var(--on-black);
+	font-size: 0.9rem;
+	line-height: 1.5;
+}
+
+/* ---------- แถว 3 · คำเตือนความเสี่ยงฉบับเต็ม ---------- */
+.ft-risk {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+	padding: 18px 20px;
+	border: 1px solid rgba(242, 166, 90, 0.28);
+	border-radius: 14px;
+	background: rgba(242, 166, 90, 0.06);
+}
+
+.ft-risk-ic {
+	display: inline-grid;
+	place-items: center;
+	flex: 0 0 auto;
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	background: rgba(242, 166, 90, 0.14);
+	color: #F2A65A;
+}
+
+.ft-risk p {
+	margin: 0;
+	color: rgba(238, 243, 244, 0.8);
+	font-size: 0.84rem;
+	line-height: 1.75;
+}
+
+/* ---------- แถว 4 · ชื่อแบรนด์ตัวใหญ่แบบเส้นขอบ (จางเข้าเมื่อเลื่อนมาถึง) ---------- */
+.ft-wm {
+	margin: 40px 0 6px;
+	padding: 0 12px;
+	overflow: hidden;
+	color: rgba(255, 255, 255, 0.07);
+	font-size: clamp(3.2rem, 13vw, 11.5rem);
+	font-weight: 700;
+	line-height: 0.95;
+	letter-spacing: 0.02em;
+	text-align: center;
+	white-space: nowrap;
+	pointer-events: none;
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+@supports (-webkit-text-stroke: 1px #000) {
+	.ft-wm {
+		color: transparent;
+		-webkit-text-stroke: 1.5px rgba(238, 243, 244, 0.2);
+	}
+
+	.ft-wm-b {
+		-webkit-text-stroke-color: var(--ember);
+	}
+}
+
+.js .ft-wm.watch {
+	opacity: 0;
+	transform: translateY(18px);
+	transition: opacity 0.9s ease, transform 0.9s ease;
+}
+
+.js .ft-wm.watch.in {
+	opacity: 1;
+	transform: none;
+}
+
+/* ---------- แถว 5 · แถบสถานะ ---------- */
+.ft-status {
+	border-top: 1px solid var(--border-dark);
+	background: rgba(0, 0, 0, 0.18);
+}
+
+.ft-status-inner {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px 24px;
+	padding: 16px 0;
+	color: rgba(238, 243, 244, 0.62);
+	font-size: 0.8rem;
+	line-height: 1.5;
+}
+
+.ft-status-inner p {
+	margin: 0;
+}
+
+.ft-copy {
+	margin-right: auto !important;
+}
+
+.ft-clock {
+	display: none;
+	align-items: center;
+	gap: 8px;
+	font-variant-numeric: tabular-nums;
+}
+
+.js .ft-clock {
+	display: inline-flex;
+}
+
+.ft-clock time {
+	color: var(--on-black);
+	font-weight: 600;
+}
+
+.ft-top {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 14px;
+	border: 1px solid var(--border-dark);
+	border-radius: 999px;
+	color: var(--on-black);
+	font-size: 0.8rem;
+	transition: border-color 0.16s ease, color 0.16s ease;
+}
+
+.ft-top .icon {
+	transform: rotate(-90deg);
+}
+
+.ft-top:hover {
+	border-color: var(--mint);
+	color: var(--mint);
+}
+
+/* ==========================================================
+   6) บาร์ล่างมือถือ (Dock) · แผงเข้ม มุมโค้ง · ช่องกลางคือปุ่มติดต่อ
+   ช่อง active มาจาก PHP (aria-current) · ไฟแถบเล็กด้านบนจอดที่ --dock-x · เว้นที่ท้ายหน้าด้วย .dock-spacer (ไม่ใช้ padding ของ body)
+   ========================================================== */
+.dock-spacer {
+	display: none;
+}
+
+/* บาร์ล่างมือถือ: ซ่อนบนจอกว้าง แสดงเฉพาะ ≤760px */
+.mobile-app-nav.dock {
+	display: none;
+}
+
+@media (max-width: 760px) {
+	.mobile-app-nav.dock {
+		position: fixed;
+		left: 50%;
+		right: auto;
+		bottom: calc(10px + env(safe-area-inset-bottom));
+		z-index: 120;
+		display: block;
+		width: min(calc(100vw - 16px), 480px);
+		padding: 6px;
+		border: 1px solid var(--border-dark);
+		border-radius: 22px;
+		background: var(--black-deep);
+		box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+		transform: translateX(-50%);
+		animation: none;
+	}
+
+	.dock-keys {
+		display: grid;
+		grid-template-columns: repeat(var(--dock-n, 5), minmax(0, 1fr));
+		gap: 2px;
+	}
+
+	.dock-key {
+		position: relative;
+		display: grid;
+		justify-items: center;
+		align-content: center;
+		gap: 4px;
+		min-width: 0;
+		min-height: 56px;
+		padding: 4px 2px;
+		border-radius: 16px;
+		color: var(--on-black-2);
+		font-size: 0.68rem;
+		font-weight: 600;
+		line-height: 1.1;
+		text-align: center;
+		-webkit-tap-highlight-color: transparent;
+		transition: color 0.18s ease, transform 0.18s ease, min-height 0.2s ease, gap 0.2s ease;
+	}
+
+	.dock-cap {
+		display: grid;
+		place-items: center;
+		width: 42px;
+		height: 30px;
+		border-radius: 999px;
+		transition: background-color 0.18s ease, color 0.18s ease;
+	}
+
+	.dock-cap .icon {
+		width: 20px;
+		height: 20px;
+	}
+
+	.dock-label {
+		max-width: 100%;
+		max-height: 1.4em;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		transition: opacity 0.18s ease, max-height 0.2s ease;
+	}
+
+	.dock-key.is-active {
+		color: var(--mint);
+	}
+
+	.dock-key.is-active .dock-cap {
+		background: rgba(74, 242, 142, 0.14);
+		color: var(--mint);
+	}
+
+	.dock-key.is-press {
+		transform: scale(0.94);
+	}
+
+	.dock.is-going .dock-key.is-going .dock-cap {
+		background: rgba(74, 242, 142, 0.22);
+		color: var(--mint);
+	}
+
+	/* ช่องกลาง · ปุ่มติดต่อ (LINE = เขียว LINE · ไปหน้า /go/ = เขียว FALCON) */
+	.dock-key.is-action {
+		color: var(--on-black);
+	}
+
+	.dock-key.is-action .dock-cap {
+		width: 50px;
+		height: 34px;
+		background: var(--ember);
+		color: var(--on-ember);
+	}
+
+	.dock-key.is-action.is-line .dock-cap {
+		background: var(--line-green);
+		color: #03240F;
+	}
+
+	@media (hover: hover) {
+		.dock-key:hover {
+			color: var(--on-black);
+		}
+
+		.dock-key:hover .dock-cap {
+			background: rgba(255, 255, 255, 0.06);
+		}
+
+		.dock-key.is-active:hover .dock-cap {
+			background: rgba(74, 242, 142, 0.18);
+		}
+
+		.dock-key.is-action:hover .dock-cap {
+			background: var(--ember-deep);
+		}
+
+		.dock-key.is-action.is-line:hover .dock-cap {
+			background: var(--line-green-dark);
+		}
+	}
+
+	.dock-lamp {
+		position: absolute;
+		top: -1px;
+		left: var(--dock-x, 50%);
+		width: 22px;
+		height: 3px;
+		border-radius: 0 0 3px 3px;
+		background: var(--mint);
+		opacity: 0;
+		transform: translateX(-50%);
+		transition: left 0.3s ease, opacity 0.2s ease;
+	}
+
+	.dock.is-lit .dock-lamp {
+		opacity: 1;
+	}
+
+	/* ย่อบาร์ตอนเลื่อนอ่านลง (ไม่ซ่อน ปุ่มติดต่อยังอยู่บนจอ) */
+	.dock.is-slim .dock-key {
+		min-height: 42px;
+		gap: 0;
+	}
+
+	.dock.is-slim .dock-label {
+		max-height: 0;
+		opacity: 0;
+	}
+
+	.dock-spacer {
+		display: block;
+		height: calc(var(--dock-h) + 20px + env(safe-area-inset-bottom));
+		background: var(--black-deep);
+	}
+
+	.float-line--dock {
+		bottom: calc(var(--dock-h) + 26px + env(safe-area-inset-bottom));
+	}
+
+	/* ปิดบาร์ล่างไว้ → ปุ่ม LINE วงกลมกลับมาบนมือถือ (style.css ซ่อนไว้เพราะปกติบาร์ล่างมีปุ่ม LINE อยู่แล้ว) */
+	body:not(.has-dock) .line-fab {
+		display: inline-grid;
+		right: 16px;
+		bottom: calc(16px + env(safe-area-inset-bottom));
+		width: 54px;
+		height: 54px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.dock-key,
+	.dock-cap,
+	.dock-label,
+	.dock-lamp,
+	.ft-qr-flyout {
+		transition: none;
+	}
+
+	.js .ft-wm.watch {
+		opacity: 1;
+		transform: none;
+		transition: none;
+	}
+}
+
+/* ==========================================================
+   7) Responsive
+   ========================================================== */
+@media (max-width: 1024px) {
+	.ft-launch {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.ft-launch::before {
+		clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+		opacity: 0;
+	}
+
+	.ft-launch-side {
+		padding: 28px 40px 36px;
+		border-top: 1px solid var(--border-dark);
+		border-radius: 0 0 20px 20px;
+		background: var(--black-2);
+	}
+
+	.ft-index {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 760px) {
+	.cta-console {
+		padding: 52px 0 56px;
+	}
+
+	.cta-console-inner {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.cta-console::before {
+		clip-path: polygon(0 80%, 100% 60%, 100% 100%, 0 100%);
+	}
+
+	.cta-console-action .btn {
+		width: 100%;
+	}
+
+	.ft-inner {
+		padding-top: 40px;
+	}
+
+	.ft-status-inner {
+		justify-content: center;
+		text-align: center;
+	}
+
+	.ft-copy {
+		margin-right: 0 !important;
+		flex-basis: 100%;
+	}
+}
+
+@media (max-width: 640px) {
+	.ft-launch-main {
+		padding: 28px 22px;
+	}
+
+	.ft-launch-side {
+		padding: 24px 22px 28px;
+	}
+
+	.ft-actions .btn {
+		width: 100%;
+	}
+
+	.ft-contact {
+		width: 100%;
+	}
+
+	.ft-index {
+		gap: 28px 20px;
+		padding: 40px 0 32px;
+	}
+
+	.ft-col--spec {
+		grid-column: 1 / -1;
+	}
+
+	.ft-risk {
+		padding: 16px;
+	}
+}
+
+@media (max-width: 400px) {
+	.ft-index {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}

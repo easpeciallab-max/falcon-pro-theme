@@ -32,6 +32,7 @@ do_action( 'init' );
 
 $slug = trim( $uri, '/' );
 
+
 if ( '' === $slug ) {
 	$GLOBALS['fx_route']['front'] = true;
 	$GLOBALS['fx_post']           = array( 'title' => 'หน้าแรก', 'content' => '', 'slug' => '', 'type' => 'page' );

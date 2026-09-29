@@ -2,45 +2,58 @@
 /**
  * 404 · ไม่พบหน้า
  *
+ * ปุ่มติดต่อใช้ fenix_contact_target(): LINE → หน้า /go/ → ไม่แสดง (ไม่มีลิงก์ '#')
+ *
  * @package falcon-pro
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 get_header();
 
-$fenix_line = fenix_mod( 'line_url' );
+$fenix_target = fenix_contact_target();
 ?>
 
 <main id="main">
-	<section class="error-404">
+	<section class="error-404<?php echo esc_attr( fenix_section_tone( 'error', true ) ); ?>">
 		<div class="container container-narrow">
 			<div class="error-404-inner">
 
-				<p class="error-code">404</p>
-				<h1 class="error-title">ไม่พบหน้าที่คุณค้นหา</h1>
-				<p class="error-text">หน้านี้อาจถูกย้าย ลบ หรือพิมพ์ลิงก์ผิด ลองค้นหา หรือกลับไปหน้าหลักได้เลย</p>
+				<p class="error-code" aria-hidden="true">404</p>
+				<h1 class="error-title"><?php echo fenix_text( fenix_mod( 'err404_title' ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?></h1>
+				<p class="error-text"><?php echo esc_html( fenix_mod( 'err404_text' ) ); ?></p>
 
-				<form class="error-search" role="search" method="get" action="<?php echo esc_url( home_url( '/' ) ); ?>">
-					<input type="search" name="s" placeholder="ค้นหาบทความ…" aria-label="ค้นหา" spellcheck="false" autocomplete="off" value="<?php echo esc_attr( get_search_query() ); ?>">
-					<button type="submit" aria-label="ค้นหา"><?php echo fenix_icon( 'arrow', 'icon' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
-				</form>
+				<?php fenix_pages_search_form( fenix_mod( 'err404_search_placeholder' ) ); ?>
 
 				<div class="error-actions">
 					<a class="btn btn-fire" href="<?php echo esc_url( home_url( '/' ) ); ?>">
 						<?php echo fenix_icon( 'home', 'icon' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-						กลับหน้าแรก
+						<span><?php echo esc_html( fenix_mod( 'err404_home_label' ) ); ?></span>
 					</a>
-					<a class="btn btn-line" href="<?php echo esc_url( $fenix_line ); ?>" target="_blank" rel="noopener">
-						<?php echo fenix_icon( 'line' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-						ทัก LINE
-					</a>
+					<?php
+					fenix_contact_button(
+						array(
+							'text'  => fenix_mod( 'err404_contact_text' ),
+							'class' => $fenix_target['is_line'] ? 'btn btn-line' : 'btn btn-ghost',
+							'pos'   => '404',
+							'arrow' => false,
+						)
+					);
+					?>
 				</div>
 
-				<nav class="error-links" aria-label="ลิงก์ด่วน">
-					<a href="<?php echo esc_url( home_url( '/forward-test/' ) ); ?>">ผลทดสอบ</a>
-					<a href="<?php echo esc_url( home_url( '/pricing/' ) ); ?>">แพ็กเกจ</a>
-					<a href="<?php echo esc_url( home_url( '/how-to-install/' ) ); ?>">วิธีติดตั้ง</a>
-					<a href="<?php echo esc_url( home_url( '/risk-disclosure/' ) ); ?>">คำเตือนความเสี่ยง</a>
-				</nav>
+				<?php $fenix_links = fenix_pages_pairs( fenix_mod( 'err404_links' ) ); ?>
+				<?php if ( $fenix_links ) : ?>
+					<nav class="error-links" aria-label="<?php echo esc_attr( fenix_mod( 'err404_title' ) ); ?>">
+						<?php foreach ( $fenix_links as $fenix_link ) : ?>
+							<?php if ( '' !== $fenix_link[1] ) : ?>
+								<a href="<?php echo esc_url( fenix_link_url( $fenix_link[1] ) ); ?>"><?php echo esc_html( $fenix_link[0] ); ?></a>
+							<?php endif; ?>
+						<?php endforeach; ?>
+					</nav>
+				<?php endif; ?>
 
 			</div>
 		</div>

@@ -35,12 +35,12 @@ function fenix_site_pages() {
 		'tools'            => array( 'title' => 'เครื่องมือคำนวณ', 'template' => 'template-guide.php', 'content' => 'pages/tools', 'group' => 'guide', 'menu' => 'เครื่องคำนวณ Lot / Drawdown' ),
 		'pricing'          => array( 'title' => 'แพ็กเกจและราคา', 'template' => 'template-pricing.php', 'content' => 'pages/pricing', 'group' => 'pricing' ),
 		'risk-disclosure'  => array( 'title' => 'ประกาศความเสี่ยง', 'template' => 'template-risk.php', 'content' => 'pages/risk-disclosure', 'group' => 'doc' ),
-		'about'            => array( 'title' => 'เกี่ยวกับเรา', 'template' => 'template-guide.php', 'content' => 'pages/about', 'group' => 'doc' ),
-		'privacy-policy'   => array( 'title' => 'นโยบายความเป็นส่วนตัว', 'template' => 'template-guide.php', 'content' => 'pages/privacy-policy', 'group' => 'doc', 'status' => 'draft' ),
-		'terms-of-use'     => array( 'title' => 'เงื่อนไขการใช้บริการ', 'template' => 'template-guide.php', 'content' => 'pages/terms-of-use', 'group' => 'doc', 'status' => 'draft' ),
-		'data-deletion'    => array( 'title' => 'คำขอลบข้อมูลส่วนบุคคล', 'template' => 'template-guide.php', 'content' => 'pages/data-deletion', 'group' => 'doc', 'status' => 'draft' ),
+		'about'            => array( 'title' => 'เกี่ยวกับเรา', 'template' => '', 'content' => 'pages/about', 'group' => 'doc' ),
+		'privacy-policy'   => array( 'title' => 'นโยบายความเป็นส่วนตัว', 'template' => '', 'content' => 'pages/privacy-policy', 'group' => 'doc', 'status' => 'draft' ),
+		'terms-of-use'     => array( 'title' => 'เงื่อนไขการใช้บริการ', 'template' => '', 'content' => 'pages/terms-of-use', 'group' => 'doc', 'status' => 'draft' ),
+		'data-deletion'    => array( 'title' => 'คำขอลบข้อมูลส่วนบุคคล', 'template' => '', 'content' => 'pages/data-deletion', 'group' => 'doc', 'status' => 'draft' ),
 		'go'               => array( 'title' => 'ติดต่อ FALCON PRO EA', 'template' => 'template-go.php', 'content' => '', 'group' => 'hub', 'seo' => array( 'seo_title' => 'ติดต่อ FALCON PRO EA · LINE และลิงก์เริ่มต้นใช้งาน EA MT5', 'description' => 'ช่องทางติดต่อ FALCON PRO EA ทาง LINE พร้อมลิงก์เริ่มต้นใช้งาน 6 ขั้น ตั้งแต่เปิดบัญชี ดาวน์โหลด MT5 ติดตั้ง EA จนถึงตั้งค่า VPS ให้ระบบทำงานต่อเนื่อง', 'keyword' => 'FALCON PRO EA' ) ),
-		'articles'         => array( 'title' => 'บทความ EA และ MT5', 'template' => '', 'content' => '', 'group' => 'hub', 'posts' => true, 'seo' => array( 'seo_title' => 'บทความ EA และ MetaTrader 5 ภาษาไทย · FALCON PRO EA', 'description' => 'รวมบทความและคู่มือ EA MT5 ภาษาไทย ตั้งแต่พื้นฐาน EA คืออะไร การคำนวณ Lot, Drawdown, Spread, Margin Call ไปจนถึงการเลือกโบรกเกอร์และ VPS สำหรับบอทเทรด', 'keyword' => 'บทความ EA' ) ),
+		'articles'         => array( 'title' => 'บทความ EA และ MT5', 'template' => '', 'content' => '', 'group' => 'hub', 'posts' => true, 'seo' => array( 'seo_title' => 'คลังความรู้ EA บน MT5 ภาษาไทย · FALCON PRO EA', 'description' => 'รวมบทความและคู่มือ EA MT5 ภาษาไทย ตั้งแต่พื้นฐาน EA คืออะไร การคำนวณ Lot, Drawdown, Spread, Margin Call ไปจนถึงการเลือกโบรกเกอร์และ VPS สำหรับบอทเทรด', 'keyword' => 'บทความ EA' ) ),
 	);
 }
 
@@ -304,6 +304,7 @@ function fenix_setup_create_pages( $overwrite = false ) {
 		$status  = isset( $page['status'] ) ? $page['status'] : 'publish';
 		$found   = fenix_find_page( $slug );
 
+		$seed_rev = ! empty( $meta['rev'] ) ? (int) $meta['rev'] : 1;
 		if ( ! $found ) {
 			$id = wp_insert_post(
 				array(
@@ -319,6 +320,7 @@ function fenix_setup_create_pages( $overwrite = false ) {
 				$log[] = '✗ ' . $slug . ' · ' . $id->get_error_message();
 				continue;
 			}
+			update_post_meta( $id, 'fenix_seed_rev', $seed_rev );
 			$log[] = '✓ สร้าง /' . $slug . '/' . ( 'draft' === $status ? ' (ฉบับร่าง รอตรวจ)' : '' );
 			if ( 'privacy-policy' === $slug ) {
 				update_option( 'wp_page_for_privacy_policy', (int) $id ); // ตั้งเป็นเพจนโยบายความเป็นส่วนตัวของเว็บ
@@ -350,6 +352,7 @@ function fenix_setup_create_pages( $overwrite = false ) {
 						'post_content' => wp_slash( $content ),
 					)
 				);
+				update_post_meta( $id, 'fenix_seed_rev', $seed_rev );
 				$log[] = '↻ เขียนทับเนื้อหา /' . $slug . '/';
 			}
 		}
@@ -487,6 +490,32 @@ function fenix_setup_import_articles( $publish = false ) {
 	return $log ? $log : array( '• ไม่มีไฟล์บทความให้นำเข้า' );
 }
 
+/**
+ * แทนเนื้อหาเพจเดียวด้วยเนื้อหาตั้งต้นรุ่นล่าสุด (เก็บรุ่นเก่าเป็น revision ของ WP)
+ */
+function fenix_setup_replace_page( $slug ) {
+	$pages = fenix_site_pages();
+	if ( ! isset( $pages[ $slug ] ) || empty( $pages[ $slug ]['content'] ) ) {
+		return array( '✗ ไม่พบเนื้อหาตั้งต้นของ /' . $slug . '/' );
+	}
+	$found = fenix_find_page( $slug );
+	if ( ! $found ) {
+		return array( '✗ ยังไม่มีเพจ /' . $slug . '/ · กด "สร้างเพจ" ก่อน' );
+	}
+	$meta = fenix_seed_meta( $pages[ $slug ]['content'] );
+	wp_update_post(
+		array(
+			'ID'           => $found->ID,
+			'post_content' => wp_slash( fenix_seed_content( $pages[ $slug ]['content'] ) ),
+		)
+	);
+	update_post_meta( $found->ID, 'fenix_seed_rev', ! empty( $meta['rev'] ) ? (int) $meta['rev'] : 1 );
+	if ( $meta ) {
+		fenix_apply_seo_meta( $found->ID, $meta );
+	}
+	return array( '↻ แทนเนื้อหา /' . $slug . '/ ด้วยรุ่นล่าสุดแล้ว (รุ่นเดิมอยู่ใน Revisions ของเพจ)' );
+}
+
 function fenix_setup_handle() {
 	if ( ! current_user_can( 'edit_theme_options' ) ) {
 		wp_die( 'ไม่มีสิทธิ์' );
@@ -512,6 +541,10 @@ function fenix_setup_handle() {
 	}
 	if ( 'menu' === $do || 'all' === $do ) {
 		$log = array_merge( $log, fenix_setup_menu_build() );
+	}
+	if ( 'replace' === $do ) {
+		$slug = isset( $_POST['fenix_slug'] ) ? sanitize_key( wp_unslash( $_POST['fenix_slug'] ) ) : '';
+		$log  = array_merge( $log, fenix_setup_replace_page( $slug ) );
 	}
 	if ( 'articles' === $do ) {
 		$log = array_merge( $log, fenix_setup_import_articles( ! empty( $_POST['fenix_publish'] ) ) );
@@ -572,19 +605,34 @@ function fenix_setup_screen() {
 
 		<h2>สถานะเพจ</h2>
 		<table class="widefat striped" style="max-width:980px">
-			<thead><tr><th>URL</th><th>ชื่อเพจ</th><th>สถานะ</th><th>เทมเพลต</th><th></th></tr></thead>
+			<thead><tr><th>URL</th><th>ชื่อเพจ</th><th>สถานะ</th><th>เทมเพลต</th><th>เนื้อหาตั้งต้น</th><th></th></tr></thead>
 			<tbody>
 			<?php
 			foreach ( $pages as $slug => $page ) :
 				$found = fenix_find_page( $slug );
 				$tpl   = $found ? get_post_meta( $found->ID, '_wp_page_template', true ) : '';
 				$ok    = ! $page['template'] || $tpl === $page['template'];
+				$smeta = ! empty( $page['content'] ) ? fenix_seed_meta( $page['content'] ) : null;
+				$srev  = $smeta ? ( ! empty( $smeta['rev'] ) ? (int) $smeta['rev'] : 1 ) : 0;
+				$prev  = $found ? (int) get_post_meta( $found->ID, 'fenix_seed_rev', true ) : 0;
+				$stale = $found && $srev && $prev < $srev;
 				?>
 				<tr>
 					<td><code>/<?php echo esc_html( $slug ); ?>/</code></td>
 					<td><?php echo esc_html( $found ? $found->post_title : $page['title'] ); ?></td>
 					<td><?php echo $found ? esc_html( 'publish' === $found->post_status ? 'เผยแพร่' : 'ฉบับร่าง' ) : '<span style="color:#b32d2e">ยังไม่มี</span>'; ?></td>
 					<td><?php echo $page['template'] ? ( $ok ? '✓ ' : '<span style="color:#b32d2e">✗ </span>' ) . esc_html( $page['template'] ) : '—'; ?></td>
+					<td>
+						<?php if ( ! $srev ) : ?>—<?php elseif ( ! $found ) : ?>รุ่น <?php echo (int) $srev; ?><?php elseif ( $stale ) : ?>
+							<span style="color:#b26c09">มีรุ่นใหม่ (<?php echo (int) $prev; ?> → <?php echo (int) $srev; ?>)</span>
+							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;margin-left:6px" onsubmit="return confirm('แทนเนื้อหาเพจนี้ด้วยรุ่นล่าสุด? ข้อความที่แก้เองในเพจนี้จะถูกแทน (รุ่นเดิมยังอยู่ใน Revisions)');">
+								<?php wp_nonce_field( 'fenix_setup' ); ?>
+								<input type="hidden" name="action" value="fenix_setup">
+								<input type="hidden" name="fenix_slug" value="<?php echo esc_attr( $slug ); ?>">
+								<button class="button button-small" name="fenix_do" value="replace">แทนด้วยรุ่นล่าสุด</button>
+							</form>
+						<?php else : ?>✓ รุ่น <?php echo (int) $srev; ?><?php endif; ?>
+					</td>
 					<td><?php if ( $found ) : ?><a href="<?php echo esc_url( get_edit_post_link( $found->ID ) ); ?>">แก้ไข</a> · <a href="<?php echo esc_url( get_permalink( $found ) ); ?>" target="_blank" rel="noopener">ดู</a><?php endif; ?></td>
 				</tr>
 			<?php endforeach; ?>
