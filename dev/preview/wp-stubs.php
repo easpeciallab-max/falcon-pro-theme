@@ -170,9 +170,10 @@ function the_author() { echo 'FALCON PRO Team'; }
 function get_the_category() { return array( (object) array( 'name' => 'คู่มือ EA', 'term_id' => 1, 'slug' => 'guide' ) ); }
 function get_category_link() { return '#'; }
 function get_the_tag_list() { return ''; }
-function has_post_thumbnail() { return false; }
-function the_post_thumbnail() {}
-function get_the_post_thumbnail_url() { return ''; }
+// Article previews (/article/<slug>/) show the generated cover from assets/img/covers/ when it exists.
+function get_the_post_thumbnail_url() { $s = $GLOBALS['fx_post']; $rel = '/assets/img/covers/' . $s['slug'] . '.webp'; return ( 'post' === $s['type'] && '' !== $s['slug'] && file_exists( get_template_directory() . $rel ) ) ? get_template_directory_uri() . $rel : ''; }
+function has_post_thumbnail() { return '' !== get_the_post_thumbnail_url(); }
+function the_post_thumbnail( $size = '', $attr = array() ) { $u = get_the_post_thumbnail_url(); if ( '' !== $u ) { echo '<img src="' . esc_url( $u ) . '" width="1200" height="630" alt="' . esc_attr( isset( $attr['alt'] ) ? $attr['alt'] : '' ) . '">'; } }
 function post_class( $c = '' ) { echo 'class="' . esc_attr( is_array( $c ) ? implode( ' ', $c ) : $c ) . '"'; }
 function body_class( $c = '' ) { $cl = apply_filters( 'body_class', array( is_front_page() ? 'home' : 'page' ) ); echo 'class="' . esc_attr( implode( ' ', $cl ) ) . '"'; }
 function the_archive_title() { echo 'บทความ'; }
@@ -184,6 +185,16 @@ function get_posts() { return array(); }
 function get_pages() { return array(); }
 function get_children() { return array(); }
 function wp_get_recent_posts() { return array(); }
+
+// $wpdb: only fenix_unpublished_seed_articles() queries it. Seed articles count as published in the preview (links between
+// articles stay clickable) · add ?drafts=1 to see content while they are still drafts (fenix_unlink_draft_pages removes those links).
+class FX_Wpdb {
+	public $posts = 'wp_posts';
+	public $args  = array();
+	public function prepare( $q, $args ) { $this->args = (array) $args; return $q; }
+	public function get_col( $q ) { return isset( $_GET['drafts'] ) ? array() : ( isset( $this->args ) ? $this->args : array() ); }
+}
+$GLOBALS['wpdb'] = new FX_Wpdb();
 
 class WP_Query {
 	public $posts = array();

@@ -59,6 +59,13 @@ if ( isset( $pages[ $slug ] ) ) {
 	return true;
 }
 
+// Article cover card: /__cover/<article-slug>/ (source for dev/make-covers.php)
+if ( 0 === strpos( $slug, '__cover/' ) && function_exists( 'fenix_seed_articles' ) ) {
+	$fx_cover_slug = substr( $slug, 8 );
+	require __DIR__ . '/cover.php';
+	return true;
+}
+
 // Article preview: /article/<file> renders inc/content/articles/<file>.html with single.php
 if ( 0 === strpos( $slug, 'article/' ) && function_exists( 'fenix_seed_articles' ) ) {
 	$key  = substr( $slug, 8 );

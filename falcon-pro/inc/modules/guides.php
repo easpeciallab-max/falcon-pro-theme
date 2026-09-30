@@ -1035,44 +1035,13 @@ function fenix_guide_check( $title, $lines, $note = '' ) {
 }
 
 /**
- * เนื้อหายาวจากหน้าแก้ไขเพจ (สารบัญอัตโนมัติ + FAQ schema) · ลิงก์ไปบทความที่ยังเป็นร่างจะแสดงเป็นข้อความธรรมดา
+ * เนื้อหายาวจากหน้าแก้ไขเพจ (สารบัญอัตโนมัติ + FAQ schema) · ลิงก์ไปบทความที่ยังเป็นร่างจัดการโดย fenix_unlink_draft_pages() (inc/setup.php)
  */
 function fenix_guide_longform() {
 	$GLOBALS['fenix_guides_longform'] = true;
 	fenix_page_longform( 'section gd-longform' . fenix_guide_band( 'longform', false, false ) );
 	$GLOBALS['fenix_guides_longform'] = false;
 }
-
-/**
- * ลิงก์ไปบทความเริ่มต้นที่ยังไม่เผยแพร่ → ข้อความธรรมดา (กันลิงก์ 404) · ทำเฉพาะเนื้อหาของหน้าคู่มือ
- */
-function fenix_guide_unlink_unpublished_posts( $content ) {
-	if ( empty( $GLOBALS['fenix_guides_longform'] ) || false === strpos( (string) $content, '<a' ) || ! function_exists( 'fenix_seed_articles' ) ) {
-		return $content;
-	}
-	$articles = fenix_seed_articles();
-	if ( empty( $articles ) ) {
-		return $content;
-	}
-	$home = preg_quote( untrailingslashit( home_url() ), '#' );
-	$out  = preg_replace_callback(
-		'#<a\s[^>]*href="' . $home . '/([a-z0-9\-]+)/?"[^>]*>(.*?)</a>#is',
-		function ( $m ) use ( $articles ) {
-			static $status = array();
-			if ( ! isset( $articles[ $m[1] ] ) ) {
-				return $m[0];
-			}
-			if ( ! isset( $status[ $m[1] ] ) ) {
-				$post              = get_page_by_path( $m[1], 'OBJECT', 'post' );
-				$status[ $m[1] ] = $post && 'publish' === get_post_status( $post );
-			}
-			return $status[ $m[1] ] ? $m[0] : $m[2];
-		},
-		(string) $content
-	);
-	return null === $out ? $content : $out;
-}
-add_filter( 'the_content', 'fenix_guide_unlink_unpublished_posts', 26 );
 
 /**
  * ตารางในเนื้อหาของหน้าคู่มือ: ใส่ data-label ให้ทุกช่องจากหัวตาราง + คลาส table-wrap--stack

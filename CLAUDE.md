@@ -3,7 +3,7 @@
 ไฟล์นี้เป็นบริบทสำหรับ Claude Code อ่านก่อนเริ่มงานในโปรเจกต์นี้
 
 ## โปรเจกต์คืออะไร
-ธีม WordPress แบบ **custom** สำหรับเว็บขาย **FALCON PRO EA** — ระบบช่วยเทรดอัตโนมัติ (Expert Advisor) บน MetaTrader 5 เนื้อหาภาษาไทย **ดีไซน์ตามแบนเนอร์แบรนด์ (Banner theme v3)**: พื้นขาว + บล็อกดำตัดทแยง + เขียว FALCON ทึบ ไอคอนในวงกลมดำ ปุ่ม pill สีเขียว ข้อความอังกฤษเว้นระยะกว้าง
+ธีม WordPress แบบ **custom** สำหรับเว็บขาย **FALCON PRO EA** — ระบบช่วยเทรดอัตโนมัติ (Expert Advisor) บน MetaTrader 5 เนื้อหาภาษาไทย **ดีไซน์ตามแบนเนอร์แบรนด์ (Banner theme v3)**: โทนเข้ม `#172125` เป็นหลัก (ค่าเริ่มต้น `color_mode` = dark) + พื้นขาวสำหรับส่วนอ่านยาว + บล็อกตัดทแยง + เขียว FALCON ทึบ ไอคอนในวงกลมเข้ม ปุ่ม pill สีเขียว ข้อความอังกฤษเว้นระยะกว้าง
 - **โครงเว็บยึดตาม ea2000.co** (หน้าแรกยาว + หน้าคู่มือ/ทดสอบ/แพ็กเกจ/เอกสาร ~18 เพจ + บทความ SEO) แต่เนื้อหาเขียนใหม่ทั้งหมดเป็นของ FALCON
 - **ไม่มี build step** — PHP + CSS + vanilla JS ตรง ๆ แก้ไฟล์แล้วใช้ได้เลย ไม่มี npm/compile
 - ธีมอยู่ในโฟลเดอร์ `falcon-pro/` (root ของ repo เก็บเอกสาร dev) WP Pusher ตั้ง subdirectory = `falcon-pro`
@@ -33,7 +33,7 @@
 **ถ้าอยากเปลี่ยน prefix เป็น `falcon_` จริง ๆ**: ทำเป็นงานแยก ใช้ find/replace ทั้ง repo (`fenix_`→`falcon_`, `fenix-`→`falcon-`, `fenixLoadMore`→`falconLoadMore` ฯลฯ) แล้ว `php -l` + ทดสอบ load more / consent banner / Elementor ให้ครบ — ไม่ใช่ของจำเป็น (คนละเว็บ ไม่ชนกับ FENIX)
 
 ## โครงสร้างไฟล์ (ใน falcon-pro/)
-- `functions.php` — theme setup, enqueue (Noto Sans Thai), **`fenix_defaults()`** (ค่า default ของทุก setting — แหล่งความจริงของเนื้อหาเริ่มต้น), helpers:
+- `functions.php` — theme setup, enqueue (Noto Sans Thai self-host), **`fenix_defaults()`** (ค่า default ของทุก setting — แหล่งความจริงของเนื้อหาเริ่มต้น), helpers:
   - `fenix_mod($key)` — อ่านค่า setting (theme_mod) พร้อม fallback เป็น default
   - `fenix_lines($text)` — แตก textarea เป็น array (บรรทัดละ 1 รายการ)
   - `fenix_logo_url()` — URL โลโก้ (custom_logo หรือโลโก้ที่ฝังในธีม)
@@ -50,11 +50,12 @@
 - `index.php` / `single.php` / `page.php` — บล็อก/เพจทั่วไป (เผื่อบทความ SEO)
 - `style.css` — design system ทั้งหมด (theme header comment อยู่บนสุด ห้ามย้าย)
 - `assets/js/main.js` — sticky header, mobile nav (aria-expanded), IntersectionObserver `.reveal`→`.in`, load more, consent banner
-- `assets/img/` — โลโก้ FALCON (ไอคอนวงกลม `logo.png`) · `brand/` wordmark dark/light, favicon, การ์ดแชร์ 1200×630 · `banners/` แบนเนอร์แบรนด์ (ชื่อไฟล์ SEO)
+- `assets/img/` — โลโก้ FALCON (ไอคอนวงกลม `logo.png`) · `brand/` wordmark dark/light, favicon, การ์ดแชร์ 1200×630 · `banners/` แบนเนอร์แบรนด์ (ชื่อไฟล์ SEO) · `covers/<slug>.webp` รูปปกบทความ 1200×630 (ชื่อบทความ + หมวด + ไอคอน ไม่มีตัวเลข · สร้างด้วย `dev/make-covers.php`)
 - `screenshot.png` — ภาพ preview ธีม FALCON
 - `readme.txt` — คู่มือผู้ใช้ (ภาษาไทย) สำหรับเจ้าของเว็บ
-- `inc/setup.php` — **`fenix_site_pages()`** (manifest ทุกเพจ: slug → template, ไฟล์เนื้อหา, กลุ่มเมนู) + `fenix_seed_articles()` + หน้า admin **รูปแบบ → FALCON Setup** (สร้างเพจที่ยังไม่มี, ตั้งหน้าแรก/หน้าบทความ, สร้างเมนู, นำเข้าบทความเป็นฉบับร่าง + รูปปก + meta Yoast)
+- `inc/setup.php` — **`fenix_site_pages()`** (manifest ทุกเพจ: slug → template, ไฟล์เนื้อหา, กลุ่มเมนู) + `fenix_seed_articles()` (รายการบทความ: เพิ่มบทความใหม่ = เพิ่ม slug ที่นี่ + ไฟล์ใน `inc/content/articles/` + ไอคอนใน `dev/preview/cover.php` แล้วรัน `dev/make-covers.php`) + หน้า admin **รูปแบบ → FALCON Setup** (สร้างเพจที่ยังไม่มี, ตั้งหน้าแรก/หน้าบทความ, สร้างเมนู, นำเข้าบทความเป็นฉบับร่าง + รูปปก + meta Yoast)
 - `inc/content/pages/*.html`, `inc/content/articles/*.html` — เนื้อหาตั้งต้น (บรรทัดแรก `<!--meta {json} -->`) · สเปก/กติกาการเขียนอยู่ที่ `dev/content-spec.md`
+  - ลิงก์ไปบทความ/เพจกฎหมายที่ยังเป็นฉบับร่างถูกตัดอัตโนมัติด้วย `fenix_unlink_slugs()` (`the_content` priority 25): รายการ `<li>` ที่มีแต่ลิงก์ → ลบ, ประโยคใน `span.xref`/`p.xref` → ลบ, ลิงก์อื่น → ข้อความธรรมดา · **ห้ามใช้ regex ที่ข้าม `</a>` ได้** (เคยกินบทความหายครึ่งหน้า) · `dev/check-content.php` จำลองกรณีร่างทั้งหมดให้แล้ว
 - `inc/shortcodes.php` — `[falcon_line]`, `[falcon_brand]`, `[falcon_broker]`, `[falcon_calc type="lot|drawdown"]`
 - `inc/seo.php` — FAQPage (หน้าแรก + ทุกเพจที่มี `details.faq-item`), SoftwareApplication (หน้าแรก/แพ็กเกจ), BreadcrumbList + favicon สำรอง (เมื่อไม่มีปลั๊กอิน SEO)
 - `inc/parts/ea-panel.php` — แผงควบคุม EA จำลองใน Hero (HTML ล้วน ไม่มีตัวเลขผลเทรด)
@@ -78,7 +79,7 @@
 - เพิ่ม **section** ใหม่: `$sections['fenix_xxx'] = array(...)` ก่อนบรรทัด `$priority = 10;`
 
 ## Design tokens (style.css :root) — FALCON Banner theme v3
-- พื้น: ขาว `#FFFFFF` + เทาอ่อน `#F4F6F8` (`.section-alt`) + **ดำ** `--black #0B0D10` / `--black-2 #14171C` / `--black-3 #1E232A` (hero ทแยง, `.section-dark`, CTA, footer, page hero)
+- พื้น: **เข้ม** `--black #172125` / `--black-deep #10181B` / `--black-2 #1D2A2F` / `--black-3 #25343A` (พื้นหลักของโหมด dark: hero, บทส่วนใหญ่, CTA, footer, page hero) + ขาว `--void #FFFFFF` + เทาอ่อน `--coal #F4F6F8` (ส่วนอ่านยาวและบทที่ระบุเป็นโทนสว่าง)
 - เขียว FALCON: `--ember #22C55E` (ปุ่ม/ไฮไลต์ ใช้ทึบ), `--ember-deep #16A34A` (hover / ตัวอักษรใหญ่บนขาว), `--flare #15803D` (ลิงก์/ข้อความเขียวบนขาว — ผ่าน AA), `--mint #4AF28E` (เขียวโลโก้ ใช้บนพื้นดำเท่านั้น)
 - **ตัวอักษรบนปุ่มเขียว = ดำเข้ม `--on-ember #06140B`** (ขาวบนเขียวไม่ผ่าน contrast) · บนพื้นดำใช้ `--on-black` / `--on-black-2`
 - ตัวอักษร: `--ink #0F1216`, `--ash #4B535C`, `--ash-2 #6C757F` · semantic: `--ok`, `--bad`, `--warn #B26C09`
@@ -87,7 +88,7 @@
 - เนื้อหายาว (`.guide-content` / `.entry-content`): `.callout--info|tip|warn`, `.checklist`, `.crosslist`, `.guide-steps`, `.table-wrap > .data-table`, `.faq-block > details.faq-item`, `.related-links`
 - สไตล์ v3 อยู่ **ท้าย style.css** (หัวข้อ 40–41 + บล็อก "v3 ·") เพื่อทับสไตล์เดิม — แก้ดีไซน์ให้แก้ที่ท้ายไฟล์
 - ชื่อ CSS var เดิม (`--ember`/`--flare`/`--gold`/`--void`/`--coal*`) คงไว้ เปลี่ยนเฉพาะค่า
-- ฟอนต์: **Noto Sans Thai** (display + body) จาก Google Fonts
+- ฟอนต์: **Noto Sans Thai** (display + body) self-host ที่ `assets/fonts/` + `assets/css/fonts.css` (ไม่โหลดจาก Google Fonts)
 
 ## เพจ & slug (สำคัญต่อการลิงก์)
 แหล่งความจริงคือ `fenix_site_pages()` ใน `inc/setup.php` · เจ้าของเว็บกด **รูปแบบ → FALCON Setup → ตั้งค่าเว็บทั้งหมด** เพื่อสร้างเพจที่ขาด (ไม่แก้เพจที่มีอยู่ เว้นแต่ติ๊กเขียนทับ)
@@ -99,8 +100,8 @@
 | `open-mt5-account`, `mt5-login`, `vps-windows`, `vps-android`, `vps-ios`, `tools` | template-guide.php | guide |
 | `pricing` | template-pricing.php | pricing |
 | `risk-disclosure` | template-risk.php | doc |
-| `about` | template-guide.php | doc |
-| `privacy-policy`, `terms-of-use`, `data-deletion` | template-guide.php (สร้างเป็น **ฉบับร่าง** รอเจ้าของตรวจ) | doc |
+| `about` | page.php (เพจเอกสาร ไม่ตั้ง template) | doc |
+| `privacy-policy`, `terms-of-use`, `data-deletion` | page.php (สร้างเป็น **ฉบับร่าง** รอเจ้าของตรวจ · terms/privacy มีบรรทัด Effective date + Version ใน `.doc-meta`) | doc |
 | `go` | template-go.php (หน้าลิงก์รวม) | hub |
 | `articles` | index.php (ตั้งเป็นหน้าบทความ) | hub |
 
@@ -114,6 +115,7 @@
   - ทุก slug ใน manifest เปิดได้ เช่น `/`, `/vps-windows/`, `/go/`, `/articles/` · บทความ: `/article/<slug>/`
   - ต้องเปิด extension: `-d extension_dir=<php>/ext -d extension=mbstring -d extension=gd`
   - ค้นหา Fatal/Warning/Notice ในหน้าที่เรนเดอร์ก่อน commit
+- รูปปกบทความ: เปิด preview server แล้วรัน `php -d extension=mbstring -d extension=gd dev/make-covers.php [slug ...]` (เรนเดอร์ `/__cover/<slug>/` ด้วย Chrome headless → `assets/img/covers/<slug>.webp`)
 - ตรวจ setting ครบ: `php -d extension=mbstring dev/check-settings.php` · เนื้อหาตั้งต้น: `dev/check-content.php` · แบรนด์รั่ว: `dev/check-brand.php` (ทั้งสามต้องผ่านก่อน commit)
 - ก่อน push ทุกครั้งที่แก้เยอะ: รัน workflow รีวิวก่อนปล่อย (มุมมอง: WP runtime จริง, security, front-end, Customizer/data, SEO+Yoast, เนื้อหา · ยืนยันทุก finding ด้วย 2 skeptic) แล้วแก้ที่ยืนยันแล้วให้ครบ
 - push ต้องใช้บัญชี gh `easpeciallab-max`: `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin main`
@@ -128,8 +130,8 @@
 - [x] เปลี่ยนโลโก้ + wordmark + favicon + การ์ดแชร์ + `screenshot.png` เป็นของ FALCON
 - [ ] กด **FALCON Setup → ตั้งค่าเว็บทั้งหมด** บนเว็บจริง (หน้าย่อยบนเว็บจริงยัง 404)
 - [ ] ปิด "ขอให้ search engines ไม่ทำดัชนี" (ตั้งค่า → การอ่าน) + ตั้งลิงก์ถาวรเป็น Post name เมื่อพร้อมเปิดตัว
-- [ ] ตรวจ/กรอกเพจกฎหมาย (ค้นคำว่า "เจ้าของเว็บ:") แล้วกดเผยแพร่
-- [ ] ตรวจบทความฉบับร่างทีละบทความ แล้วทยอยเผยแพร่
+- [ ] ตรวจ/กรอกเพจกฎหมาย (ค้นคำว่า "เจ้าของเว็บ:" · ชื่อผู้ให้บริการ ที่อยู่ นโยบายคืนเงิน วันที่มีผล) แล้วกดเผยแพร่
+- [ ] ตรวจบทความฉบับร่างทีละบทความ (22 บทความ) แล้วทยอยเผยแพร่
 - [ ] ถ่ายภาพหน้าจอตาม `dev/image-shot-list.md` (36 ภาพ) แล้วอัปโหลดลงช่องรูปของคู่มือใน Customizer (รูป FENIX ถูกลบแล้ว ตอนนี้ยังไม่มีรูปขั้นตอน)
 - [ ] กรอกลิงก์ LINE จริง (จนกว่าจะกรอก ปุ่มติดต่อทุกปุ่มจะไปที่ /go/ แทน) · ราคาแพ็กเกจ · โบรกเกอร์ (29) · โซเชียล (15)
 - [ ] ปิดปลั๊กอินที่ยิง GA/Pixel เอง (Site Kit/PixelYourSite) แล้วใส่ ID ที่ 18) คุกกี้ เท่านั้น เพื่อให้โหลดหลังยินยอม

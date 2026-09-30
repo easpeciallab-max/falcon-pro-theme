@@ -74,6 +74,38 @@ foreach ( array_merge( glob( $root . 'pages/*.html' ), glob( $root . 'articles/*
 	if ( preg_match( '/(win\s*rate|อัตราชนะ)[^<]{0,20}\d{2}(\.\d+)?\s*%/iu', $raw ) ) {
 		$issue[] = 'possible win-rate number — check it is hypothetical';
 	}
+	// while every seed article and legal page is still a draft, fenix_unlink_slugs() may only drop
+	// related-links items, xref sentences and <a> tags — never headings, tables, FAQ or risk warnings
+	$all_drafts = array_merge( $articles, array( 'privacy-policy', 'terms-of-use', 'data-deletion' ) );
+	$body       = fenix_seed_content( $rel );
+	$after      = fenix_unlink_slugs( $body, $all_drafts );
+	$core       = function ( $html ) {
+		$html = preg_replace( '#<div class="related-links">.*?</div>#is', '', $html );
+		$html = preg_replace( '#<(p|span) class="xref">.*?</\1>#is', '', $html );
+		return array(
+			'h2'   => preg_match_all( '#<h2[\s>]#i', $html ),
+			'h3'   => preg_match_all( '#<h3[\s>]#i', $html ),
+			'tbl'  => preg_match_all( '#<table[\s>]#i', $html ),
+			'faq'  => substr_count( $html, 'faq-item' ),
+			'warn' => substr_count( $html, 'callout--warn' ),
+			'text' => mb_strlen( preg_replace( '/\s+/u', '', strip_tags( $html ) ) ),
+		);
+	};
+	$b4 = $core( $body );
+	$af = $core( $after );
+	foreach ( array( 'h2', 'h3', 'tbl', 'faq', 'warn' ) as $k ) {
+		if ( $b4[ $k ] !== $af[ $k ] ) {
+			$issue[] = "unlink simulation lost $k ({$b4[ $k ]} → {$af[ $k ]})";
+		}
+	}
+	if ( $af['text'] < $b4['text'] * 0.97 ) {
+		$issue[] = "unlink simulation lost text ({$b4['text']} → {$af['text']} chars)";
+	}
+	foreach ( array( 'p', 'div', 'ul', 'li', 'span' ) as $tag ) {
+		if ( preg_match_all( "#<$tag(\s[^>]*)?>#i", $after ) !== preg_match_all( "#</$tag>#i", $after ) ) {
+			$issue[] = "unlink simulation left <$tag> unbalanced";
+		}
+	}
 
 	$words = mb_strlen( trim( preg_replace( '/\s+/u', ' ', strip_tags( preg_replace( '/^\s*<!--meta.*?-->/s', '', $raw ) ) ) ) );
 	printf( "%-34s %6d chars  %s\n", $rel, $words, $issue ? '✗ ' . implode( '; ', $issue ) : '✓' );

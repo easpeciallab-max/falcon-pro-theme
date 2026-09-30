@@ -58,6 +58,12 @@ Valid page slugs:
 
 Articles link each other as `{{home}}/<article-slug>/`, because posts use the /%postname%/ permalink.
 
+Articles are imported as drafts and published one by one. Until a seed article is published, the theme removes links that point to it (`fenix_unlink_slugs()` in `inc/setup.php`): an item in a `related-links` list that holds only that link disappears, and a link inside a sentence becomes plain text. So write sentences that still read correctly without the link.
+
+On pages that go live before the articles (guides, backtest, forward-test), wrap a "read more in article X" sentence in `<span class="xref">…</span>` (or use `<p class="xref">` for a whole paragraph). The theme then hides the whole sentence while its target is still a draft, instead of leaving an unlinked title behind. `dev/check-content.php` simulates "every article is a draft" and fails if headings, tables, FAQ items or risk warnings would be lost.
+
+A new article needs three things: the file in `inc/content/articles/`, its slug in `fenix_seed_article_covers()` (`inc/setup.php`), and a cover built with `dev/make-covers.php` (icon per slug in `dev/preview/cover.php`). Put the keyword phrase before a colon in the title when you can ("Drawdown คืออะไร: ..."), because the cover prints the part before the colon large and the rest as a subtitle.
+
 ## HTML components (styled by the theme; use exactly these classes)
 
 ```html

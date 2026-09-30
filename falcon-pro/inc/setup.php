@@ -45,35 +45,57 @@ function fenix_site_pages() {
 }
 
 /**
- * บทความเริ่มต้น (slug => ไฟล์ + รูปหน้าปก)
+ * รายการบทความเริ่มต้น: slug => แบนเนอร์สำรอง
+ * (ใช้เมื่อยังไม่มีรูปปกเฉพาะบทความที่ assets/img/covers/<slug>.webp · สร้างด้วย dev/make-covers.php)
+ * ฟังก์ชันนี้ไม่อ่านไฟล์ จึงเรียกจากหน้าเว็บได้ทุกคำขอ
+ */
+function fenix_seed_article_covers() {
+	return array(
+		'what-is-ea-mt5'              => 'falcon-pro-ea-mt5-laptop-overview.webp',
+		'ea-gold-xauusd'              => 'falcon-pro-ea-mt5-mobile-xauusd.webp',
+		'vps-for-ea'                  => 'falcon-pro-ea-mt5-desk-setup.webp',
+		'drawdown'                    => 'falcon-pro-ea-mt5-settings-panel.webp',
+		'lot-size-calculation'        => 'falcon-pro-ea-mt5-mobile-settings.webp',
+		'free-ea-vs-paid'             => 'falcon-pro-ea-mt5-feature-toggles.webp',
+		'spread-slippage'             => 'falcon-pro-ea-mt5-laptop-falcon.webp',
+		'margin-call-stop-out'        => 'falcon-pro-ea-mt5-tablet-metatrader.webp',
+		'choose-broker-for-ea'        => 'falcon-pro-ea-mt5-navigator.webp',
+		'ea-scam-warning'             => 'falcon-pro-ea-mt5-ea-status-panel.webp',
+		'mt4-vs-mt5'                  => 'falcon-pro-ea-mt5-tablet-metatrader.webp',
+		'demo-account-ea'             => 'falcon-pro-ea-mt5-laptop-overview.webp',
+		'cent-account'                => 'falcon-pro-ea-mt5-mobile-settings.webp',
+		'grid-martingale-ea'          => 'falcon-pro-ea-mt5-settings-panel.webp',
+		'profit-factor'               => 'falcon-pro-ea-mt5-laptop-falcon.webp',
+		'ea-not-trading'              => 'falcon-pro-ea-mt5-ea-status-panel.webp',
+		'leverage'                    => 'falcon-pro-ea-mt5-feature-toggles.webp',
+		'swap-commission'             => 'falcon-pro-ea-mt5-navigator.webp',
+		'ea-news-trading'             => 'falcon-pro-ea-mt5-mobile-xauusd.webp',
+		'vps-mt5-stable'              => 'falcon-pro-ea-mt5-desk-setup.webp',
+		'ea-optimization-overfitting' => 'falcon-pro-ea-mt5-laptop-running.webp',
+		'ea-monitoring-routine'       => 'falcon-pro-ea-mt5-phone-watch.webp',
+	);
+}
+
+/**
+ * บทความเริ่มต้น (slug => ไฟล์ + รูปหน้าปก) · อ่านไฟล์เนื้อหา ใช้ในหน้า Setup เท่านั้น
  */
 function fenix_seed_articles() {
 	static $list = null;
 	if ( null !== $list ) {
 		return $list;
 	}
-	$covers = array(
-		'what-is-ea-mt5'       => 'falcon-pro-ea-mt5-laptop-overview.webp',
-		'ea-gold-xauusd'       => 'falcon-pro-ea-mt5-mobile-xauusd.webp',
-		'vps-for-ea'           => 'falcon-pro-ea-mt5-desk-setup.webp',
-		'drawdown'             => 'falcon-pro-ea-mt5-settings-panel.webp',
-		'lot-size-calculation' => 'falcon-pro-ea-mt5-mobile-settings.webp',
-		'free-ea-vs-paid'      => 'falcon-pro-ea-mt5-feature-toggles.webp',
-		'spread-slippage'      => 'falcon-pro-ea-mt5-laptop-falcon.webp',
-		'margin-call-stop-out' => 'falcon-pro-ea-mt5-tablet-metatrader.webp',
-		'choose-broker-for-ea' => 'falcon-pro-ea-mt5-navigator.webp',
-		'ea-scam-warning'      => 'falcon-pro-ea-mt5-ea-status-panel.webp',
-	);
+	$img  = get_template_directory() . '/assets/img/';
 	$list = array();
-	foreach ( $covers as $slug => $cover ) {
+	foreach ( fenix_seed_article_covers() as $slug => $banner ) {
 		$meta = fenix_seed_meta( 'articles/' . $slug );
 		if ( null === $meta ) {
 			continue; // ยังไม่มีไฟล์เนื้อหา
 		}
+		$own           = 'covers/' . $slug . '.webp';
 		$list[ $slug ] = array(
 			'title'   => ! empty( $meta['title'] ) ? $meta['title'] : $slug,
 			'content' => 'articles/' . $slug,
-			'cover'   => $cover,
+			'cover'   => file_exists( $img . $own ) ? $own : 'banners/' . $banner,
 			'meta'    => $meta,
 		);
 	}
@@ -177,20 +199,68 @@ function fenix_published_page_url( $slug ) {
 }
 
 /**
- * ในเนื้อหา: ลิงก์ไปเพจที่ Setup สร้างเป็นฉบับร่าง (เพจกฎหมาย) จะแสดงเป็นข้อความธรรมดาจนกว่าจะเผยแพร่
+ * slug ของบทความเริ่มต้นที่ผู้เข้าชมยังเปิดไม่ได้ (ยังไม่ได้นำเข้า หรือยังเป็นฉบับร่าง)
+ * · 1 query (อ่านเฉพาะคอลัมน์ post_name) ต่อคำขอ
+ */
+function fenix_unpublished_seed_articles() {
+	static $out = null;
+	if ( null !== $out ) {
+		return $out;
+	}
+	global $wpdb;
+	$slugs = array_keys( fenix_seed_article_covers() );
+	$in    = implode( ',', array_fill( 0, count( $slugs ), '%s' ) );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- $in มีแต่ %s
+	$have = (array) $wpdb->get_col( $wpdb->prepare( "SELECT post_name FROM {$wpdb->posts} WHERE post_type = 'post' AND post_status = 'publish' AND post_name IN ($in)", $slugs ) );
+	$out  = array_values( array_diff( $slugs, $have ) );
+	return $out;
+}
+
+/**
+ * ตัดลิงก์ที่ชี้ไปยัง slug ในรายการ $slugs (ปลายทางที่ผู้เข้าชมยังเปิดไม่ได้) ออกจาก HTML
+ * 1) ประโยคอ้างอิงที่ห่อด้วย <span class="xref"> หรือ <p class="xref"> → ลบทั้งประโยค
+ * 2) รายการ <li> ที่มีแต่ลิงก์นั้น (เช่นในกล่อง "ที่เกี่ยวข้อง") → ลบทั้งรายการ · กล่องที่ว่างลงถูกลบด้วย
+ * 3) ลิงก์ที่เหลือในเนื้อความ → ข้อความธรรมดา
+ * ข้อความในลิงก์ข้าม </a> ไม่ได้ จึงไม่มีทางกินเนื้อหาข้ามรายการ · ขั้นใดล้มเหลว (null) จะข้ามขั้นนั้น ไม่ทำให้เนื้อหาหาย
+ */
+function fenix_unlink_slugs( $content, $slugs ) {
+	if ( ! $slugs || false === strpos( (string) $content, '<a' ) ) {
+		return $content;
+	}
+	$home  = preg_quote( untrailingslashit( home_url() ), '#' );
+	$alt   = implode( '|', array_map( function ( $s ) { return preg_quote( $s, '#' ); }, $slugs ) );
+	$href  = '<a\s[^>]*href="' . $home . '/(?:' . $alt . ')/?"[^>]*>';
+	$link  = $href . '((?:(?!</a>).)*)</a>';
+	$steps = array(
+		array( '#\s*<(p|span) class="xref">(?:(?!</\1>).)*?' . $href . '(?:(?!</\1>).)*</\1>#is', '' ),
+		array( '#<li>\s*' . $link . '\s*</li>\s*#is', '' ),
+		array( '#<div class="related-links">\s*<h2[^>]*>[^<]*</h2>\s*<ul>\s*</ul>\s*</div>#i', '' ),
+		array( '#' . $link . '#is', '$1' ),
+	);
+	foreach ( $steps as $step ) {
+		$next = preg_replace( $step[0], $step[1], $content );
+		if ( null !== $next ) {
+			$content = $next;
+		}
+	}
+	return $content;
+}
+
+/**
+ * ในเนื้อหา: ลิงก์ไปเพจที่ Setup สร้างเป็นฉบับร่าง (เพจกฎหมาย) หรือบทความเริ่มต้นที่ยังไม่เผยแพร่
+ * จะไม่เป็นลิงก์จนกว่าปลายทางจะเผยแพร่ (กันลิงก์ 404 ระหว่างทยอยเผยแพร่บทความ) · กติกาอยู่ที่ fenix_unlink_slugs()
  */
 function fenix_unlink_draft_pages( $content ) {
+	if ( false === strpos( (string) $content, '<a' ) ) {
+		return $content;
+	}
 	$drafts = array();
 	foreach ( fenix_site_pages() as $slug => $page ) {
 		if ( isset( $page['status'] ) && 'draft' === $page['status'] && ! fenix_published_page_url( $slug ) ) {
-			$drafts[] = preg_quote( $slug, '#' );
+			$drafts[] = $slug;
 		}
 	}
-	if ( ! $drafts || false === strpos( $content, '<a' ) ) {
-		return $content;
-	}
-	$home = preg_quote( untrailingslashit( home_url() ), '#' );
-	return preg_replace( '#<a\s[^>]*href="' . $home . '/(?:' . implode( '|', $drafts ) . ')/?"[^>]*>(.*?)</a>#is', '$1', $content );
+	return fenix_unlink_slugs( $content, array_merge( $drafts, fenix_unpublished_seed_articles() ) );
 }
 add_filter( 'the_content', 'fenix_unlink_draft_pages', 25 );
 
@@ -257,12 +327,20 @@ function fenix_apply_seo_meta( $post_id, $meta ) {
 /**
  * นำรูปแบนเนอร์ในธีมเข้า Media Library (ครั้งเดียว) เพื่อใช้เป็นรูปหน้าปกบทความ
  */
-function fenix_banner_attachment( $file ) {
+function fenix_banner_attachment( $file, $alt = '' ) {
+	// $file = พาธใต้ assets/img/ เฉพาะโฟลเดอร์ banners/ หรือ covers/ (ชื่อไฟล์ล้วน = banners/)
+	$file = ltrim( str_replace( '\\', '/', (string) $file ), '/' );
+	if ( false === strpos( $file, '/' ) ) {
+		$file = 'banners/' . $file;
+	}
+	if ( ! preg_match( '#^(banners|covers)/[a-z0-9._-]+$#i', $file ) ) {
+		return 0;
+	}
 	$map = get_option( 'fenix_banner_attachments', array() );
 	if ( ! empty( $map[ $file ] ) && get_post( $map[ $file ] ) ) {
 		return (int) $map[ $file ];
 	}
-	$src = get_template_directory() . '/assets/img/banners/' . basename( $file );
+	$src = get_template_directory() . '/assets/img/' . $file;
 	if ( ! file_exists( $src ) ) {
 		return 0;
 	}
@@ -280,13 +358,13 @@ function fenix_banner_attachment( $file ) {
 			'tmp_name' => $tmp,
 		),
 		0,
-		'FALCON PRO EA · ภาพประกอบ'
+		'' !== $alt ? $alt : 'FALCON PRO EA · ภาพประกอบ'
 	);
 	if ( is_wp_error( $id ) ) {
 		@unlink( $tmp ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		return 0;
 	}
-	update_post_meta( $id, '_wp_attachment_image_alt', 'FALCON PRO EA ผู้ช่วยเทรดอัตโนมัติสำหรับ MT5 (ภาพประกอบ)' );
+	update_post_meta( $id, '_wp_attachment_image_alt', '' !== $alt ? $alt : 'FALCON PRO EA ผู้ช่วยเทรดอัตโนมัติสำหรับ MT5 (ภาพประกอบ)' );
 	$map[ $file ] = (int) $id;
 	update_option( 'fenix_banner_attachments', $map, false );
 	return (int) $id;
@@ -481,7 +559,8 @@ function fenix_setup_import_articles( $publish = false ) {
 			continue;
 		}
 		fenix_apply_seo_meta( $id, $meta );
-		$thumb = fenix_banner_attachment( $art['cover'] );
+		// รูปปกเฉพาะบทความ (covers/) ใช้ชื่อบทความเป็น alt · แบนเนอร์สำรองใช้ alt กลาง
+		$thumb = fenix_banner_attachment( $art['cover'], 0 === strpos( $art['cover'], 'covers/' ) ? $art['title'] : '' );
 		if ( $thumb ) {
 			set_post_thumbnail( $id, $thumb );
 		}
@@ -576,7 +655,7 @@ function fenix_setup_screen() {
 			<div class="notice notice-warning"><p><strong>ลิงก์ถาวรยังเป็นแบบ ?p=</strong> · ไปที่ <a href="<?php echo esc_url( admin_url( 'options-permalink.php' ) ); ?>">ตั้งค่า → ลิงก์ถาวร</a> แล้วเลือก "ชื่อเรื่อง (Post name)"</p></div>
 		<?php endif; ?>
 		<?php if ( '#' === fenix_mod( 'line_url' ) || ! fenix_mod( 'line_url' ) ) : ?>
-			<div class="notice notice-warning"><p><strong>ยังไม่ได้ใส่ลิงก์ LINE OA</strong> · ปุ่มทุกปุ่มชี้ไปที่ # · ตั้งค่าที่ <a href="<?php echo esc_url( admin_url( 'customize.php?autofocus[section]=fenix_general' ) ); ?>">ปรับแต่ง → ช่องทางติดต่อ</a></p></div>
+			<div class="notice notice-warning"><p><strong>ยังไม่ได้ใส่ลิงก์ LINE OA</strong> · ปุ่มติดต่อทุกปุ่มจะพาไปหน้า /go/ แทน (ถ้าหน้า /go/ ยังไม่เผยแพร่ ปุ่มจะถูกซ่อน) · ตั้งค่าที่ <a href="<?php echo esc_url( admin_url( 'customize.php?autofocus[section]=fenix_general' ) ); ?>">ปรับแต่ง → ช่องทางติดต่อ</a></p></div>
 		<?php endif; ?>
 
 		<?php if ( $log ) : ?>
