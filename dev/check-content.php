@@ -152,4 +152,12 @@ foreach ( $fixtures as $name => $fx ) {
 	$problems += count( $fail );
 }
 
+// Customizer text links [label](/slug/) to an unreachable slug must render as plain text
+$GLOBALS['fenix_unpublished_seed'] = array( 'drawdown' );
+$rich = fenix_rich_inline( 'อ่าน [Drawdown](/drawdown/) และ [เครื่องมือ](/tools/)' );
+unset( $GLOBALS['fenix_unpublished_seed'] );
+$ok = false === strpos( $rich, '/drawdown/' ) && false !== strpos( $rich, 'Drawdown' ) && false !== strpos( $rich, '/tools/"' );
+printf( "%-34s %s\n", 'rich_inline: draft link', $ok ? '✓' : '✗ ' . $rich );
+$problems += $ok ? 0 : 1;
+
 echo $problems ? "\n$problems issue(s)\n" : "\nall good\n";

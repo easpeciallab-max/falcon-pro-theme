@@ -278,13 +278,21 @@ function fenix_unlink_draft_pages( $content ) {
 	if ( ( is_admin() && ! wp_doing_ajax() ) || wp_doing_cron() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 		return $content;
 	}
+	return fenix_unlink_slugs( $content, fenix_unreachable_slugs() );
+}
+
+/**
+ * slug ที่ผู้เข้าชมยังเปิดไม่ได้: เพจที่ Setup สร้างเป็นฉบับร่าง (เพจกฎหมาย) + บทความเริ่มต้นที่ยังไม่เผยแพร่
+ * ใช้ทั้งกับเนื้อหาเพจ (fenix_unlink_draft_pages) และลิงก์ [ข้อความ](/slug/) ในข้อความ Customizer (fenix_rich_inline)
+ */
+function fenix_unreachable_slugs() {
 	$drafts = array();
 	foreach ( fenix_site_pages() as $slug => $page ) {
 		if ( isset( $page['status'] ) && 'draft' === $page['status'] && ! fenix_published_page_url( $slug ) ) {
 			$drafts[] = $slug;
 		}
 	}
-	return fenix_unlink_slugs( $content, array_merge( $drafts, fenix_unpublished_seed_articles() ) );
+	return array_merge( $drafts, fenix_unpublished_seed_articles() );
 }
 add_filter( 'the_content', 'fenix_unlink_draft_pages', 15 );
 
@@ -443,6 +451,7 @@ function fenix_setup_create_pages( $overwrite = false ) {
 					)
 				);
 				update_post_meta( $id, '_wp_page_template', $page['template'] );
+				update_post_meta( $id, 'fenix_seed_rev', ! empty( $meta['rev'] ) ? (int) $meta['rev'] : 1 );
 				fenix_apply_seo_meta( $id, $meta );
 				$log[] = '↻ แทนเพจ Privacy Policy เริ่มต้นของ WordPress ด้วยฉบับของธีม (ยังเป็นฉบับร่าง)';
 				continue;

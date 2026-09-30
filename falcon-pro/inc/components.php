@@ -177,7 +177,13 @@ function fenix_rich_inline( $text ) {
 				$label = $part;
 				break;
 			default:
-				$html .= '<a href="' . esc_url( home_url( $part ) ) . '">' . esc_html( $label ) . '</a>';
+				// ปลายทางที่ยังเป็นฉบับร่าง (เพจกฎหมาย/บทความที่ยังไม่เผยแพร่) → ข้อความธรรมดา ไม่ลิงก์ไปหน้า 404
+				$slug = (string) strtok( trim( $part, '/' ), '/?#' );
+				if ( '' !== $slug && function_exists( 'fenix_unreachable_slugs' ) && in_array( $slug, fenix_unreachable_slugs(), true ) ) {
+					$html .= esc_html( $label );
+				} else {
+					$html .= '<a href="' . esc_url( home_url( $part ) ) . '">' . esc_html( $label ) . '</a>';
+				}
 		}
 	}
 	return fenix_keep_words( $html, false );
