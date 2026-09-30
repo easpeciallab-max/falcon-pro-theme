@@ -203,38 +203,57 @@ function fenix_published_page_url( $slug ) {
  * · 1 query (อ่านเฉพาะคอลัมน์ post_name) ต่อคำขอ
  */
 function fenix_unpublished_seed_articles() {
-	static $out = null;
-	if ( null !== $out ) {
-		return $out;
+	if ( isset( $GLOBALS['fenix_unpublished_seed'] ) ) {
+		return $GLOBALS['fenix_unpublished_seed'];
 	}
 	global $wpdb;
 	$slugs = array_keys( fenix_seed_article_covers() );
 	$in    = implode( ',', array_fill( 0, count( $slugs ), '%s' ) );
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- $in มีแต่ %s
 	$have = (array) $wpdb->get_col( $wpdb->prepare( "SELECT post_name FROM {$wpdb->posts} WHERE post_type = 'post' AND post_status = 'publish' AND post_name IN ($in)", $slugs ) );
-	$out  = array_values( array_diff( $slugs, $have ) );
-	return $out;
+
+	$GLOBALS['fenix_unpublished_seed'] = array_values( array_diff( $slugs, $have ) );
+	return $GLOBALS['fenix_unpublished_seed'];
 }
+
+/**
+ * เผยแพร่/ถอนบทความระหว่างคำขอ (เช่นนำเข้าแบบเผยแพร่ทันที) → คำนวณรายการใหม่
+ */
+function fenix_unpublished_seed_reset() {
+	unset( $GLOBALS['fenix_unpublished_seed'] );
+}
+add_action( 'transition_post_status', 'fenix_unpublished_seed_reset' );
 
 /**
  * ตัดลิงก์ที่ชี้ไปยัง slug ในรายการ $slugs (ปลายทางที่ผู้เข้าชมยังเปิดไม่ได้) ออกจาก HTML
  * 1) ประโยคอ้างอิงที่ห่อด้วย <span class="xref"> หรือ <p class="xref"> → ลบทั้งประโยค
  * 2) รายการ <li> ที่มีแต่ลิงก์นั้น (เช่นในกล่อง "ที่เกี่ยวข้อง") → ลบทั้งรายการ · กล่องที่ว่างลงถูกลบด้วย
  * 3) ลิงก์ที่เหลือในเนื้อความ → ข้อความธรรมดา
- * ข้อความในลิงก์ข้าม </a> ไม่ได้ จึงไม่มีทางกินเนื้อหาข้ามรายการ · ขั้นใดล้มเหลว (null) จะข้ามขั้นนั้น ไม่ทำให้เนื้อหาหาย
+ * กติกาความปลอดภัย: ทุกขั้นหยุดที่ขอบบล็อก (li, p, ul, div, h2 ...) และไม่ข้ามแท็กซ้อนชนิดเดียวกัน
+ * ถ้า HTML ผิดรูปจน match ไม่ได้ ขั้นนั้นไม่ทำอะไร (ลิงก์อาจยังเหลือ แต่เนื้อหาไม่มีวันหาย)
+ * · ขั้นใดล้มเหลว (null) จะข้ามขั้นนั้น · ใช้ quantifier แบบ possessive จึงไม่ติด backtrack/JIT limit
  */
 function fenix_unlink_slugs( $content, $slugs ) {
-	if ( ! $slugs || false === strpos( (string) $content, '<a' ) ) {
+	if ( ! $slugs || false === stripos( (string) $content, '<a' ) ) {
 		return $content;
 	}
-	$home  = preg_quote( untrailingslashit( home_url() ), '#' );
+	// ที่อยู่ปลายทาง: แบบเต็ม (http/https หรือ //), แบบ /slug/ ภายในเว็บ · ท้ายมี ?query หรือ #anchor ได้
+	$parts = wp_parse_url( home_url() );
+	$host  = isset( $parts['host'] ) ? preg_quote( $parts['host'], '#' ) : '';
+	$path  = isset( $parts['path'] ) ? preg_quote( untrailingslashit( $parts['path'] ), '#' ) : '';
 	$alt   = implode( '|', array_map( function ( $s ) { return preg_quote( $s, '#' ); }, $slugs ) );
-	$href  = '<a\s[^>]*href="' . $home . '/(?:' . $alt . ')/?"[^>]*>';
-	$link  = $href . '((?:(?!</a>).)*)</a>';
+	$url   = '(?:(?:https?:)?//' . $host . '(?::\d+)?)?' . $path . '/(?:' . $alt . ')/?(?:[?\#][^"\'\s>]*)?';
+	$href  = '<a\s[^>]*?href\s*=\s*(?:"' . $url . '"|\'' . $url . '\')[^>]*>';
+	$block = '(?:li|p|ul|ol|div|h[1-6]|table|thead|tbody|tr|td|th|details|summary|blockquote|section|figure)\b';
+	// ข้อความในลิงก์: ห้ามข้าม </a> และห้ามข้ามขอบบล็อก
+	$text  = '((?:[^<]++|<(?!/a\s*>|/?' . $block . '))*+)';
+	$link  = $href . $text . '</a\s*>';
+	// ข้อความในประโยค xref: ห้ามมีแท็กชนิดเดียวกันซ้อน และห้ามข้ามขอบบล็อก
+	$xtext = '(?:(?!</?(?:\1\b|' . $block . ')).)*';
 	$steps = array(
-		array( '#\s*<(p|span) class="xref">(?:(?!</\1>).)*?' . $href . '(?:(?!</\1>).)*</\1>#is', '' ),
+		array( '#\s*<(p|span) class="xref">' . $xtext . '?' . $href . $xtext . '</\1>#is', '' ),
 		array( '#<li>\s*' . $link . '\s*</li>\s*#is', '' ),
-		array( '#<div class="related-links">\s*<h2[^>]*>[^<]*</h2>\s*<ul>\s*</ul>\s*</div>#i', '' ),
+		array( '#<div class="related-links">\s*<h2[^>]*>(?:(?!</?h2\b).)*</h2>\s*<ul[^>]*>\s*</ul>\s*</div>#is', '' ),
 		array( '#' . $link . '#is', '$1' ),
 	);
 	foreach ( $steps as $step ) {
@@ -249,9 +268,14 @@ function fenix_unlink_slugs( $content, $slugs ) {
 /**
  * ในเนื้อหา: ลิงก์ไปเพจที่ Setup สร้างเป็นฉบับร่าง (เพจกฎหมาย) หรือบทความเริ่มต้นที่ยังไม่เผยแพร่
  * จะไม่เป็นลิงก์จนกว่าปลายทางจะเผยแพร่ (กันลิงก์ 404 ระหว่างทยอยเผยแพร่บทความ) · กติกาอยู่ที่ fenix_unlink_slugs()
+ * · priority 15: หลัง wpautop (10) และ shortcode (11) ก่อนสร้างสารบัญ (20) สารบัญจึงไม่มีหัวข้อที่ถูกลบ
+ * · ทำเฉพาะตอนแสดงผลให้ผู้เข้าชม ไม่ทำในหลังบ้าน/REST/cron (ปลั๊กอิน SEO ที่นับลิงก์ภายในจะเห็นลิงก์ครบ)
  */
 function fenix_unlink_draft_pages( $content ) {
-	if ( false === strpos( (string) $content, '<a' ) ) {
+	if ( false === stripos( (string) $content, '<a' ) ) {
+		return $content;
+	}
+	if ( ( is_admin() && ! wp_doing_ajax() ) || wp_doing_cron() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 		return $content;
 	}
 	$drafts = array();
@@ -262,7 +286,7 @@ function fenix_unlink_draft_pages( $content ) {
 	}
 	return fenix_unlink_slugs( $content, array_merge( $drafts, fenix_unpublished_seed_articles() ) );
 }
-add_filter( 'the_content', 'fenix_unlink_draft_pages', 25 );
+add_filter( 'the_content', 'fenix_unlink_draft_pages', 15 );
 
 /* ==============================================================
  * Admin · รูปแบบ → FALCON Setup

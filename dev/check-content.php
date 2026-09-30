@@ -111,4 +111,45 @@ foreach ( array_merge( glob( $root . 'pages/*.html' ), glob( $root . 'articles/*
 	printf( "%-34s %6d chars  %s\n", $rel, $words, $issue ? '✗ ' . implode( '; ', $issue ) : '✓' );
 	$problems += count( $issue );
 }
+// fenix_unlink_slugs() fixtures: hand-typed or malformed HTML must never lose non-link content
+// (cases reproduced by the pre-push review · D = draft slug, L = live page)
+$H        = untrailingslashit( home_url() );
+$big      = str_repeat( 'ก', 40000 );
+$fixtures = array(
+	'li link + text'        => array( "<ul><li><a href=\"$H/drawdown/\">DD</a> ข้อความต่อ</li></ul><h2>หัวข้อ</h2><div class=\"callout callout--warn\"><p>คำเตือน</p></div><ul><li><a href=\"$H/tools/\">T</a></li></ul>", array( 'ข้อความต่อ', '<h2>หัวข้อ</h2>', 'callout--warn', "href=\"$H/tools/\"" ), array( "$H/drawdown/" ) ),
+	'end tag </a >'         => array( "<ul><li><a href=\"$H/drawdown/\">DD</a ></li><li>สำคัญ ห้ามหาย</li><li><a href=\"$H/tools/\">T</a></li></ul>", array( 'สำคัญ ห้ามหาย', "href=\"$H/tools/\"" ), array( "$H/drawdown/" ) ),
+	'unclosed draft <a>'    => array( "<ul><li><a href=\"$H/drawdown/\">DD</li><li>สำคัญ ห้ามหาย</li><li><a href=\"$H/tools/\">T</a></li></ul><h2>หัวข้อ</h2><div class=\"callout callout--warn\"><p>คำเตือน</p></div>", array( 'สำคัญ ห้ามหาย', "href=\"$H/tools/\">T</a>", '<h2>หัวข้อ</h2>', 'callout--warn' ), array() ),
+	'p.xref without </p>'   => array( "<p class=\"xref\">อ่าน <a href=\"$H/drawdown/\">DD</a>\n<ul><li>ขั้นตอนสำคัญ</li></ul>\n<h2>หัวข้อถัดไป</h2>\n<p>คำเตือนความเสี่ยง</p>", array( 'ขั้นตอนสำคัญ', 'หัวข้อถัดไป', 'คำเตือนความเสี่ยง' ), array( "$H/drawdown/" ) ),
+	'span.xref nested span' => array( "<p>ก <span class=\"xref\">อ่าน <span style=\"color:#15803d\"><a href=\"$H/drawdown/\">DD</a></span> เพิ่มเติม</span> ข</p>", array( '<p>ก ', 'เพิ่มเติม', ' ข</p>' ), array( "$H/drawdown/" ) ),
+	'span.xref removed'     => array( "<p>ก <span class=\"xref\">อ่าน <a href=\"$H/drawdown/\">DD</a> เพิ่มเติม</span></p>", array( '<p>ก</p>' ), array( 'DD', 'xref' ) ),
+	'related box emptied'   => array( "<div class=\"related-links\"><h2 id=\"toc-3\">ที่เกี่ยวข้อง</h2><ul class=\"wp-block-list\">\n<li><a href=\"$H/drawdown/\">DD</a></li>\n</ul></div><p>ท้าย</p>", array( '<p>ท้าย</p>' ), array( 'related-links', 'ที่เกี่ยวข้อง' ) ),
+	'href variants'         => array( "<p><a href='$H/drawdown/'>A</a> <a href=\"$H/drawdown/#faq\">B</a> <a href=\"/drawdown/?x=1\">C</a> <A HREF=\"$H/drawdown/\">E</A> <a href=\"https://other.example/drawdown/\">F</a></p>", array( 'A B C E', 'https://other.example/drawdown/' ), array( "$H/drawdown/", "'$H/drawdown/'", '"/drawdown/' ) ),
+	'huge link text'        => array( "<p><a href=\"$H/drawdown/\">$big</a> <a href=\"$H/leverage/\">LV</a></p>", array( $big, 'LV' ), array( "$H/drawdown/", "$H/leverage/" ) ),
+);
+foreach ( $fixtures as $name => $fx ) {
+	$out  = fenix_unlink_slugs( $fx[0], array( 'drawdown', 'leverage' ) );
+	$fail = array();
+	foreach ( $fx[1] as $must ) {
+		if ( false === strpos( $out, $must ) ) {
+			$fail[] = 'lost "' . mb_substr( $must, 0, 30 ) . '"';
+		}
+	}
+	foreach ( $fx[2] as $gone ) {
+		if ( false !== stripos( $out, $gone ) ) {
+			$fail[] = 'kept "' . mb_substr( $gone, 0, 30 ) . '"';
+		}
+	}
+	// tags that were balanced before must stay balanced (no orphan end tags or half-removed wrappers)
+	$bal = function ( $html, $tag ) {
+		return preg_match_all( "#<$tag(\s[^>]*)?>#i", $html ) - preg_match_all( "#</$tag\s*>#i", $html );
+	};
+	foreach ( array( 'p', 'ul', 'li', 'span', 'div', 'a' ) as $tag ) {
+		if ( 0 === $bal( $fx[0], $tag ) && 0 !== $bal( $out, $tag ) ) {
+			$fail[] = "<$tag> unbalanced";
+		}
+	}
+	printf( "%-34s %s\n", 'unlink: ' . $name, $fail ? '✗ ' . implode( '; ', $fail ) : '✓' );
+	$problems += count( $fail );
+}
+
 echo $problems ? "\n$problems issue(s)\n" : "\nall good\n";

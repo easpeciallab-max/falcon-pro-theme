@@ -95,6 +95,7 @@ function wp_die() { exit; }
 function current_user_can() { return false; }
 function is_user_logged_in() { return false; }
 function is_admin() { return false; }
+if ( ! function_exists( 'wp_doing_cron' ) ) { function wp_doing_cron() { return false; } }
 function is_customize_preview() { return false; }
 function wp_is_mobile() { return false; }
 function get_locale() { return 'th'; }
