@@ -520,6 +520,17 @@ function fenix_infra_yoast_person_data( $data, $user_id = 0 ) {
 }
 add_filter( 'wpseo_schema_person_data', 'fenix_infra_yoast_person_data', 10, 2 );
 
+/**
+ * Yoast Article schema อ่าน display_name ของผู้เขียนตรงจากฐานข้อมูล (ไม่ผ่านฟิลเตอร์ของ WordPress) จึงต้องแก้ที่ชิ้น schema เอง
+ */
+function fenix_infra_yoast_article_author( $data, $context = null ) {
+	if ( is_array( $data ) && isset( $data['author']['name'] ) && is_object( $context ) && isset( $context->post->post_author ) ) {
+		$data['author']['name'] = fenix_infra_public_author_name( $data['author']['name'], get_userdata( (int) $context->post->post_author ) );
+	}
+	return $data;
+}
+add_filter( 'wpseo_schema_article', 'fenix_infra_yoast_article_author', 10, 2 );
+
 function fenix_infra_yoast_no_author_sitemap( $users ) {
 	return apply_filters( 'fenix_block_author_enum', true ) ? array() : $users;
 }
