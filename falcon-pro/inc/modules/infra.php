@@ -437,7 +437,11 @@ add_filter( 'rest_pre_dispatch', 'fenix_infra_block_guest_user_rest', 10, 3 );
  * ผู้ที่ไม่ได้ล็อกอิน → กลับหน้าแรก · ปิดได้ด้วย add_filter( 'fenix_block_author_enum', '__return_false' )
  */
 function fenix_infra_block_author_enum() {
-	if ( is_admin() || is_user_logged_in() || ! isset( $_GET['author'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- อ่านอย่างเดียว ไม่บันทึกอะไร
+	if ( is_admin() || is_user_logged_in() ) {
+		return;
+	}
+	// หน้า /author/<username>/ ก็เปิดเผยชื่อล็อกอินเช่นกัน (ธีมไม่มีหน้าผู้เขียน · ผู้เขียนบทความคือชื่อทีมใน Customizer)
+	if ( ! isset( $_GET['author'] ) && ! is_author() ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- อ่านอย่างเดียว ไม่บันทึกอะไร
 		return;
 	}
 	if ( ! apply_filters( 'fenix_block_author_enum', true ) ) {
@@ -447,6 +451,79 @@ function fenix_infra_block_author_enum() {
 	exit;
 }
 add_action( 'template_redirect', 'fenix_infra_block_author_enum', 1 );
+
+/* --------------------------------------------------------------
+ * ชื่อล็อกอินของผู้ดูแลต้องไม่หลุดออกหน้าเว็บ
+ * WordPress ตั้ง "ชื่อที่แสดง" ของผู้ใช้ใหม่ = ชื่อล็อกอิน และปลั๊กอิน SEO ใส่ชื่อนี้ใน meta author, schema ของบทความ,
+ * RSS และลิงก์ /author/<username>/ → ถ้าชื่อที่แสดงยังเท่ากับชื่อล็อกอิน ให้ใช้ชื่อผู้เขียนจาก Customizer แทน
+ * (เจ้าของตั้งชื่อที่แสดงเองในโปรไฟล์เมื่อไร ธีมใช้ชื่อนั้นตามปกติ) · ปิดทั้งชุดด้วย filter fenix_block_author_enum
+ * -------------------------------------------------------------- */
+
+/**
+ * ชื่อผู้เขียนที่แสดงต่อสาธารณะ: ถ้า $name คือชื่อล็อกอิน/nicename ของผู้ใช้ → ชื่อทีมจาก Customizer (หรือชื่อเว็บ)
+ */
+function fenix_infra_public_author_name( $name, $user ) {
+	if ( ! $user || ! apply_filters( 'fenix_block_author_enum', true ) ) {
+		return $name;
+	}
+	$shown = strtolower( trim( (string) $name ) );
+	if ( '' !== $shown && strtolower( (string) $user->user_login ) !== $shown && strtolower( (string) $user->user_nicename ) !== $shown ) {
+		return $name;
+	}
+	$brand = trim( (string) fenix_mod( 'article_author_name' ) );
+	return '' !== $brand ? $brand : get_bloginfo( 'name' );
+}
+
+function fenix_infra_filter_the_author( $name ) {
+	global $authordata;
+	return is_admin() || ! is_object( $authordata ) ? $name : fenix_infra_public_author_name( $name, $authordata );
+}
+add_filter( 'the_author', 'fenix_infra_filter_the_author' );
+
+function fenix_infra_filter_author_display_name( $name, $user_id = 0 ) {
+	return is_admin() ? $name : fenix_infra_public_author_name( $name, get_userdata( (int) $user_id ) );
+}
+add_filter( 'get_the_author_display_name', 'fenix_infra_filter_author_display_name', 10, 2 );
+
+/**
+ * ลิงก์หน้าผู้เขียน (ใช้ใน schema/ฟีด) → หน้าเกี่ยวกับเรา หรือหน้าแรก · ไม่มี /author/<username>/ ในหน้าเว็บ
+ */
+function fenix_infra_filter_author_link( $link ) {
+	if ( is_admin() || ! apply_filters( 'fenix_block_author_enum', true ) ) {
+		return $link;
+	}
+	$about = function_exists( 'fenix_published_page_url' ) ? fenix_published_page_url( 'about' ) : '';
+	return $about ? $about : home_url( '/' );
+}
+add_filter( 'author_link', 'fenix_infra_filter_author_link' );
+
+/**
+ * Yoast: meta author, schema Person ของผู้เขียน (ชื่อ + รูป Gravatar ที่ผูกกับอีเมลผู้ดูแล) และแผนผังเว็บของผู้เขียน
+ */
+function fenix_infra_yoast_meta_author( $name, $presentation = null ) {
+	$author_id = is_object( $presentation ) && isset( $presentation->source->post_author ) ? (int) $presentation->source->post_author : 0;
+	return $author_id ? fenix_infra_public_author_name( $name, get_userdata( $author_id ) ) : $name;
+}
+add_filter( 'wpseo_meta_author', 'fenix_infra_yoast_meta_author', 10, 2 );
+
+function fenix_infra_yoast_person_data( $data, $user_id = 0 ) {
+	$user = get_userdata( (int) $user_id );
+	if ( ! $user || ! is_array( $data ) || ! isset( $data['name'] ) ) {
+		return $data;
+	}
+	$public = fenix_infra_public_author_name( $data['name'], $user );
+	if ( $public !== $data['name'] ) {
+		$data['name'] = $public;
+		unset( $data['image'], $data['sameAs'] );
+	}
+	return $data;
+}
+add_filter( 'wpseo_schema_person_data', 'fenix_infra_yoast_person_data', 10, 2 );
+
+function fenix_infra_yoast_no_author_sitemap( $users ) {
+	return apply_filters( 'fenix_block_author_enum', true ) ? array() : $users;
+}
+add_filter( 'wpseo_sitemap_exclude_author', 'fenix_infra_yoast_no_author_sitemap' );
 
 /* ==============================================================
  * 2) Hardening
