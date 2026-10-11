@@ -53,11 +53,13 @@
 - `assets/img/` — โลโก้ FALCON (ไอคอนวงกลม `logo.png`) · `brand/` wordmark dark/light, favicon, การ์ดแชร์ 1200×630 · `banners/` แบนเนอร์แบรนด์ (ชื่อไฟล์ SEO) · `covers/<slug>.webp` รูปปกบทความ 1200×630 (ชื่อบทความ + หมวด + ไอคอน ไม่มีตัวเลข · สร้างด้วย `dev/make-covers.php`)
 - `screenshot.png` — ภาพ preview ธีม FALCON
 - `readme.txt` — คู่มือผู้ใช้ (ภาษาไทย) สำหรับเจ้าของเว็บ
-- `inc/setup.php` — **`fenix_site_pages()`** (manifest ทุกเพจ: slug → template, ไฟล์เนื้อหา, กลุ่มเมนู) + `fenix_seed_articles()` (รายการบทความ: เพิ่มบทความใหม่ = เพิ่ม slug ที่นี่ + ไฟล์ใน `inc/content/articles/` + ไอคอนใน `dev/preview/cover.php` แล้วรัน `dev/make-covers.php`) + หน้า admin **รูปแบบ → FALCON Setup** (สร้างเพจที่ยังไม่มี, ตั้งหน้าแรก/หน้าบทความ, สร้างเมนู, นำเข้าบทความเป็นฉบับร่าง + รูปปก + meta Yoast)
+- `inc/setup.php` — **`fenix_site_pages()`** (manifest ทุกเพจ: slug → template, ไฟล์เนื้อหา, กลุ่มเมนู) + `fenix_seed_articles()` (รายการบทความ: เพิ่มบทความใหม่ = เพิ่ม slug ที่นี่ + ไฟล์ใน `inc/content/articles/` + ไอคอนใน `dev/preview/cover.php` แล้วรัน `dev/make-covers.php`) + หน้า admin **รูปแบบ → FALCON Setup** (1 สร้างเพจที่ยังไม่มี, ตั้งหน้าแรก/หน้าบทความ, สร้างเมนู · 2 นำเข้าบทความเป็นฉบับร่าง + รูปปก + meta Yoast · 3 ปล่อยบทความ: เผยแพร่ชุดแรกแล้วตั้งเวลาที่เหลือ อังคาร/ศุกร์ 10:00 น. เวลาไทย)
+  - ปล่อยบทความ = `fenix_setup_release_to_total()` → `fenix_setup_release_articles()` · ลำดับใน `fenix_seed_publish_order()` · ฉบับร่างที่เจ้าของยังไม่เคยแก้ (`fenix_seed_fingerprint()` ตรงกับ meta `fenix_seed_hash`) ถูกอัปเดตตามไฟล์ล่าสุดก่อนปล่อย ฉบับร่างที่แก้เองไม่ถูกแตะ · `fenix_publish_missed_schedule()` กันบทความตั้งเวลาค้างเมื่อ WP-Cron ไม่ทำงาน
+  - **กติกาวันที่ของ WordPress ที่ต้องจำ**: ตั้งเวลาฉบับร่างต้องส่ง `edit_date => true` (ไม่งั้นถูกเผยแพร่ทันที) · ห้ามใช้ `post_modified === post_date` ตัดสินว่า "ยังไม่แก้" (เท่ากันทุกครั้งที่บันทึกฉบับร่าง) ให้ดู `post_modified_gmt` เป็นศูนย์แทน
 - `inc/content/pages/*.html`, `inc/content/articles/*.html` — เนื้อหาตั้งต้น (บรรทัดแรก `<!--meta {json} -->`) · สเปก/กติกาการเขียนอยู่ที่ `dev/content-spec.md`
-  - ลิงก์ไปบทความ/เพจกฎหมายที่ยังเป็นฉบับร่างถูกตัดอัตโนมัติด้วย `fenix_unlink_slugs()` (`the_content` priority 25): รายการ `<li>` ที่มีแต่ลิงก์ → ลบ, ประโยคใน `span.xref`/`p.xref` → ลบ, ลิงก์อื่น → ข้อความธรรมดา · **ห้ามใช้ regex ที่ข้าม `</a>` ได้** (เคยกินบทความหายครึ่งหน้า) · `dev/check-content.php` จำลองกรณีร่างทั้งหมดให้แล้ว
+  - ลิงก์ไปบทความ/เพจกฎหมายที่ยังเป็นฉบับร่างถูกตัดอัตโนมัติด้วย `fenix_unlink_slugs()` (`the_content` priority 15 · ก่อนสร้างสารบัญ): รายการ `<li>` ที่มีแต่ลิงก์ → ลบ, ประโยคใน `span.xref`/`p.xref` → ลบ, ลิงก์อื่น → ข้อความธรรมดา · **ห้ามใช้ regex ที่ข้าม `</a>` ได้** (เคยกินบทความหายครึ่งหน้า) · `dev/check-content.php` จำลองกรณีร่างทั้งหมดให้แล้ว
 - `inc/shortcodes.php` — `[falcon_line]`, `[falcon_brand]`, `[falcon_broker]`, `[falcon_calc type="lot|drawdown"]`
-- `inc/seo.php` — FAQPage (หน้าแรก + ทุกเพจที่มี `details.faq-item`), SoftwareApplication (หน้าแรก/แพ็กเกจ), BreadcrumbList + favicon สำรอง (เมื่อไม่มีปลั๊กอิน SEO)
+- `inc/seo.php` — FAQPage (หน้าแรก + ทุกเพจที่มี `details.faq-item`), SoftwareApplication (หน้าแรก/แพ็กเกจ), BreadcrumbList + favicon สำรอง (เมื่อไม่มีปลั๊กอิน SEO) · เมื่อมี Yoast: เติมรูปแชร์ของธีมให้หน้าที่ Yoast ไม่มีรูป (`fenix_seo_yoast_share_fallback`) และประกาศภาษาไทย (`lang`, `og:locale`, schema) ขณะที่ภาษาเว็บใน WordPress ยังเป็น en_US (`fenix_seo_forced_lang`)
 - `inc/parts/ea-panel.php` — แผงควบคุม EA จำลองใน Hero (HTML ล้วน ไม่มีตัวเลขผลเทรด)
 - `template-guide.php` — หน้าคู่มือ (ขั้นตอน + ช่องรูป + เช็กลิสต์ + เนื้อหายาว + คู่มือที่เกี่ยวข้อง) · `template-go.php` — หน้าลิงก์รวม /go แบบ**หน้าเดี่ยว** (ไม่มี header/footer/dock แต่มี wp_head/wp_footer จึงยังมีการ์ดคุกกี้) · `page.php` — เพจเอกสาร (about/privacy/terms/data-deletion)
 
@@ -116,7 +118,7 @@
   - ต้องเปิด extension: `-d extension_dir=<php>/ext -d extension=mbstring -d extension=gd`
   - ค้นหา Fatal/Warning/Notice ในหน้าที่เรนเดอร์ก่อน commit
 - รูปปกบทความ: เปิด preview server แล้วรัน `php -d extension=mbstring -d extension=gd dev/make-covers.php [slug ...]` (เรนเดอร์ `/__cover/<slug>/` ด้วย Chrome headless → `assets/img/covers/<slug>.webp`)
-- ตรวจ setting ครบ: `php -d extension=mbstring dev/check-settings.php` · เนื้อหาตั้งต้น: `dev/check-content.php` · แบรนด์รั่ว: `dev/check-brand.php` (ทั้งสามต้องผ่านก่อน commit)
+- ตรวจ setting ครบ: `php -d extension=mbstring dev/check-settings.php` · เนื้อหาตั้งต้น: `dev/check-content.php` · แบรนด์รั่ว: `dev/check-brand.php` · ตรรกะปล่อยบทความ: `dev/check-release.php` (ตารางโพสต์จำลองที่ทำตามกติกาวันที่ของ WordPress core) (ทั้งสี่ต้องผ่านก่อน commit)
 - ก่อน push ทุกครั้งที่แก้เยอะ: รัน workflow รีวิวก่อนปล่อย (มุมมอง: WP runtime จริง, security, front-end, Customizer/data, SEO+Yoast, เนื้อหา · ยืนยันทุก finding ด้วย 2 skeptic) แล้วแก้ที่ยืนยันแล้วให้ครบ
 - push ต้องใช้บัญชี gh `easpeciallab-max`: `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin main`
 

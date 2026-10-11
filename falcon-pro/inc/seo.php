@@ -494,6 +494,77 @@ function fenix_seo_yoast_org_same_as( $data ) {
 }
 add_filter( 'wpseo_schema_organization', 'fenix_seo_yoast_org_same_as' );
 
+/**
+ * มี Yoast: เพจ/บทความที่ไม่มีรูปเด่น และยังไม่ได้ตั้งรูปแชร์เริ่มต้นใน Yoast (Settings → Site basics → Site image)
+ * → ใช้รูปแชร์ของธีม กันลิงก์ที่แชร์ใน LINE / Facebook ไม่มีรูปพรีวิว
+ * · ถ้าตั้งรูปเริ่มต้นใน Yoast แล้ว ธีมไม่แทรก (Yoast เติมเองในขั้นถัดไป)
+ */
+function fenix_seo_yoast_share_fallback( $images ) {
+	if ( ! is_object( $images ) || ! method_exists( $images, 'has_images' ) || ! method_exists( $images, 'add_image' ) || $images->has_images() ) {
+		return $images;
+	}
+	if ( class_exists( 'WPSEO_Options' ) && ( WPSEO_Options::get( 'og_default_image', '' ) || WPSEO_Options::get( 'og_default_image_id', '' ) ) ) {
+		return $images;
+	}
+	$custom = trim( (string) fenix_mod( 'og_default_image' ) );
+	if ( '' !== $custom ) {
+		$images->add_image( $custom );
+	} else {
+		$images->add_image(
+			array(
+				'url'    => fenix_share_image(),
+				'width'  => 1200,
+				'height' => 630,
+				'type'   => 'image/jpeg',
+			)
+		);
+	}
+	return $images;
+}
+add_filter( 'wpseo_add_opengraph_additional_images', 'fenix_seo_yoast_share_fallback' );
+
+/* ==============================================================
+ * 2.1) ภาษาของหน้าเว็บ
+ * เนื้อหาของธีมเป็นภาษาไทยทั้งหมด แต่ WordPress ที่ติดตั้งใหม่ตั้ง "ภาษาของเว็บ" เป็น English (United States)
+ * ทำให้หน้าเว็บประกาศ lang="en-US" · og:locale en_US · schema inLanguage en-US ซึ่งไม่ตรงกับเนื้อหา
+ * → ขณะที่ภาษาของเว็บยังเป็นค่าเริ่มต้น (en_US) และไม่มีปลั๊กอินหลายภาษา ให้หน้าเว็บประกาศเป็นภาษาไทย
+ * (เฉพาะฝั่งหน้าเว็บ ไม่เปลี่ยนภาษาหลังบ้าน · เมื่อเจ้าของตั้งภาษาเว็บเองแล้ว ธีมไม่ยุ่ง)
+ * ============================================================== */
+
+/**
+ * รหัสภาษาที่ธีมประกาศแทนค่าเริ่มต้นของ WordPress ('' = ไม่แทน)
+ */
+function fenix_seo_forced_lang() {
+	if ( is_admin() || 'en_US' !== get_locale() ) {
+		return '';
+	}
+	if ( function_exists( 'pll_current_language' ) || defined( 'ICL_SITEPRESS_VERSION' ) || function_exists( 'trp_get_languages' ) ) {
+		return '';
+	}
+	return (string) apply_filters( 'fenix_site_lang', 'th' );
+}
+
+function fenix_seo_language_attributes( $output ) {
+	$lang = fenix_seo_forced_lang();
+	if ( '' === $lang ) {
+		return $output;
+	}
+	$out = preg_replace( '/\blang="[^"]*"/', 'lang="' . esc_attr( $lang ) . '"', (string) $output, 1, $count );
+	return $count ? $out : trim( 'lang="' . esc_attr( $lang ) . '" ' . $output );
+}
+add_filter( 'language_attributes', 'fenix_seo_language_attributes', 20 );
+
+function fenix_seo_yoast_locale( $locale ) {
+	return 'th' === fenix_seo_forced_lang() ? 'th_TH' : $locale;
+}
+add_filter( 'wpseo_locale', 'fenix_seo_yoast_locale' );
+
+function fenix_seo_yoast_piece_language( $language ) {
+	$lang = fenix_seo_forced_lang();
+	return '' !== $lang ? $lang : $language;
+}
+add_filter( 'wpseo_schema_piece_language', 'fenix_seo_yoast_piece_language' );
+
 /* ==============================================================
  * 3) รูปแชร์ + Open Graph (ไม่มีปลั๊กอิน)
  * ============================================================== */
@@ -617,6 +688,9 @@ function fenix_meta_description() {
  * og:locale ต้องอยู่ในรูป ภาษา_ประเทศ (th_TH) · WordPress ภาษาไทยคืน get_locale() = "th" ซึ่ง Facebook ไม่รับ
  */
 function fenix_seo_og_locale() {
+	if ( 'th' === fenix_seo_forced_lang() ) {
+		return (string) apply_filters( 'fenix_seo_og_locale', 'th_TH' );
+	}
 	$locale = str_replace( '-', '_', trim( (string) get_locale() ) );
 	if ( preg_match( '/^[a-z]{2}$/i', $locale ) ) {
 		$map    = array(

@@ -555,13 +555,17 @@ function fenix_setup_menu_build() {
 }
 
 /**
- * นำเข้าบทความ (ข้ามบทความที่มี slug อยู่แล้ว)
+ * นำเข้าบทความ · บทความที่มี slug อยู่แล้วไม่ถูกสร้างซ้ำ
+ * (ฉบับร่างที่ยังไม่เคยแก้จะอัปเดตตามไฟล์รุ่นล่าสุด ดู fenix_setup_refresh_draft)
  */
 function fenix_setup_import_articles( $publish = false ) {
 	$log = array();
 	foreach ( fenix_seed_articles() as $slug => $art ) {
-		if ( fenix_find_post( $slug ) ) {
-			$log[] = '• มีอยู่แล้ว: ' . $slug;
+		$found = fenix_find_post( $slug );
+		if ( $found ) {
+			$log[] = fenix_setup_refresh_draft( $found, $art )
+				? '↻ อัปเดตฉบับร่างตามไฟล์รุ่นล่าสุด: ' . $art['title']
+				: '• มีอยู่แล้ว: ' . $slug;
 			continue;
 		}
 		$meta = $art['meta'];
@@ -592,6 +596,7 @@ function fenix_setup_import_articles( $publish = false ) {
 			continue;
 		}
 		fenix_apply_seo_meta( $id, $meta );
+		update_post_meta( $id, 'fenix_seed_hash', fenix_seed_fingerprint( fenix_find_post( $slug ) ) );
 		// รูปปกเฉพาะบทความ (covers/) ใช้ชื่อบทความเป็น alt · แบนเนอร์สำรองใช้ alt กลาง
 		$thumb = fenix_banner_attachment( $art['cover'], 0 === strpos( $art['cover'], 'covers/' ) ? $art['title'] : '' );
 		if ( $thumb ) {
@@ -601,6 +606,290 @@ function fenix_setup_import_articles( $publish = false ) {
 	}
 	return $log ? $log : array( '• ไม่มีไฟล์บทความให้นำเข้า' );
 }
+
+/**
+ * ลายนิ้วมือของสิ่งที่ธีมเขียนลงบทความตอนนำเข้า: หัวเรื่อง คำโปรย เนื้อหา และช่อง SEO ของ Yoast
+ * ใช้ตัดสินว่าเจ้าของเว็บแก้ฉบับร่างด้วยมือแล้วหรือยัง · $post ต้องเป็นค่าที่อ่านสดจากฐานข้อมูล (fenix_find_post)
+ */
+function fenix_seed_fingerprint( $post ) {
+	if ( ! $post ) {
+		return '';
+	}
+	$parts = array( (string) $post->post_title, (string) $post->post_excerpt, (string) $post->post_content );
+	foreach ( array( '_yoast_wpseo_title', '_yoast_wpseo_metadesc', '_yoast_wpseo_focuskw' ) as $key ) {
+		$parts[] = (string) get_post_meta( $post->ID, $key, true );
+	}
+	return md5( implode( "\n\x1e", $parts ) );
+}
+
+/**
+ * ฉบับร่างของบทความเริ่มต้นที่เจ้าของเว็บ "ยังไม่เคยแก้" → อัปเดตหัวเรื่อง/เนื้อหา/คำโปรย/SEO ให้ตรงไฟล์รุ่นล่าสุดของธีม
+ * ยังไม่เคยแก้ = ลายนิ้วมือปัจจุบันตรงกับที่ธีมประทับไว้ตอนนำเข้า (meta fenix_seed_hash)
+ * · ฉบับร่างที่นำเข้าก่อนมี meta นี้: ถือว่ายังไม่แก้เมื่อ post_modified_gmt ยังเป็นศูนย์
+ *   (มีแต่ wp_insert_post ครั้งแรกที่ปล่อยค่านี้เป็นศูนย์ · บันทึกจากหน้าแก้ไข, autosave, Quick Edit ใส่เวลาจริงทุกครั้ง
+ *   ห้ามใช้ post_modified === post_date เพราะ WordPress ตั้งสองค่านี้เท่ากันทุกครั้งที่บันทึกฉบับร่าง)
+ * ไม่แตะบทความที่เผยแพร่/ตั้งเวลาแล้ว และไม่แตะฉบับร่างที่แก้ด้วยมือ · คืน true เมื่อมีการอัปเดต
+ */
+function fenix_setup_refresh_draft( $post, $art ) {
+	if ( ! $post || 'draft' !== $post->post_status ) {
+		return false;
+	}
+	$hash      = (string) get_post_meta( $post->ID, 'fenix_seed_hash', true );
+	$untouched = '' !== $hash ? fenix_seed_fingerprint( $post ) === $hash : '0000-00-00 00:00:00' === $post->post_modified_gmt;
+	if ( ! $untouched ) {
+		return false;
+	}
+	$content = fenix_seed_content( $art['content'] );
+	if ( '' === $content ) {
+		return false;
+	}
+	$meta      = $art['meta'];
+	$excerpt   = isset( $meta['excerpt'] ) ? (string) $meta['excerpt'] : '';
+	$same_post = $content === $post->post_content && $art['title'] === $post->post_title && $excerpt === $post->post_excerpt;
+	$same_seo  = true;
+	foreach ( array( 'seo_title' => '_yoast_wpseo_title', 'description' => '_yoast_wpseo_metadesc', 'keyword' => '_yoast_wpseo_focuskw' ) as $field => $key ) {
+		if ( ! empty( $meta[ $field ] ) && (string) $meta[ $field ] !== (string) get_post_meta( $post->ID, $key, true ) ) {
+			$same_seo = false;
+		}
+	}
+	if ( $same_post && $same_seo ) {
+		if ( '' === $hash ) {
+			update_post_meta( $post->ID, 'fenix_seed_hash', fenix_seed_fingerprint( $post ) );
+		}
+		return false;
+	}
+	if ( ! $same_post ) {
+		$id = wp_update_post(
+			array(
+				'ID'           => $post->ID,
+				'post_title'   => wp_slash( $art['title'] ),
+				'post_content' => wp_slash( $content ),
+				'post_excerpt' => wp_slash( $excerpt ),
+			),
+			true
+		);
+		if ( is_wp_error( $id ) || ! $id ) {
+			return false;
+		}
+	}
+	fenix_apply_seo_meta( $post->ID, $meta );
+	update_post_meta( $post->ID, 'fenix_seed_hash', fenix_seed_fingerprint( fenix_find_post( $post->post_name ) ) );
+	return true;
+}
+
+/**
+ * ลำดับการปล่อยบทความ: เรื่องพื้นฐานและเรื่องที่หน้าคู่มืออ้างถึงออกก่อน แล้วสลับหมวดกันไป
+ * slug ที่ไม่อยู่ในรายการ (บทความที่เพิ่มทีหลัง) ต่อท้ายตามลำดับใน fenix_seed_article_covers()
+ */
+function fenix_seed_publish_order() {
+	$order = array(
+		'what-is-ea-mt5',
+		'ea-not-trading',
+		'drawdown',
+		'lot-size-calculation',
+		'vps-for-ea',
+		'ea-scam-warning',
+		'cent-account',
+		'demo-account-ea',
+		'vps-mt5-stable',
+		'profit-factor',
+		'margin-call-stop-out',
+		'choose-broker-for-ea',
+		'ea-gold-xauusd',
+		'ea-optimization-overfitting',
+		'leverage',
+		'mt4-vs-mt5',
+		'spread-slippage',
+		'ea-monitoring-routine',
+		'grid-martingale-ea',
+		'free-ea-vs-paid',
+		'swap-commission',
+		'ea-news-trading',
+	);
+	$all   = array_keys( fenix_seed_article_covers() );
+	return array_values( array_unique( array_merge( array_intersect( $order, $all ), $all ) ) );
+}
+
+/**
+ * วันในสัปดาห์ที่ปล่อยบทความตามจำนวนเรื่องต่อสัปดาห์ (เลขวันแบบ ISO: 1 = จันทร์ … 7 = อาทิตย์)
+ */
+function fenix_release_weekdays( $per_week ) {
+	$map = array(
+		1 => array( 2 ),
+		2 => array( 2, 5 ),
+		3 => array( 1, 3, 5 ),
+	);
+	return isset( $map[ (int) $per_week ] ) ? $map[ (int) $per_week ] : $map[2];
+}
+
+/**
+ * ช่องเวลาปล่อยบทความถัดไป: วันถัดจาก $after ที่ตรงกับ $days เวลา 10:00 น. เวลาไทย (อย่างเร็วคือวันรุ่งขึ้น)
+ */
+function fenix_release_next_slot( DateTimeImmutable $after, $days ) {
+	$slot = $after->setTimezone( new DateTimeZone( 'Asia/Bangkok' ) );
+	for ( $i = 0; $i < 14; $i++ ) {
+		$slot = $slot->modify( '+1 day' )->setTime( 10, 0, 0 );
+		if ( in_array( (int) $slot->format( 'N' ), $days, true ) ) {
+			break;
+		}
+	}
+	return $slot;
+}
+
+/**
+ * ปล่อยบทความเริ่มต้นที่ยังเป็นฉบับร่าง: $now_count เรื่องแรกเผยแพร่ทันที ที่เหลือตั้งเวลา 10:00 น. เวลาไทย
+ * ตามวันของ fenix_release_weekdays() ต่อคิวหลังบทความของธีมที่ตั้งเวลาไว้แล้ว · กดซ้ำได้ (ทำเฉพาะฉบับร่าง)
+ * ฉบับร่างที่ยังไม่เคยแก้ถูกอัปเดตตามไฟล์รุ่นล่าสุดก่อนปล่อย (ข้อความที่เผยแพร่จึงตรงกับไฟล์ของธีมเสมอ)
+ * ลิงก์ไปบทความที่ยังไม่ถึงคิวถูกซ่อนด้วย fenix_unlink_slugs() จนกว่าจะเผยแพร่
+ */
+function fenix_setup_release_articles( $now_count = 6, $per_week = 2 ) {
+	$now_count = max( 0, min( 100, (int) $now_count ) );
+	$days      = fenix_release_weekdays( $per_week );
+	$utc       = new DateTimeZone( 'UTC' );
+	$slot      = new DateTimeImmutable( 'now', $utc );
+	$arts      = fenix_seed_articles();
+	$log       = array();
+	$queue     = array();
+
+	foreach ( fenix_seed_publish_order() as $slug ) {
+		$post = fenix_find_post( $slug );
+		if ( ! $post ) {
+			continue;
+		}
+		if ( 'future' === $post->post_status && '0000-00-00 00:00:00' !== $post->post_date_gmt ) {
+			// จุดเริ่มนับคิว = บทความของธีมที่ตั้งเวลาไว้ล่าสุด (ไม่นับโพสต์อื่นที่เจ้าของเว็บตั้งเวลาเอง)
+			$at = date_create_immutable( $post->post_date_gmt, $utc );
+			if ( $at && $at > $slot ) {
+				$slot = $at;
+			}
+			continue;
+		}
+		if ( 'draft' !== $post->post_status ) {
+			continue;
+		}
+		if ( isset( $arts[ $slug ] ) && fenix_setup_refresh_draft( $post, $arts[ $slug ] ) ) {
+			$log[] = '↻ อัปเดตฉบับร่างตามไฟล์รุ่นล่าสุด: ' . $arts[ $slug ]['title'];
+			$fresh = fenix_find_post( $slug );
+			$post  = $fresh ? $fresh : $post;
+		}
+		$queue[] = $post;
+	}
+	if ( ! $queue ) {
+		return array( '• ไม่มีบทความฉบับร่างให้ปล่อย (ยังไม่ได้นำเข้า หรือปล่อยครบแล้ว)' );
+	}
+
+	foreach ( $queue as $i => $post ) {
+		if ( $i < $now_count ) {
+			// ใส่เวลาปัจจุบันเองเสมอ (แบบเดียวกับ bulk edit ของ WordPress) · ฉบับร่างที่เคยตั้งเวลาแล้วดึงกลับจะไม่ถูกตั้งเวลากลับไปวันเดิม
+			$done = wp_update_post(
+				array(
+					'ID'            => $post->ID,
+					'post_status'   => 'publish',
+					'post_date'     => current_time( 'mysql' ),
+					'post_date_gmt' => '',
+				),
+				true
+			);
+			$want = 'publish';
+			$ok   = '✓ เผยแพร่แล้ว: ' . $post->post_title;
+		} else {
+			$slot = fenix_release_next_slot( $slot, $days );
+			$gmt  = $slot->setTimezone( $utc )->format( 'Y-m-d H:i:s' );
+			// edit_date จำเป็น: ถ้าไม่ส่ง WordPress จะล้างวันที่ของฉบับร่างเป็น "ตอนนี้" แล้วเผยแพร่ทันทีแทนการตั้งเวลา
+			$done = wp_update_post(
+				array(
+					'ID'            => $post->ID,
+					'post_status'   => 'future',
+					'post_date'     => get_date_from_gmt( $gmt ),
+					'post_date_gmt' => $gmt,
+					'edit_date'     => true,
+				),
+				true
+			);
+			$want = 'future';
+			$ok   = '→ ตั้งเวลา ' . $slot->format( 'd/m/Y H:i' ) . ' น. (เวลาไทย): ' . $post->post_title;
+		}
+		if ( is_wp_error( $done ) ) {
+			$log[] = '✗ ' . $post->post_name . ' · ' . $done->get_error_message();
+			continue;
+		}
+		$after = fenix_find_post( $post->post_name );
+		$got   = $after ? $after->post_status : 'ไม่พบ';
+		$log[] = $want === $got ? $ok : '✗ ' . $post->post_name . ' · สถานะที่ได้คือ ' . $got . ' (ต้องการ ' . $want . ')';
+	}
+	return $log;
+}
+
+/**
+ * ปล่อยบทความโดยระบุจำนวนที่ต้องการให้เผยแพร่อยู่ "รวม" (ไม่ใช่ "เพิ่มอีก N")
+ * กดซ้ำหรือส่งฟอร์มซ้ำหลังสะดุดกลางทางจึงเติมให้ครบตามเป้าเท่านั้น ไม่เผยแพร่เกิน
+ */
+function fenix_setup_release_to_total( $want_live, $per_week = 2 ) {
+	$have = fenix_setup_article_counts();
+	return fenix_setup_release_articles( max( 0, (int) $want_live - (int) $have['publish'] ), $per_week );
+}
+
+/**
+ * นับสถานะบทความเริ่มต้น:
+ * array( 'publish' => n, 'future' => n, 'draft' => n, 'none' => n, 'next' => 'd/m/Y H:i' | '', 'last' => 'd/m/Y' | '' ) เวลาไทย
+ */
+function fenix_setup_article_counts() {
+	$out  = array(
+		'publish' => 0,
+		'future'  => 0,
+		'draft'   => 0,
+		'none'    => 0,
+		'next'    => '',
+		'last'    => '',
+	);
+	$next = null;
+	$last = null;
+	$utc  = new DateTimeZone( 'UTC' );
+	foreach ( array_keys( fenix_seed_article_covers() ) as $slug ) {
+		$post = fenix_find_post( $slug );
+		if ( ! $post ) {
+			$out['none']++;
+			continue;
+		}
+		$status = in_array( $post->post_status, array( 'publish', 'future' ), true ) ? $post->post_status : 'draft';
+		$out[ $status ]++;
+		if ( 'future' === $status ) {
+			$at = date_create_immutable( $post->post_date_gmt, $utc );
+			if ( $at && ( null === $next || $at < $next ) ) {
+				$next = $at;
+			}
+			if ( $at && ( null === $last || $at > $last ) ) {
+				$last = $at;
+			}
+		}
+	}
+	$bkk = new DateTimeZone( 'Asia/Bangkok' );
+	if ( $next ) {
+		$out['next'] = $next->setTimezone( $bkk )->format( 'd/m/Y H:i' );
+	}
+	if ( $last ) {
+		$out['last'] = $last->setTimezone( $bkk )->format( 'd/m/Y' );
+	}
+	return $out;
+}
+
+/**
+ * กันบทความตั้งเวลาค้าง ("Missed schedule") บนโฮสต์ที่ WP-Cron ไม่ทำงาน:
+ * ทุก 15 นาที (เมื่อมีคนเปิดเว็บ) เผยแพร่บทความที่เลยเวลาตั้งไว้แล้วเกิน 5 นาที ด้วยฟังก์ชันเดียวกับที่ WP-Cron ใช้
+ */
+function fenix_publish_missed_schedule() {
+	if ( wp_doing_cron() || get_transient( 'fenix_missed_schedule_check' ) ) {
+		return;
+	}
+	set_transient( 'fenix_missed_schedule_check', 1, 15 * MINUTE_IN_SECONDS );
+	global $wpdb;
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	$ids = (array) $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'post' AND post_status = 'future' AND post_date_gmt > '0000-00-00 00:00:00' AND post_date_gmt <= %s ORDER BY post_date_gmt ASC LIMIT 5", gmdate( 'Y-m-d H:i:s', time() - 5 * MINUTE_IN_SECONDS ) ) );
+	foreach ( $ids as $id ) {
+		check_and_publish_future_post( (int) $id );
+	}
+}
+add_action( 'wp_loaded', 'fenix_publish_missed_schedule', 99 );
 
 /**
  * แทนเนื้อหาเพจเดียวด้วยเนื้อหาตั้งต้นรุ่นล่าสุด (เก็บรุ่นเก่าเป็น revision ของ WP)
@@ -640,7 +929,11 @@ function fenix_setup_handle() {
 		wp_safe_redirect( admin_url( 'themes.php?page=falcon-setup' ) );
 		exit;
 	}
-	set_transient( 'fenix_setup_lock', 1, 120 );
+	set_transient( 'fenix_setup_lock', 1, 300 );
+	if ( function_exists( 'set_time_limit' ) ) {
+		set_time_limit( 300 ); // นำเข้า/ปล่อยบทความ 20+ เรื่องพร้อมรูปปกอาจใช้เวลา
+	}
+	ignore_user_abort( true );
 
 	$do  = isset( $_POST['fenix_do'] ) ? sanitize_key( wp_unslash( $_POST['fenix_do'] ) ) : '';
 	$log = array();
@@ -656,10 +949,17 @@ function fenix_setup_handle() {
 	}
 	if ( 'replace' === $do ) {
 		$slug = isset( $_POST['fenix_slug'] ) ? sanitize_key( wp_unslash( $_POST['fenix_slug'] ) ) : '';
-		$log  = array_merge( $log, fenix_setup_replace_page( $slug ) );
+		// ต้องติ๊ก "ยืนยัน" ข้างปุ่มก่อน (แทนกล่อง confirm ของเบราว์เซอร์ ใช้ได้แม้ปิด JavaScript)
+		$log  = array_merge( $log, empty( $_POST['fenix_confirm'] ) ? array( '• ยังไม่ได้ติ๊ก "ยืนยัน" · ไม่ได้แทนเนื้อหา /' . $slug . '/' ) : fenix_setup_replace_page( $slug ) );
 	}
 	if ( 'articles' === $do ) {
 		$log = array_merge( $log, fenix_setup_import_articles( ! empty( $_POST['fenix_publish'] ) ) );
+	}
+	if ( 'release' === $do ) {
+		// ตัวเลขในฟอร์ม = จำนวนบทความที่ต้องการให้เผยแพร่อยู่ "รวม" · ส่งฟอร์มซ้ำหรือกดซ้ำหลังสะดุดจึงไม่เผยแพร่เกินที่ตั้งใจ
+		$want = isset( $_POST['fenix_now'] ) ? absint( wp_unslash( $_POST['fenix_now'] ) ) : 6;
+		$week = isset( $_POST['fenix_per_week'] ) ? absint( wp_unslash( $_POST['fenix_per_week'] ) ) : 2;
+		$log  = array_merge( $log, fenix_setup_release_to_total( $want, $week ) );
 	}
 	if ( 'all' === $do ) {
 		flush_rewrite_rules( false );
@@ -710,9 +1010,38 @@ function fenix_setup_screen() {
 			<?php wp_nonce_field( 'fenix_setup' ); ?>
 			<input type="hidden" name="action" value="fenix_setup">
 			<h2 style="margin-top:0">2) นำเข้าบทความ SEO (<?php echo (int) count( fenix_seed_articles() ); ?> บทความ)</h2>
-			<p>นำเข้าเป็น <strong>ฉบับร่าง</strong> พร้อมหมวดหมู่ คำอธิบาย SEO และรูปหน้าปก · อ่านตรวจแล้วค่อยกดเผยแพร่ทีละบทความ (แนะนำให้ทยอยเผยแพร่สัปดาห์ละ 1–2 บทความ)</p>
+			<p>นำเข้าเป็น <strong>ฉบับร่าง</strong> พร้อมหมวดหมู่ คำอธิบาย SEO และรูปหน้าปก · กดซ้ำได้ บทความที่มีอยู่แล้วจะไม่ถูกสร้างซ้ำ และฉบับร่างที่ยังไม่เคยแก้จะอัปเดตตามไฟล์รุ่นล่าสุดของธีม</p>
 			<p><label><input type="checkbox" name="fenix_publish" value="1"> เผยแพร่ทันที (ไม่แนะนำ)</label></p>
 			<p><button class="button button-primary" name="fenix_do" value="articles">นำเข้าบทความ</button></p>
+		</form>
+
+		<?php $fenix_counts = fenix_setup_article_counts(); ?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin:0 0 26px;padding:18px 20px;background:#fff;border:1px solid #dcdcde;border-radius:8px;max-width:760px">
+			<?php wp_nonce_field( 'fenix_setup' ); ?>
+			<input type="hidden" name="action" value="fenix_setup">
+			<h2 style="margin-top:0">3) ปล่อยบทความฉบับร่าง</h2>
+			<p>เผยแพร่ชุดแรกทันที แล้วตั้งเวลาให้บทความที่เหลือออกเองทุกสัปดาห์ เวลา 10:00 น. (เวลาไทย) · ทำกับบทความของธีมที่ยังเป็น<strong>ฉบับร่าง</strong>เท่านั้น · ฉบับร่างที่ยังไม่เคยแก้จะอัปเดตตามไฟล์รุ่นล่าสุดของธีมก่อนปล่อย ส่วนฉบับร่างที่คุณแก้เองจะปล่อยตามที่แก้ไว้ · ลิงก์ไปบทความที่ยังไม่ถึงคิวจะถูกซ่อนไว้จนกว่าบทความนั้นจะออก</p>
+			<p>
+				<strong>สถานะตอนนี้:</strong>
+				เผยแพร่แล้ว <?php echo (int) $fenix_counts['publish']; ?> ·
+				ตั้งเวลาไว้ <?php echo (int) $fenix_counts['future']; ?><?php echo $fenix_counts['next'] ? ' (เรื่องถัดไป ' . esc_html( $fenix_counts['next'] ) . ' น. · เรื่องสุดท้าย ' . esc_html( $fenix_counts['last'] ) . ')' : ''; ?> ·
+				ฉบับร่าง <?php echo (int) $fenix_counts['draft']; ?>
+				<?php if ( $fenix_counts['none'] ) : ?>
+					· ยังไม่ได้นำเข้า <?php echo (int) $fenix_counts['none']; ?>
+				<?php endif; ?>
+			</p>
+			<p>
+				<label>ให้มีบทความเผยแพร่แล้วรวม <input type="number" name="fenix_now" value="<?php echo (int) max( 6, $fenix_counts['publish'] ); ?>" min="0" max="100" style="width:70px"> เรื่อง</label>
+				&nbsp;·&nbsp;
+				<label>ที่เหลือสัปดาห์ละ
+					<select name="fenix_per_week">
+						<option value="1">1 เรื่อง (วันอังคาร)</option>
+						<option value="2" selected>2 เรื่อง (อังคาร และ ศุกร์)</option>
+						<option value="3">3 เรื่อง (จันทร์ พุธ ศุกร์)</option>
+					</select>
+				</label>
+			</p>
+			<p><button class="button button-primary" name="fenix_do" value="release"<?php disabled( 0, (int) $fenix_counts['draft'] ); ?>>เผยแพร่และตั้งเวลา</button></p>
 		</form>
 
 		<h2>สถานะเพจ</h2>
@@ -737,10 +1066,11 @@ function fenix_setup_screen() {
 					<td>
 						<?php if ( ! $srev ) : ?>—<?php elseif ( ! $found ) : ?>รุ่น <?php echo (int) $srev; ?><?php elseif ( $stale ) : ?>
 							<span style="color:#b26c09">มีรุ่นใหม่ (<?php echo (int) $prev; ?> → <?php echo (int) $srev; ?>)</span>
-							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;margin-left:6px" onsubmit="return confirm('แทนเนื้อหาเพจนี้ด้วยรุ่นล่าสุด? ข้อความที่แก้เองในเพจนี้จะถูกแทน (รุ่นเดิมยังอยู่ใน Revisions)');">
+							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;margin-left:6px">
 								<?php wp_nonce_field( 'fenix_setup' ); ?>
 								<input type="hidden" name="action" value="fenix_setup">
 								<input type="hidden" name="fenix_slug" value="<?php echo esc_attr( $slug ); ?>">
+								<label style="white-space:nowrap" title="ข้อความที่แก้เองในเพจนี้จะถูกแทน (รุ่นเดิมยังอยู่ใน Revisions ของเพจ)"><input type="checkbox" name="fenix_confirm" value="1" required> ยืนยัน</label>
 								<button class="button button-small" name="fenix_do" value="replace">แทนด้วยรุ่นล่าสุด</button>
 							</form>
 						<?php else : ?>✓ รุ่น <?php echo (int) $srev; ?><?php endif; ?>

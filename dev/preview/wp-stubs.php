@@ -119,8 +119,9 @@ function get_option( $k, $d = false ) {
 	return isset( $m[ $k ] ) ? $m[ $k ] : $d;
 }
 function update_option() { return true; }
-function get_post_meta() { return ''; }
-function update_post_meta() { return true; }
+// $GLOBALS['fx_meta'] / $GLOBALS['fx_get_posts']: in-memory fakes used by dev/check-release.php (unset in the preview)
+function get_post_meta( $id = 0, $key = '', $single = false ) { return isset( $GLOBALS['fx_meta'][ $id ][ $key ] ) ? $GLOBALS['fx_meta'][ $id ][ $key ] : ''; }
+function update_post_meta( $id = 0, $key = '', $value = '' ) { if ( isset( $GLOBALS['fx_meta'] ) ) { $GLOBALS['fx_meta'][ $id ][ $key ] = is_string( $value ) ? stripslashes( $value ) : $value; } return true; }
 function wp_get_attachment_image_url() { return ''; }
 function wp_get_attachment_image() { return ''; }
 function get_page_by_path( $slug ) { return (object) array( 'ID' => crc32( $slug ), 'post_title' => $slug ); }
@@ -182,7 +183,7 @@ function get_the_archive_description() { return ''; }
 function get_the_archive_title() { return 'บทความ'; }
 function wp_get_document_title() { return get_the_title() . ' · FALCON PRO EA'; }
 function get_post_type() { return $GLOBALS['fx_post']['type']; }
-function get_posts() { return array(); }
+function get_posts( $args = array() ) { return isset( $GLOBALS['fx_get_posts'] ) ? call_user_func( $GLOBALS['fx_get_posts'], $args ) : array(); }
 function get_pages() { return array(); }
 function get_children() { return array(); }
 function wp_get_recent_posts() { return array(); }
