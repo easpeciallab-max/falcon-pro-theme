@@ -7572,9 +7572,16 @@ h3 {
 	font-weight: 500;
 }
 
-/* v3 · บทความ: ชิดหัว, สารบัญเฉพาะ H2, lead ชิดซ้าย */
+/* v3 · บทความ: ชิดหัว, สารบัญเฉพาะ H2, lead ชิดซ้าย · เว้นท้ายพื้นขาว (กล่องคำเตือนท้ายบทความเคยชนแถบเข้มถัดไปพอดี) */
 .single-article {
 	padding-top: 0;
+	padding-bottom: 72px;
+}
+
+@media (max-width: 640px) {
+	.single-article {
+		padding-bottom: 56px;
+	}
 }
 
 .toc .toc-l3 {
