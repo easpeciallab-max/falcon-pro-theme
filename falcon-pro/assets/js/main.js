@@ -458,7 +458,7 @@
 			link_url: url.href,
 			/* ตัดช่องว่างกว้างศูนย์ (U+200B) ที่ตัวกันตัดบรรทัดกลางคำใส่ไว้ระหว่างคำไทย (fenix_nobreak_text ใน inc/modules/infra.php) ออกก่อนส่ง
 			   ไม่งั้นป้ายปุ่มเดียวกันจะเป็นคนละค่าใน GA4 กับข้อมูลก่อนหน้า ทั้งที่ตัวหนังสือที่เห็นเหมือนเดิม */
-			link_text: (link.getAttribute('aria-label') || copy.textContent || 'LINE').replace(/​/g, '').replace(/\s+/g, ' ').trim(),
+			link_text: (link.getAttribute('aria-label') || copy.textContent || 'LINE').replace(/\u200B/g, '').replace(/\s+/g, ' ').trim(),
 			line_pos: link.getAttribute('data-line-pos') || (box ? box.id : ''),
 			page_path: window.location.pathname,
 			page_title: document.title

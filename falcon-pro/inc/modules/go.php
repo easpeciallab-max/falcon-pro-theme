@@ -110,6 +110,11 @@ function fenix_go_defaults( $d ) {
 			'go_fast_alt'            => 'การ์ดดาวน์โหลดไฟล์ FALCON PRO EA',
 			'go_fast_label'          => 'ดาวน์โหลดไฟล์ EA (.ex5)',
 
+			/* ขั้น 5 · ติดตั้ง EA และขั้น 6 · VPS ปิดเป็นค่าเริ่มต้น (เจ้าของสั่ง 13 ต.ค. 2026: หน้านี้ไม่ต้องมีสองขั้นนี้ เพราะ EA รันบนแดชบอร์ด)
+			 * ข้อความและปุ่มของสองขั้นยังเก็บไว้ครบ เปิดกลับได้ด้วยช่องติ๊ก · คู่มือติดตั้งและคู่มือ VPS ยังเข้าได้จากเมนูของเว็บ */
+			'go_show_install'        => false,
+			'go_show_vps'            => false,
+
 			/* ขั้น 5 · ติดตั้ง EA */
 			'go_step5_title'         => fenix_go_legacy( 'go_step5', 'ติดตั้งและตั้งค่า EA ในโปรแกรม MT5' ),
 			'go_step5_desc'          => 'ย้ายไฟล์ .ex5 ไปที่ MQL5 → Experts ลาก EA ลงกราฟทองคำ XAUUSD แล้วตรวจว่าปุ่ม Algo Trading ทำงานอยู่',
@@ -246,6 +251,7 @@ function fenix_go_sections( $sections, $d ) {
 			'go_fast_img'            => array( 'ขั้นรับไฟล์ EA · รูปการ์ดดาวน์โหลด (ไม่บังคับ)', 'image', 'แนะนำภาพแนวนอน 1200×630px · มีรูป + ลิงก์ = แสดงเป็นการ์ดรูปแทนปุ่ม' ),
 			'go_fast_alt'            => array( 'ขั้นรับไฟล์ EA · คำอธิบายรูปการ์ด (alt)', 'text' ),
 
+			'go_show_install'        => array( 'แสดงขั้นติดตั้ง EA', 'checkbox', 'ปิดเป็นค่าเริ่มต้น · ติ๊กเมื่ออยากให้หน้านี้มีขั้น "ติดตั้งและตั้งค่า EA ในโปรแกรม MT5" (สำหรับลูกค้าที่ติดตั้งเอง) · เลขขั้นและจำนวนขั้นในหัวข้อปรับเอง' ),
 			'go_step5_title'         => array( 'ขั้นติดตั้ง EA · หัวข้อ', 'text' ),
 			'go_step5_desc'          => array( 'ขั้นติดตั้ง EA · คำอธิบาย', 'textarea' ),
 			'go_step5_note'          => array( 'ขั้นติดตั้ง EA · หมายเหตุ', 'textarea' ),
@@ -255,6 +261,7 @@ function fenix_go_sections( $sections, $d ) {
 			'go_install2_label'      => array( 'ขั้นติดตั้ง EA · ปุ่มคู่มือ 2 · ข้อความ (เว้นว่าง = ซ่อน)', 'text' ),
 			'go_install2_url'        => array( 'ขั้นติดตั้ง EA · ปุ่มคู่มือ 2 · ลิงก์', 'path' ),
 
+			'go_show_vps'            => array( 'แสดงขั้น VPS', 'checkbox', 'ปิดเป็นค่าเริ่มต้น · ติ๊กเมื่ออยากให้หน้านี้มีขั้น "ตั้ง VPS ให้ EA ทำงานต่อเนื่อง" (สำหรับลูกค้าที่ติดตั้งเอง)' ),
 			'go_step6_title'         => array( 'ขั้น VPS · หัวข้อ', 'text' ),
 			'go_step6_desc'          => array( 'ขั้น VPS · คำอธิบาย', 'textarea' ),
 			'go_step6_note'          => array( 'ขั้น VPS · หมายเหตุ', 'textarea' ),
@@ -578,13 +585,15 @@ function fenix_go_steps() {
 	}
 	$steps[] = array( 'key' => 'download', 'n' => 4, 'body' => $body );
 
-	// 5 · ติดตั้ง EA.
-	$body    = fenix_go_button( 'lh-btn', fenix_go_mod( 'go_install1_label' ), fenix_go_mod( 'go_install1_url' ), 'gear' );
-	$body   .= fenix_go_button( 'lh-btn', fenix_go_mod( 'go_install2_label' ), fenix_go_mod( 'go_install2_url' ), 'calc' );
-	$steps[] = array( 'key' => 'install', 'n' => 5, 'body' => $body );
+	// 5 · ติดตั้ง EA (เฉพาะเมื่อเปิดช่อง go_show_install).
+	if ( fenix_mod( 'go_show_install' ) ) {
+		$body    = fenix_go_button( 'lh-btn', fenix_go_mod( 'go_install1_label' ), fenix_go_mod( 'go_install1_url' ), 'gear' );
+		$body   .= fenix_go_button( 'lh-btn', fenix_go_mod( 'go_install2_label' ), fenix_go_mod( 'go_install2_url' ), 'calc' );
+		$steps[] = array( 'key' => 'install', 'n' => 5, 'body' => $body );
+	}
 
-	// 6 · VPS ตามอุปกรณ์ที่ใช้เชื่อมต่อ.
-	$body    = fenix_go_tiles(
+	// 6 · VPS ตามอุปกรณ์ที่ใช้เชื่อมต่อ (เฉพาะเมื่อเปิดช่อง go_show_vps).
+	$body = ! fenix_mod( 'go_show_vps' ) ? '' : fenix_go_tiles(
 		array(
 			array( fenix_go_mod( 'go_vps_windows_label' ), fenix_go_mod( 'go_vps_windows_url' ), 'windows' ),
 			array( fenix_go_mod( 'go_vps_android_label' ), fenix_go_mod( 'go_vps_android_url' ), 'android' ),
@@ -593,7 +602,9 @@ function fenix_go_steps() {
 		),
 		'lh-tiles--vps'
 	);
-	$steps[] = array( 'key' => 'vps', 'n' => 6, 'body' => $body );
+	if ( '' !== $body ) {
+		$steps[] = array( 'key' => 'vps', 'n' => 6, 'body' => $body );
+	}
 
 	return array_values(
 		array_filter(
