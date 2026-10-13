@@ -1463,6 +1463,25 @@ add_filter( 'the_content', 'fenix_collect_toc', 20 );
 /* ตัดคำนำหน้า "หมวดหมู่:" / "ป้ายกำกับ:" ออกจากหัวข้อหน้า archive */
 add_filter( 'get_the_archive_title_prefix', '__return_empty_string' );
 
+/**
+ * ตัดข้อความตามจำนวนตัวอักษร แล้วเติม …
+ * ไม่ใช้ wp_trim_words(): เมื่อภาษาเว็บเป็นไทย WordPress นับ "คำ" เป็นตัวอักษร คำโปรยบนการ์ดจึงเคยเหลือแค่ 22 ตัวอักษร
+ * ตัดที่ช่องว่างสุดท้ายก่อนถึงขีดจำกัดเมื่อมี (ไม่ตัดกลางวลี)
+ */
+function fenix_trim_chars( $text, $max = 120 ) {
+	$text = trim( (string) preg_replace( '/\s+/u', ' ', wp_strip_all_tags( (string) $text ) ) );
+	$max  = max( 1, (int) $max );
+	if ( mb_strlen( $text ) <= $max ) {
+		return $text;
+	}
+	$cut   = mb_substr( $text, 0, $max );
+	$space = mb_strrpos( $cut, ' ' );
+	if ( false !== $space && $space >= $max * 0.6 ) {
+		$cut = mb_substr( $cut, 0, $space );
+	}
+	return rtrim( $cut, " \t,;:" ) . '…';
+}
+
 /* --------------------------------------------------------------
  * การ์ดบทความ (ใช้ร่วมกันที่ index และ AJAX โหลดเพิ่ม)
  * -------------------------------------------------------------- */
@@ -1482,7 +1501,7 @@ function fenix_post_card() {
 		<div class="post-card-body">
 			<span class="post-meta"><?php echo esc_html( get_the_date() ); ?></span>
 			<h3><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
-			<p><?php echo esc_html( wp_trim_words( get_the_excerpt(), 22 ) ); ?></p>
+			<p><?php echo esc_html( fenix_trim_chars( get_the_excerpt(), 120 ) ); ?></p>
 			<span class="post-card-more">อ่านต่อ <?php echo fenix_icon( 'arrow', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
 		</div>
 	</article>
