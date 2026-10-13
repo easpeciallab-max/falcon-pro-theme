@@ -23,6 +23,9 @@ body.link-hub-page {
 
 /* ---------- การ์ด + โทเคนสีของการ์ด ---------- */
 .lh-card {
+	/* ความสูงเดียวของปุ่มทุกแบบในหน้านี้ (ปุ่มหลัก ปุ่มคู่มือ ปุ่มข้อมูล): พอดีกับข้อความสองบรรทัด ปุ่มบรรทัดเดียวกับสองบรรทัดจึงสูงเท่ากัน
+	   (เจ้าของสั่ง 13 ต.ค. 2026 · เดิมมี 46 / 56 / 58px ปนกัน) · การ์ดอุปกรณ์ (.lh-tile) เป็นอีกแบบหนึ่ง สูงเท่ากันเองในแถว */
+	--lh-btn-h: 58px;
 	width: 100%;
 	max-width: 460px;
 	padding: 34px 26px 26px;
@@ -176,7 +179,7 @@ body.link-hub-page {
 	align-items: center;
 	gap: 12px;
 	width: 100%;
-	min-height: 56px;
+	min-height: var(--lh-btn-h, 58px);
 	margin: 0 0 10px;
 	padding: 9px 18px 9px 11px;
 	border-radius: var(--btn-radius);
@@ -330,7 +333,7 @@ a.lh-btn:hover .lh-ar {
 	justify-content: center;
 	gap: 8px;
 	width: 100%;
-	min-height: 46px;
+	min-height: var(--lh-btn-h, 58px);
 	padding: 7px 16px;
 	border-radius: var(--btn-radius);
 	border: 1px solid var(--lh-line);
@@ -509,7 +512,7 @@ a.lh-mini-btn:hover {
 }
 
 .lh-step-body .lh-btn {
-	min-height: 52px;
+	min-height: var(--lh-btn-h, 58px);
 }
 
 /* ตารางปุ่มตามอุปกรณ์ (แอป MT5 / VPS) */
