@@ -3,7 +3,8 @@
  * Front page · FALCON PRO EA
  *
  * โครงหน้าแบบ hero + บทมีเลข · หน้าตาแบบ FALCON (Noto Sans Thai, มุมโค้ง, ปุ่ม pill, ic-badge, เขียว FALCON บนพื้นเข้ม #172125)
- * hero → what → pain → how → features → tests → [compare] → install (เริ่มต้น 6 ขั้น + อุปกรณ์) → dashboard → [ready] → pricing → faq → risk
+ * hero → what → pain → how → features → tests (Backtest) → [compare] → install (เริ่มต้น 6 ขั้น จบที่แดชบอร์ด + อุปกรณ์) → dashboard → [ready] → pricing → faq → risk
+ * FALCON ใช้ผ่านแดชบอร์ดสมาชิกอย่างเดียว (EA ทำงานบนเซิร์ฟเวอร์ของเรา): หน้านี้ไม่มีขั้นติดตั้ง ไฟล์ EA หรือ VPS และไม่ลิงก์ไปเพจที่ถอดออกแล้ว
  * บทในวงเล็บเหลี่ยมพิมพ์โดยโมดูลเสริม inc/modules/homeplus.php ผ่าน fenix_homeplus_section()
  * บท dashboard = หัวบทของหน้าแรก + บล็อกแนะนำของโมดูล dashboard (fenix_dashboard_block( 'home' ) · ปิดแดชบอร์ดที่หมวด 1.1 = ไม่มีบทนี้)
  * ลิงก์และปุ่มไปแดชบอร์ดทุกจุดมาจาก fenix_dashboard_button() (เปิดแท็บใหม่ · นับคลิก dashboard_click) · ปุ่มหลักของ Hero ยังเป็นปุ่มติดต่อ LINE
@@ -473,7 +474,8 @@ $fenix_labels   = fenix_show_kickers();
 </section>
 <?php endif; ?>
 
-<?php /* ============ 05 · การทดสอบ (#tests) · แท็บ radio ไม่ใช้ JS · ภาพประกอบเท่านั้น ไม่มีตัวเลขผล · tests_note แสดงเสมอ ============ */ ?>
+<?php /* ============ 05 · การทดสอบ (#tests) · ค่าเริ่มต้น = Backtest อย่างเดียว (ไม่มีแถบแท็บ) · เปิดแท็บ Forward (home_tests_show_fw) = แท็บ radio ไม่ใช้ JS
+               ภาพประกอบเท่านั้น ไม่มีตัวเลขผล · tests_note แสดงเสมอ ============ */ ?>
 <?php if ( isset( $fenix_chapters['tests'] ) ) : ?>
 	<?php
 	$fenix_dossier = array(
@@ -484,18 +486,26 @@ $fenix_labels   = fenix_show_kickers();
 			'fig'  => '03',
 			'pos'  => 1,
 		),
-		'fw' => array(
+	);
+	/* แท็บ Forward Test: ปิดเป็นค่าเริ่มต้น (ส่วน Forward Test ถอดออกจากเว็บแล้ว ยังไม่มีผลที่เผยแพร่) · เปิดเมื่อเจ้าของติ๊ก home_tests_show_fw
+	 * ปุ่มของแท็บนี้ชี้หน้า /forward-test/ ซึ่งถอดออกแล้ว fenix_home_link() จึงคืนค่าว่างและไม่มีปุ่ม */
+	$fenix_tests_fw = (bool) fenix_mod( 'home_tests_show_fw' );
+	if ( $fenix_tests_fw ) {
+		$fenix_dossier['fw'] = array(
 			'tab'  => trim( (string) fenix_mod( 'home_tests_tab_fw_label' ) ),
 			'btn'  => trim( (string) fenix_mod( 'home_tests_fw_btn' ) ),
 			'url'  => fenix_home_link( '/forward-test/' ),
 			'fig'  => '04',
 			'pos'  => 2,
-		),
-	);
+		);
+	}
+	/* แท็บเดียว = ไม่พิมพ์ radio และแถบแท็บ เนื้อหาของแท็บนั้นแสดงตรง ๆ (.hm-dossier--single) */
+	$fenix_tests_tabs = count( $fenix_dossier ) > 1;
 	$fenix_tests_note = trim( (string) fenix_mod( 'tests_note' ) );
-	// ยังไม่มีตัวเลขจริงทั้ง Backtest และ Forward → เติมประโยค "ยังไม่มีผลทดสอบ" ข้างหน้า
-	$fenix_no_stats = true;
-	foreach ( array( array( 'bt_stat', 8 ), array( 'fw_stat', 6 ) ) as $fenix_sp ) {
+	// ยังไม่มีตัวเลขจริงในช่องสถิติ (Backtest · และ Forward เมื่อเปิดแท็บนั้น) → เติมประโยค "ยังไม่มีผลทดสอบ" ข้างหน้า
+	$fenix_no_stats   = true;
+	$fenix_stat_sets  = $fenix_tests_fw ? array( array( 'bt_stat', 8 ), array( 'fw_stat', 6 ) ) : array( array( 'bt_stat', 8 ) );
+	foreach ( $fenix_stat_sets as $fenix_sp ) {
 		for ( $fenix_si = 1; $fenix_si <= $fenix_sp[1]; $fenix_si++ ) {
 			if ( ! fenix_is_placeholder( fenix_mod( $fenix_sp[0] . $fenix_si . '_value' ) ) ) {
 				$fenix_no_stats = false;
@@ -526,16 +536,18 @@ $fenix_labels   = fenix_show_kickers();
 <section class="hm-ch hm-tests<?php echo esc_attr( fenix_home_tone( 'tests' ) ); ?>" id="tests"<?php fenix_home_ch_attrs( 'tests' ); ?>>
 	<div class="container">
 		<?php fenix_home_ch_head( 'tests', fenix_mod( 'tests_title' ), fenix_mod( 'tests_subtitle' ) ); ?>
-		<div class="hm-dossier" role="group" aria-label="<?php echo esc_attr( fenix_mod( 'home_tests_tab_label' ) ); ?>">
-			<?php /* radio ต้องอยู่ก่อน .hm-tabs และ .hm-tab-panels ในพาเรนต์เดียวกัน (CSS ใช้ ~) */ ?>
-			<?php foreach ( $fenix_dossier as $fenix_tk => $fenix_td ) : ?>
-				<input type="radio" class="hm-tab-radio" name="falcon-tests" id="hm-tests-<?php echo esc_attr( $fenix_tk ); ?>"<?php echo 'bt' === $fenix_tk ? ' checked' : ''; ?>>
-			<?php endforeach; ?>
-			<div class="hm-tabs">
+		<div class="hm-dossier<?php echo $fenix_tests_tabs ? '' : ' hm-dossier--single'; ?>"<?php echo $fenix_tests_tabs ? ' role="group" aria-label="' . esc_attr( fenix_mod( 'home_tests_tab_label' ) ) . '"' : ''; ?>>
+			<?php if ( $fenix_tests_tabs ) : ?>
+				<?php /* radio ต้องอยู่ก่อน .hm-tabs และ .hm-tab-panels ในพาเรนต์เดียวกัน (CSS ใช้ ~) */ ?>
 				<?php foreach ( $fenix_dossier as $fenix_tk => $fenix_td ) : ?>
-					<label class="hm-tab" for="hm-tests-<?php echo esc_attr( $fenix_tk ); ?>"><span class="hm-tab-idx" aria-hidden="true"><?php echo esc_html( sprintf( '%02d', $fenix_td['pos'] ) ); ?></span><span class="hm-tab-txt"><?php echo fenix_home_tab_label( $fenix_td['tab'] ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?></span></label>
+					<input type="radio" class="hm-tab-radio" name="falcon-tests" id="hm-tests-<?php echo esc_attr( $fenix_tk ); ?>"<?php echo 'bt' === $fenix_tk ? ' checked' : ''; ?>>
 				<?php endforeach; ?>
-			</div>
+				<div class="hm-tabs">
+					<?php foreach ( $fenix_dossier as $fenix_tk => $fenix_td ) : ?>
+						<label class="hm-tab" for="hm-tests-<?php echo esc_attr( $fenix_tk ); ?>"><span class="hm-tab-idx" aria-hidden="true"><?php echo esc_html( sprintf( '%02d', $fenix_td['pos'] ) ); ?></span><span class="hm-tab-txt"><?php echo fenix_home_tab_label( $fenix_td['tab'] ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?></span></label>
+					<?php endforeach; ?>
+				</div>
+			<?php endif; ?>
 			<div class="hm-tab-panels">
 				<?php foreach ( $fenix_dossier as $fenix_tk => $fenix_td ) : ?>
 					<?php $fenix_t_media = fenix_home_has_media( 'tests_' . $fenix_tk ); ?>
@@ -653,14 +665,16 @@ if ( function_exists( 'fenix_homeplus_section' ) ) {
 		}
 	}
 	$fenix_devices_title = trim( (string) fenix_mod( 'home_devices_title' ) );
-	/* บรรทัด "ใช้ได้สองทาง" ใต้หัวบท · แสดงเมื่อเปิดใช้แดชบอร์ด · ลิงก์ไปหน้า /dashboard/ เมื่อหน้านั้นเผยแพร่แล้ว */
+	/* บรรทัดเรื่องแดชบอร์ดใต้หัวบท (FALCON ใช้ผ่านแดชบอร์ดอย่างเดียว ไม่มีขั้นติดตั้ง) · แสดงเมื่อเปิดใช้แดชบอร์ด
+	 * ลิงก์ไปหน้า /dashboard/ พิมพ์เมื่อเจ้าของใส่ข้อความลิงก์ (ค่าเริ่มต้นว่าง) และหน้านั้นเผยแพร่แล้ว */
 	$fenix_ways_text = ( function_exists( 'fenix_dashboard_enabled' ) && fenix_dashboard_enabled() ) ? trim( (string) fenix_mod( 'home_install_ways_text' ) ) : '';
 	$fenix_ways_link = trim( (string) fenix_mod( 'home_install_ways_link' ) );
 	$fenix_ways_url  = ( '' !== $fenix_ways_text && '' !== $fenix_ways_link ) ? fenix_home_link( '/dashboard/' ) : '';
 	?>
 <section class="hm-ch hm-install<?php echo esc_attr( fenix_home_tone( 'install' ) ); ?>" id="install"<?php fenix_home_ch_attrs( 'install' ); ?>>
 	<div class="container">
-		<?php fenix_home_ch_head( 'install', fenix_mod( 'install_home_title' ), fenix_mod( 'install_home_sub' ) ); ?>
+		<?php /* อาร์กิวเมนต์ตัวที่ห้า = ชื่อแบรนด์ใน H2 อยู่บรรทัดเดียวกัน (หัวบทนี้เคยแบ่งเป็น "...FALCON PRO" / "EA ..." บนจอมือถือ) */ ?>
+		<?php fenix_home_ch_head( 'install', fenix_mod( 'install_home_title' ), fenix_mod( 'install_home_sub' ), 'left', true ); ?>
 		<?php if ( '' !== $fenix_ways_text ) : ?>
 			<p class="hm-ways"><?php echo fenix_icon( 'server', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span class="hm-ways-text"><?php echo fenix_home_text( $fenix_ways_text ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?></span><?php if ( '' !== $fenix_ways_url ) : ?><a class="hm-textlink hm-ways-link" href="<?php echo esc_url( $fenix_ways_url ); ?>"><span><?php echo esc_html( $fenix_ways_link ); ?></span><?php echo fenix_icon( 'arrow', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a><?php endif; ?></p>
 		<?php endif; ?>
@@ -751,7 +765,8 @@ if ( function_exists( 'fenix_homeplus_section' ) ) {
 <?php if ( isset( $fenix_chapters['dashboard'] ) ) : ?>
 <section class="hm-ch hm-dash<?php echo esc_attr( fenix_home_tone( 'dashboard' ) ); ?>" id="dashboard"<?php fenix_home_ch_attrs( 'dashboard' ); ?>>
 	<div class="container">
-		<?php fenix_home_ch_head( 'dashboard', fenix_mod( 'home_dashboard_title' ), fenix_mod( 'home_dashboard_sub' ) ); ?>
+		<?php /* อาร์กิวเมนต์ตัวที่ห้า = ชื่อแบรนด์ใน H2 ของบทนี้อยู่บรรทัดเดียวกันเสมอ (จอ 360 ถึง 390px เคยแบ่งเป็น "...FALCON" / "PRO ...") */ ?>
+		<?php fenix_home_ch_head( 'dashboard', fenix_mod( 'home_dashboard_title' ), fenix_mod( 'home_dashboard_sub' ), 'left', true ); ?>
 		<?php
 		/* การ์ดอย่างเดียว (wrap = false) ใน section ของบทนี้ · หัวข้อในการ์ดเป็น h3 ต่อจาก H2 ของบท */
 		fenix_dashboard_block(

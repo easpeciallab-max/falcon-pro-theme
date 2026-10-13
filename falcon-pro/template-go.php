@@ -4,7 +4,8 @@
  *
  * หน้าลิงก์รวม (link-in-bio / ปลายทางโฆษณา) แบบหน้าเดี่ยว: ไม่มีเมนู ท้ายเว็บ แถบล่างมือถือ หรือปุ่มลอย
  * การ์ดคุกกี้ยังแสดงตามปกติเพราะพิมพ์ผ่าน wp_footer()
- * ลำดับ: ส่วนหัว → ติดต่อทีม → การ์ดแดชบอร์ด (เข้าชม / สมัคร) → ขั้นตอนติดตั้งเอง (เลขเรียงใหม่เมื่อซ่อนขั้น) → ข้อมูลก่อนเริ่ม → โซเชียล → คำเตือนความเสี่ยง → เอกสาร
+ * ลำดับ: ส่วนหัว → ติดต่อทีม → [การ์ดแดชบอร์ด · ปิดเป็นค่าเริ่มต้น] → ขั้นตอนเริ่มใช้ผ่านแดชบอร์ด (เปิดบัญชี → แอป MT5 → ฝากเงิน → เข้าชม / สมัครแดชบอร์ด
+ *   · เลขเรียงใหม่เมื่อซ่อนขั้น) → ข้อมูลก่อนเริ่ม → โซเชียล → คำเตือนความเสี่ยง → เอกสาร
  * ข้อความ/ปุ่ม/ลิงก์ทั้งหมดแก้ได้ที่ ปรับแต่ง → หมวด "30) หน้า /go" และ "31) หน้า /go · ขั้นตอนเริ่มใช้งาน" (ตัวช่วยอยู่ใน inc/modules/go.php)
  *
  * @package falcon-pro
@@ -154,7 +155,8 @@ add_filter( 'body_class', 'fenix_go_body_class', 99 );
 		<?php endif; ?>
 
 		<?php
-		/* การ์ดแดชบอร์ดแบบย่อ (ปุ่มเข้าชม + ปุ่มสมัคร + หมายเหตุข้อมูลตัวอย่างและรหัสเชิญ + ข้อควรรู้เรื่องความเสี่ยง) · ต่อจากกลุ่มติดต่อทีม ก่อนขั้นตอนติดตั้งเอง
+		/* การ์ดแดชบอร์ดแบบย่อ (ปุ่มเข้าชม + ปุ่มสมัคร + หมายเหตุข้อมูลตัวอย่างและรหัสเชิญ + ข้อควรรู้เรื่องความเสี่ยง) · ต่อจากกลุ่มติดต่อทีม ก่อนขั้นตอน
+		 * ค่าเริ่มต้นปิด (go_show_dashboard): ปุ่มชุดเดียวกันอยู่ในขั้นสุดท้ายของขั้นตอนแล้ว หน้านี้จึงมีเส้นทางเดียว
 		 * ตัววาดอยู่ในโมดูล dashboard (ข้อความแก้ที่หมวด 1.1) · ปิดแดชบอร์ดหรือปิดช่อง go_show_dashboard = ไม่พิมพ์อะไร */
 		if ( fenix_go_dashboard_on() ) {
 			echo '<section class="lh-group lh-group--dash">';
@@ -178,18 +180,19 @@ add_filter( 'body_class', 'fenix_go_body_class', 99 );
 				<ol class="lh-steps">
 					<?php foreach ( $fenix_go_steps as $fenix_go_idx => $fenix_go_step ) : ?>
 						<?php
-						$fenix_go_n     = (int) $fenix_go_step['n'];
+						/* ต้นชื่อ setting ของขั้น: go_step1 … go_step6 หรือ go_dash (ขั้นแดชบอร์ด) · fenix_go_steps() ส่งมาในช่อง prefix */
+						$fenix_go_pre   = isset( $fenix_go_step['prefix'] ) ? (string) $fenix_go_step['prefix'] : 'go_step' . (int) $fenix_go_step['n'];
 						$fenix_go_num   = $fenix_go_idx + 1;
-						$fenix_go_badge = fenix_go_mod( 'go_step' . $fenix_go_n . '_badge' );
+						$fenix_go_badge = fenix_go_mod( $fenix_go_pre . '_badge' );
 						/* หัวข้อ / คำอธิบาย / หมายเหตุ: ตัวแทน {broker} {brand} {disclosure} → ค่าจริงก่อน escape (fenix_go_text) */
-						$fenix_go_desc  = fenix_go_text( 'go_step' . $fenix_go_n . '_desc' );
-						$fenix_go_note  = fenix_go_text( 'go_step' . $fenix_go_n . '_note' );
+						$fenix_go_desc  = fenix_go_text( $fenix_go_pre . '_desc' );
+						$fenix_go_note  = fenix_go_text( $fenix_go_pre . '_note' );
 						?>
 						<li class="lh-step lh-step--<?php echo esc_attr( $fenix_go_step['key'] ); ?>">
 							<span class="lh-step-num" aria-hidden="true"><?php echo esc_html( (string) $fenix_go_num ); ?></span>
 							<div class="lh-step-head">
 								<h3 class="lh-step-title">
-									<span class="lh-step-name"><?php if ( '' !== $fenix_go_step_word ) : ?><span class="screen-reader-text"><?php echo esc_html( $fenix_go_step_word . ' ' . $fenix_go_num . ' ' ); ?></span><?php endif; ?><?php echo fenix_text( fenix_go_text( 'go_step' . $fenix_go_n . '_title' ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in fenix_text ?></span>
+									<span class="lh-step-name"><?php if ( '' !== $fenix_go_step_word ) : ?><span class="screen-reader-text"><?php echo esc_html( $fenix_go_step_word . ' ' . $fenix_go_num . ' ' ); ?></span><?php endif; ?><?php echo fenix_text( fenix_go_text( $fenix_go_pre . '_title' ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in fenix_text ?></span>
 									<?php if ( '' !== $fenix_go_badge ) : ?>
 										<span class="lh-step-badge"><?php echo esc_html( $fenix_go_badge ); ?></span>
 									<?php endif; ?>

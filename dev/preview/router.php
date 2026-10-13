@@ -54,6 +54,33 @@ if ( '' === $slug ) {
 	return true;
 }
 
+// Retired pages (the 'retired' rows of the manifest in inc/setup.php): the old URL answers with a 301 to the page that replaces it,
+// like fenix_retired_redirect() does on the live site (template_redirect, which the preview never fires). The tracking
+// parameters the live redirect keeps (utm_*, click ids) are kept here too · add ?noredirect=1 to see the Location as text instead.
+if ( function_exists( 'fenix_retired_url' ) && '' !== fenix_retired_url( $slug ) ) {
+	$fx_to   = fenix_retired_url( $slug );
+	$fx_keep = array();
+	foreach ( $_GET as $fx_key => $fx_value ) {
+		if ( is_string( $fx_key ) && is_scalar( $fx_value ) && preg_match( '/^(?:utm_[a-z0-9_]{1,40}|gclid|gbraid|wbraid|fbclid|ttclid|msclkid)$/', $fx_key ) ) {
+			$fx_keep[ $fx_key ] = (string) $fx_value;
+		}
+	}
+	if ( $fx_keep ) {
+		$fx_to .= '?' . http_build_query( $fx_keep, '', '&', PHP_QUERY_RFC3986 );
+	}
+	while ( ob_get_level() ) {
+		ob_end_clean();
+	}
+	if ( isset( $_GET['noredirect'] ) ) {
+		header( 'Content-Type: text/plain; charset=utf-8' );
+		echo '301 ' . $fx_to;
+		return true;
+	}
+	header( 'Location: ' . $fx_to, true, 301 );
+	header( 'X-Redirect-By: FALCON PRO EA (preview)' );
+	return true;
+}
+
 // Pages from the theme's own page manifest (inc/setup.php) when available.
 $pages = function_exists( 'fenix_site_pages' ) ? fenix_site_pages() : array();
 if ( isset( $pages[ $slug ] ) ) {
@@ -99,14 +126,13 @@ if ( 0 === strpos( $slug, 'article/' ) && function_exists( 'fenix_seed_articles'
 	}
 }
 
+// Fallback for a theme copy without the page manifest. Retired pages (forward-test, how-to-install) are not listed: they redirect above.
 $legacy = array(
 	'backtest'        => array( 'template-backtest.php', 'Backtest' ),
-	'forward-test'    => array( 'template-forward.php', 'Forward Test' ),
 	'pricing'         => array( 'template-pricing.php', 'แพ็กเกจและราคา' ),
-	'how-to-install'  => array( 'template-install.php', 'วิธีติดตั้ง' ),
 	'risk-disclosure' => array( 'template-risk.php', 'ประกาศความเสี่ยง' ),
 );
-if ( isset( $legacy[ $slug ] ) ) {
+if ( isset( $legacy[ $slug ] ) && file_exists( $root . '/' . $legacy[ $slug ][0] ) ) {
 	$GLOBALS['fx_post'] = array( 'title' => $legacy[ $slug ][1], 'content' => '', 'slug' => $slug, 'type' => 'page' );
 	require $root . '/' . $legacy[ $slug ][0];
 	return true;

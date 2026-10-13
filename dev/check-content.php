@@ -3,14 +3,42 @@
  * Dev check for seed content in falcon-pro/inc/content/ (see dev/content-spec.md)
  * Also checks the shared tokens / shortcodes and the step pictures the guide pages ship with (files named in the step
  * data of inc/modules/guides.php must be in assets/img/guides/).
+ *
+ * Retired pages (13 Oct 2026: FALCON is used through the member dashboard only, the self-install guides and the Forward
+ * Test page left the site): a manifest row with a 'retired' key in fenix_site_pages_manifest() (inc/setup.php). Their seed
+ * files stay in the repo untouched and are not checked, their guide data needs no step pictures, a live page seed must not
+ * link to them, and page seeds must not bring the two-ways wording back (row "one way of delivery" per file).
+ * Article seeds are the owner's own plan: a link from an article to a retired page is listed as a note, not an issue
+ * (the theme turns such links into plain text: fenix_unreachable_slugs()).
+ *
  * Run: php -d extension=mbstring dev/check-content.php
  * Exit code: 0 = "all good", 1 = at least one issue (dev/deploy.sh stops the push on 1).
  */
 require __DIR__ . '/preview/wp-stubs.php';
 require __DIR__ . '/../falcon-pro/functions.php';
 
-$root     = __DIR__ . '/../falcon-pro/inc/content/';
-$pages    = array_keys( fenix_site_pages() );
+$root = __DIR__ . '/../falcon-pro/inc/content/';
+
+// slug => redirect target of every retired page · guarded: a tree whose manifest has no 'retired' key gives an empty list
+$retired = array();
+if ( function_exists( 'fenix_retired_pages' ) ) {
+	foreach ( (array) fenix_retired_pages() as $r_key => $r_value ) {
+		if ( is_string( $r_key ) ) {
+			$retired[ $r_key ] = is_string( $r_value ) ? $r_value : '';
+		} else {
+			$retired[ (string) $r_value ] = '';
+		}
+	}
+} else {
+	$r_rows = function_exists( 'fenix_site_pages_manifest' ) ? fenix_site_pages_manifest() : fenix_site_pages( true );
+	foreach ( (array) $r_rows as $r_slug => $r_page ) {
+		if ( is_array( $r_page ) && ! empty( $r_page['retired'] ) ) {
+			$retired[ (string) $r_slug ] = is_string( $r_page['retired'] ) ? $r_page['retired'] : '';
+		}
+	}
+}
+
+$pages    = array_values( array_diff( array_keys( fenix_site_pages() ), array_keys( $retired ) ) );
 $articles = array_map(
 	function ( $f ) {
 		return basename( $f, '.html' );
@@ -20,10 +48,32 @@ $articles = array_map(
 $valid    = array_merge( $pages, $articles );
 $problems = 0;
 
+// Wording of the old model (two ways of delivery, files handed to the customer, a Forward Test page) that a page seed must
+// not bring back. Kept to markers that have no meaning in the dashboard-only model: "no VPS needed" or "the MT5 app is
+// installed to watch the account" stay allowed. pages/backtest keeps the words "Forward Test" (limitations quoted from the dashboard).
+$old_model = array(
+	'ติดตั้งเอง'   => 'self-install',
+	'สองวิธี'      => 'two ways',
+	'สองทาง'      => 'two ways',
+	'วิธีที่ 1'     => 'way 1 / way 2',
+	'วิธีที่ 2'     => 'way 1 / way 2',
+	'.ex5'         => 'EA file',
+	'Preset'       => 'preset file',
+	'Forward Test' => 'Forward Test page',
+);
+
 foreach ( array_merge( glob( $root . 'pages/*.html' ), glob( $root . 'articles/*.html' ) ) as $file ) {
 	$rel   = basename( dirname( $file ) ) . '/' . basename( $file, '.html' );
 	$raw   = file_get_contents( $file );
 	$issue = array();
+	$notes = array();
+
+	// a retired page: the file is kept as it was, it is no longer imported or linked, so nothing in it is checked
+	if ( 0 === strpos( $rel, 'pages/' ) && isset( $retired[ basename( $file, '.html' ) ] ) ) {
+		$r_to = $retired[ basename( $file, '.html' ) ];
+		printf( "%-34s %s\n", $rel, '– retired' . ( '' !== $r_to ? ' (→ ' . $r_to . ')' : '' ) . ' · file kept, not checked' );
+		continue;
+	}
 
 	if ( ! preg_match( '/^\s*<!--meta\s+(\{.*?\})\s*-->/s', $raw, $m ) || ! is_array( json_decode( $m[1], true ) ) ) {
 		$issue[] = 'meta JSON missing/invalid';
@@ -173,7 +223,6 @@ foreach ( array_merge( glob( $root . 'pages/*.html' ), glob( $root . 'articles/*
 	// HTML comments after the meta line (owner notes): a comment that reaches a page is readable in its public source.
 	// Page seeds: an issue (the legal seeds were completed without them, so any comment is a leftover note).
 	// The same goes for the owner marker text "เจ้าของเว็บ:" that the old drafts used for blanks still to be filled in.
-	$notes = array();
 	if ( 0 === strpos( $rel, 'pages/' ) ) {
 		if ( preg_match_all( '/<!--(?!\s*(?:more|nextpage|noteaser|\/?wp:)).*?-->/s', preg_replace( '/^\s*<!--meta.*?-->/s', '', $raw ), $cm ) ) {
 			$issue[] = count( $cm[0] ) . ' HTML comment(s) after the meta line (readable in the public page source: remove them)';
@@ -181,11 +230,34 @@ foreach ( array_merge( glob( $root . 'pages/*.html' ), glob( $root . 'articles/*
 		if ( false !== strpos( $raw, 'เจ้าของเว็บ:' ) ) {
 			$issue[] = 'owner marker "เจ้าของเว็บ:" left in the seed (a blank that was never filled in)';
 		}
+		// one way of delivery: the dashboard only (meta line included, it becomes the page title and the meta description)
+		$old_hits = array();
+		foreach ( $old_model as $old_word => $old_what ) {
+			if ( 'Forward Test' === $old_word && 'pages/backtest' === $rel ) {
+				continue;
+			}
+			if ( false !== strpos( $raw, $old_word ) ) {
+				$old_hits[] = '"' . $old_word . '" (' . $old_what . ')';
+			}
+		}
+		if ( $old_hits ) {
+			$issue[] = 'wording of the old two-ways model: ' . implode( ', ', $old_hits );
+		}
 	}
 	if ( preg_match_all( '#\{\{home\}\}/([a-z0-9\-]+)/#', $raw, $links ) ) {
+		$retired_links = array();
 		foreach ( array_unique( $links[1] ) as $slug ) {
-			if ( ! in_array( $slug, $valid, true ) ) {
+			if ( isset( $retired[ $slug ] ) ) {
+				$retired_links[] = "/$slug/";
+			} elseif ( ! in_array( $slug, $valid, true ) ) {
 				$issue[] = "link to unknown slug /$slug/";
+			}
+		}
+		if ( $retired_links ) {
+			if ( 0 === strpos( $rel, 'pages/' ) ) {
+				$issue[] = 'link to a retired page: ' . implode( ' ', $retired_links ) . ' (removed from the site: link to the page that replaced it)';
+			} else {
+				$notes[] = 'links to retired pages ' . implode( ' ', $retired_links ) . ' (shown as plain text on the site)';
 			}
 		}
 	}
@@ -211,7 +283,8 @@ foreach ( array_merge( glob( $root . 'pages/*.html' ), glob( $root . 'articles/*
 	}
 	// while every seed article and legal page is still a draft, fenix_unlink_slugs() may only drop
 	// related-links items, xref sentences and <a> tags — never headings, tables, FAQ or risk warnings
-	$all_drafts = array_merge( $articles, array( 'privacy-policy', 'terms-of-use', 'data-deletion' ) );
+	// (retired pages are unreachable for good, so links to them are always part of the simulation)
+	$all_drafts = array_merge( $articles, array( 'privacy-policy', 'terms-of-use', 'data-deletion' ), array_keys( $retired ) );
 	$body       = fenix_seed_content( $rel );
 	$after      = fenix_unlink_slugs( $body, $all_drafts );
 	$core       = function ( $html ) {
@@ -404,24 +477,39 @@ foreach ( $sc_rows as $row ) {
 // Guide step pictures bundled with the theme (5th element of a step in falcon-pro/inc/modules/guides.php):
 // the named file must be in falcon-pro/assets/img/guides/ (a missing file silently leaves the slot empty on the site)
 // and a step that ships a picture needs its alt text.
-$gd_rows = array();
-if ( function_exists( 'fenix_guide_missing_images' ) ) {
-	foreach ( fenix_guide_missing_images() as $row ) {
-		$gd_rows[] = 'file not in assets/img/guides/ · ' . $row;
+// The step data of a retired page (the VPS guides, the install guide) may stay in the module for old pages that are still
+// in WordPress, but it is not required to ship pictures any more: those sets are skipped.
+$gd_rows    = array();
+$gd_skipped = array();
+if ( function_exists( 'fenix_guide_data' ) && function_exists( 'fenix_guide_image_url' ) ) {
+	$gd_sets = (array) fenix_guide_data();
+	if ( function_exists( 'fenix_guide_install_data' ) ) {
+		$gd_sets['inst'] = fenix_guide_install_data();
 	}
-	$gd_sets         = fenix_guide_data();
-	$gd_sets['inst'] = fenix_guide_install_data();
+	// prefix of a data set => slug of its page
+	$gd_slug         = function_exists( 'fenix_guide_map' ) ? array_flip( (array) fenix_guide_map() ) : array();
+	$gd_slug['inst'] = 'how-to-install';
 	foreach ( $gd_sets as $gd_p => $gd_data ) {
+		if ( isset( $gd_slug[ $gd_p ] ) && isset( $retired[ $gd_slug[ $gd_p ] ] ) ) {
+			$gd_skipped[] = $gd_p;
+			continue;
+		}
 		foreach ( array_values( isset( $gd_data['steps'] ) ? (array) $gd_data['steps'] : array() ) as $gd_i => $gd_step ) {
-			if ( ! empty( $gd_step[4] ) && '' === trim( (string) $gd_step[2] ) ) {
+			if ( empty( $gd_step[4] ) ) {
+				continue;
+			}
+			if ( '' === fenix_guide_image_url( $gd_step[4] ) ) {
+				$gd_rows[] = 'file not in assets/img/guides/ · ' . $gd_p . '_step' . ( $gd_i + 1 ) . ': ' . $gd_step[4];
+			}
+			if ( '' === trim( (string) $gd_step[2] ) ) {
 				$gd_rows[] = 'picture without alt text · ' . $gd_p . '_step' . ( $gd_i + 1 );
 			}
 		}
 	}
 } else {
-	$gd_rows[] = 'fenix_guide_missing_images() not found (inc/modules/guides.php)';
+	$gd_rows[] = 'fenix_guide_data() / fenix_guide_image_url() not found (inc/modules/guides.php)';
 }
-printf( "%-34s %s\n", 'guide step pictures', $gd_rows ? '✗ ' . implode( '; ', $gd_rows ) : '✓' );
+printf( "%-34s %s%s\n", 'guide step pictures', $gd_rows ? '✗ ' . implode( '; ', $gd_rows ) : '✓', $gd_skipped ? ' · retired sets skipped: ' . implode( ', ', $gd_skipped ) : '' );
 $problems += count( $gd_rows );
 
 // Backtest figures live in one place: the result tables of pages/backtest.html (the section that starts at the heading with
@@ -459,7 +547,8 @@ if ( preg_match( '/<h2\b[^>]*\sid="backtest-results"[^>]*>.*?(?=<h2\b)/s', $bt_h
 	}
 	$bt_scan = array( 'pages/backtest.html outside the results section' => str_replace( $bt_section, ' ', $bt_html ) );
 	foreach ( glob( $root . 'pages/*.html' ) as $bt_file ) {
-		if ( 'backtest.html' !== basename( $bt_file ) ) {
+		// seed files of retired pages are frozen and no longer imported: not scanned
+		if ( 'backtest.html' !== basename( $bt_file ) && ! isset( $retired[ basename( $bt_file, '.html' ) ] ) ) {
 			$bt_scan[ 'pages/' . basename( $bt_file ) ] = (string) file_get_contents( $bt_file );
 		}
 	}

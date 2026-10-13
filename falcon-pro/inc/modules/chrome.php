@@ -43,19 +43,20 @@ add_filter(
 				/* บล็อกติดต่อท้ายหน้าย่อย (.cta-console) */
 				'chrome_cta_label'         => 'ยังไม่แน่ใจ ถามก่อนได้',
 				'contact_title'            => 'อยากรู้ก่อนว่า FALCON PRO EA ไปกันได้กับทุนและบัญชีที่มีอยู่ไหม?',
-				'contact_text'             => 'ส่งรายละเอียดทุน โบรกเกอร์ และวิธีเทรดที่ใช้อยู่มาให้ทีมงาน เราจะช่วยประเมินความพร้อมของบัญชี และอธิบายลำดับการติดตั้งให้เข้าใจก่อน โดยไม่เร่งให้ตัดสินใจซื้อ',
+				/* FALCON ใช้ผ่านแดชบอร์ดอย่างเดียว (เจ้าของตัดสิน 13 ต.ค. 2026): ไม่มีไฟล์ EA ให้ติดตั้งเอง ข้อความชวนคุยจึงพูดถึงการเริ่มใช้บนแดชบอร์ด */
+				'contact_text'             => 'ส่งรายละเอียดทุน โบรกเกอร์ และวิธีเทรดที่ใช้อยู่มาให้ทีมงาน เราจะช่วยประเมินความพร้อมของบัญชี และอธิบายลำดับการเริ่มใช้บนแดชบอร์ดให้เข้าใจก่อน โดยไม่เร่งให้ตัดสินใจซื้อ',
 
 				/* Footer · แถวแรก (launch console) */
 				'footer_console_label'     => 'ติดต่อทีม FALCON PRO',
 				'footer_headline'          => 'เริ่มจากบทสนทนาสั้น ๆ กับทีม FALCON',
-				'footer_sub'               => 'เลือกแพ็กเกจ ลง EA บน MT5 หรือปรับค่าความเสี่ยงให้พอดีกับเงินทุน ถามทีมงานได้ทุกเรื่องก่อนลงมือจริง',
+				'footer_sub'               => 'เลือกแพ็กเกจ ขอรหัสเชิญเข้าแดชบอร์ด หรือเลือกชุด EA ให้พอดีกับเงินทุน ถามทีมงานได้ทุกเรื่องก่อนลงมือจริง',
 				'footer_line_text'         => 'เปิดแชท LINE กับทีมงาน',
 				'footer_qr_toggle_text'    => 'เปิด QR Code สำหรับสแกน',
 				'footer_qr_text'           => 'ดูเว็บนี้บนคอมพิวเตอร์อยู่? สแกน QR ด้วยกล้องมือถือ แล้วคุยกับทีมงานต่อใน LINE',
 				'footer_line_qr_alt'       => 'QR Code บัญชี LINE ทางการของ FALCON PRO EA',
 				'footer_prep_title'        => 'ข้อความแรกที่ช่วยให้ทีมตอบได้ตรง',
 				'footer_prep_text'         => 'พิมพ์สั้น ๆ ตามหัวข้อด้านล่าง ทีมงานจะได้ไม่ต้องถามย้อนหลายรอบ',
-				'footer_prep_items'        => "งบที่ตั้งใจใช้กับ EA (ประมาณคร่าว ๆ ก็ได้)\nใช้โบรกเกอร์ไหน และเปิดบัญชี MT5 แบบใดไว้\nเรื่องที่อยากให้ช่วย: ติดตั้ง ดูแพ็กเกจ หรือเช็กความพร้อม\nอยากให้ทีมทักกลับช่วงไหนของวัน",
+				'footer_prep_items'        => "งบที่ตั้งใจใช้กับ EA (ประมาณคร่าว ๆ ก็ได้)\nใช้โบรกเกอร์ไหน และเปิดบัญชี MT5 แบบใดไว้\nเรื่องที่อยากให้ช่วย: ขอรหัสเชิญ ดูแพ็กเกจ หรือเช็กความพร้อม\nอยากให้ทีมทักกลับช่วงไหนของวัน",
 				'footer_hours_title'       => 'ช่วงเวลาที่ทีมตอบแชท',
 				'footer_hours_text'        => '',
 
@@ -86,10 +87,13 @@ add_filter(
 				'footer_clock_label'       => 'เวลาประเทศไทย',
 				'footer_backtop_text'      => 'ขึ้นด้านบน',
 
-				/* บาร์ล่างมือถือ (ช่องกลาง = ปุ่มติดต่อ) */
+				/* บาร์ล่างมือถือ (ช่องกลาง = ปุ่มติดต่อ) · ช่อง 5 เดิมคือ "วิธีติดตั้ง" (เพจนั้นถอดออกแล้ว) ตอนนี้ไปหน้าแนะนำแดชบอร์ดของเว็บนี้
+				 * ช่องที่ชี้ไปเพจที่ถอดแล้วหรือยังไม่เผยแพร่ไม่ถูกพิมพ์ (fenix_chrome_slot_url) บาร์จึงไม่มีปุ่มที่พาไปหน้า 404 */
 				'mobile_nav_test_label'    => 'การทดสอบ',
 				'mobile_nav_test_url'      => '/backtest/',
 				'mobile_nav_contact_label' => 'ติดต่อ',
+				'mobile_nav_install_label' => 'แดชบอร์ด',
+				'mobile_nav_install_url'   => '/dashboard/',
 
 				/* เมนูหลัก (ใช้เมื่อยังไม่ได้สร้างเมนูใน WordPress) + ข้อความระบบ */
 				'nav_home_label'           => 'หน้าแรก',
@@ -210,7 +214,7 @@ add_filter(
 
 		$sections['fenix_mobile_nav'] = array(
 			'title'       => '16) เมนูลัดมือถือด้านล่าง',
-			'description' => 'บาร์ 5 ช่องบนจอมือถือ · ช่องกลางคือปุ่มติดต่อ: มีลิงก์ LINE = ทัก LINE · ไม่มี LINE = ไปหน้า /go/ (เมื่อเผยแพร่แล้ว) · ไม่มีทั้งคู่ = เหลือ 4 ช่อง · ช่องของหน้าปัจจุบันติดไฟให้อัตโนมัติ',
+			'description' => 'บาร์ 5 ช่องบนจอมือถือ · ช่องกลางคือปุ่มติดต่อ: มีลิงก์ LINE = ทัก LINE · ไม่มี LINE = ไปหน้า /go/ (เมื่อเผยแพร่แล้ว) · ไม่มีทั้งคู่ = เหลือ 4 ช่อง · ช่องของหน้าปัจจุบันติดไฟให้อัตโนมัติ · ช่องที่ใส่ slug ของเพจที่ยังไม่เผยแพร่ หรือเพจที่ถอดออกจากเว็บแล้ว (คู่มือติดตั้ง คู่มือ VPS หน้า Forward Test) จะไม่แสดง',
 			'fields'      => array(
 				'show_mobile_nav'          => array( 'แสดงเมนูลัดด้านล่างบนมือถือ', 'checkbox' ),
 				'mobile_nav_home_label'    => array( 'ช่อง 1 · ชื่อ', 'text' ),
@@ -403,11 +407,14 @@ function fenix_chrome_nav_tree() {
 	/* หน้า /dashboard/ เป็นรายการระดับบนของเมนู (เมื่อเผยแพร่แล้วและมีชื่อเมนู) · กรณีนั้นไม่ซ้ำในเมนูย่อยของกลุ่มคู่มือ */
 	$dash_top = fenix_chrome_dashboard_top();
 
+	/* กลุ่มของเมนู = กลุ่มเพจใน manifest (เพจที่ถอดออกจากเว็บแล้วไม่อยู่ใน fenix_guide_links จึงไม่ขึ้นเมนู)
+	 * หัวกลุ่มชี้ไปเพจแรกของกลุ่มที่เผยแพร่แล้ว · กลุ่มที่เหลือเพจเดียว (การทดสอบ มี Backtest หน้าเดียว) เป็นรายการระดับบนรายการเดียว
+	 * ไม่มีเมนูย่อยที่ซ้ำกับหัวกลุ่ม */
 	$groups = array(
-		'test'  => array( 'nav_test_label', 'backtest' ),
-		'guide' => array( 'nav_guide_label', 'how-to-install' ),
+		'test'  => 'nav_test_label',
+		'guide' => 'nav_guide_label',
 	);
-	foreach ( $groups as $group => $conf ) {
+	foreach ( $groups as $group => $label_key ) {
 		$children = array();
 		$active   = false;
 		if ( function_exists( 'fenix_guide_links' ) ) {
@@ -431,10 +438,19 @@ function fenix_chrome_nav_tree() {
 		if ( empty( $children ) ) {
 			continue;
 		}
-		$landing = fenix_chrome_page_url( $conf[1] );
-		$tree[]  = array(
-			'label'    => (string) fenix_mod( $conf[0] ),
-			'url'      => '' !== $landing ? $landing : $children[0]['url'],
+		$label = trim( (string) fenix_mod( $label_key ) );
+		if ( 1 === count( $children ) ) {
+			$tree[] = array(
+				'label'    => '' !== $label ? $label : $children[0]['label'],
+				'url'      => $children[0]['url'],
+				'current'  => $active,
+				'children' => array(),
+			);
+			continue;
+		}
+		$tree[] = array(
+			'label'    => $label,
+			'url'      => $children[0]['url'],
 			'current'  => false,
 			'ancestor' => $active,
 			'children' => $children,
@@ -522,6 +538,152 @@ function fenix_chrome_menu_contact( $items, $args ) {
 	return $items . '<li class="menu-item menu-item-fenix-contact' . ( $here ? ' current-menu-item' : '' ) . '"><a href="' . esc_url( $go ) . '"' . ( $here ? ' aria-current="page"' : '' ) . '>' . esc_html( $label ) . '</a></li>';
 }
 add_filter( 'wp_nav_menu_items', 'fenix_chrome_menu_contact', 10, 2 );
+
+/**
+ * slug ของเพจในเว็บนี้ที่รายการเมนูชี้ไป · '' = รายการนี้ไม่ได้ชี้ไปเพจระดับบนของเว็บ (ลิงก์นอกเว็บ หมวด บทความ เพจลูก #anchor)
+ * - รายการแบบเลือกเพจ (post_type page): slug ของเพจนั้น
+ * - รายการแบบลิงก์กำหนดเอง: ที่อยู่ในเว็บนี้รูปแบบ /slug/ (มี ?query หรือ #anchor ต่อท้ายได้)
+ */
+function fenix_chrome_menu_item_slug( $item ) {
+	if ( ! is_object( $item ) ) {
+		return '';
+	}
+	$type = isset( $item->type ) ? (string) $item->type : '';
+	if ( 'post_type' === $type ) {
+		if ( ! isset( $item->object, $item->object_id ) || 'page' !== $item->object || (int) get_post_field( 'post_parent', (int) $item->object_id ) > 0 ) {
+			return '';
+		}
+		return (string) get_post_field( 'post_name', (int) $item->object_id );
+	}
+	if ( 'custom' !== $type || empty( $item->url ) ) {
+		return '';
+	}
+	$parts = wp_parse_url( (string) $item->url );
+	$home  = wp_parse_url( home_url( '/' ) );
+	if ( ! is_array( $parts ) || empty( $parts['path'] ) ) {
+		return '';
+	}
+	if ( ! empty( $parts['host'] ) && ( empty( $home['host'] ) || strtolower( $parts['host'] ) !== strtolower( $home['host'] ) ) ) {
+		return '';
+	}
+	$base = isset( $home['path'] ) ? untrailingslashit( (string) $home['path'] ) : '';
+	$path = (string) $parts['path'];
+	if ( '' !== $base ) {
+		if ( 0 !== strpos( $path, $base . '/' ) ) {
+			return '';
+		}
+		$path = substr( $path, strlen( $base ) );
+	}
+	return preg_match( '#^/([a-z0-9][a-z0-9\-]*)/?$#i', $path, $m ) ? strtolower( $m[1] ) : '';
+}
+
+/**
+ * รายการเมนูนี้พาผู้เข้าชมไปหน้าที่เปิดไม่ได้แล้วหรือไม่:
+ * - เพจที่ถอดออกจากเว็บแล้ว (fenix_retired_pages · เช่นคู่มือติดตั้ง คู่มือ VPS และ Forward Test) แม้เพจใน WordPress ยังเผยแพร่อยู่
+ * - รายการแบบเลือกเพจที่เพจนั้นไม่ได้เผยแพร่ (ฉบับร่าง รอตรวจ ส่วนตัว): WordPress พิมพ์รายการแบบนี้ตามปกติ ผู้เข้าชมกดแล้วเจอหน้า 404
+ * - ลิงก์กำหนดเองไปเพจของธีม (fenix_site_pages) ที่ยังไม่เผยแพร่
+ */
+function fenix_chrome_menu_item_dead( $item ) {
+	if ( ! is_object( $item ) ) {
+		return false;
+	}
+	$is_page = isset( $item->type, $item->object, $item->object_id ) && 'post_type' === $item->type && 'page' === $item->object;
+	if ( $is_page && 'publish' !== get_post_status( (int) $item->object_id ) ) {
+		return true;
+	}
+	$slug = fenix_chrome_menu_item_slug( $item );
+	if ( '' === $slug ) {
+		return false;
+	}
+	if ( function_exists( 'fenix_is_retired_page' ) && fenix_is_retired_page( $slug ) ) {
+		return true;
+	}
+	if ( $is_page || ! function_exists( 'fenix_site_pages' ) ) {
+		return false;
+	}
+	$pages = fenix_site_pages();
+	return isset( $pages[ $slug ] ) && empty( $pages[ $slug ]['front'] ) && '' === fenix_chrome_page_url( $slug );
+}
+
+/**
+ * ตัดรายการที่ปลายทางเปิดไม่ได้ออกจากรายการเมนู (เมนูบนเว็บจริงสร้างด้วยมือ และยังมีรายการของเพจที่ถอดออกแล้ว)
+ * - หัวกลุ่มที่ปลายทางเปิดไม่ได้แต่ยังมีรายการย่อยเหลือ: คงหัวกลุ่มไว้ แล้วชี้ไปรายการย่อยตัวแรกที่เหลือ (ไม่งั้นทั้งกลุ่มจะหายไปด้วย)
+ * - หัวกลุ่มที่เสียรายการย่อยไปจนเหลือรายการเดียวซึ่งชี้ที่เดียวกับหัวกลุ่ม: ตัดรายการย่อยนั้น (ไม่เหลือเมนูย่อยที่มีรายการเดียวซ้ำกับหัวกลุ่ม)
+ * ไม่มีรายการที่ต้องตัด = คืนรายการเดิมโดยไม่แตะ · ไม่แก้เมนูในฐานข้อมูล เจ้าของยังเห็นและลบรายการเองได้ที่ รูปแบบ → เมนู
+ */
+function fenix_chrome_menu_prune( $items ) {
+	if ( ! is_array( $items ) || ! $items ) {
+		return $items;
+	}
+	$dead = array();
+	foreach ( $items as $item ) {
+		if ( isset( $item->ID ) && fenix_chrome_menu_item_dead( $item ) ) {
+			$dead[ (int) $item->ID ] = true;
+		}
+	}
+	if ( ! $dead ) {
+		return $items;
+	}
+	/* รายการย่อยที่เหลือของแต่ละหัวกลุ่ม และหัวกลุ่มที่เสียรายการย่อยไปอย่างน้อยหนึ่งรายการ */
+	$kids = array();
+	$lost = array();
+	foreach ( $items as $item ) {
+		$parent = isset( $item->menu_item_parent ) ? (int) $item->menu_item_parent : 0;
+		if ( ! $parent || ! isset( $item->ID ) ) {
+			continue;
+		}
+		if ( isset( $dead[ (int) $item->ID ] ) ) {
+			$lost[ $parent ] = true;
+		} else {
+			$kids[ $parent ][] = $item;
+		}
+	}
+	$drop = array();
+	$out  = array();
+	foreach ( $items as $item ) {
+		$id = isset( $item->ID ) ? (int) $item->ID : 0;
+		if ( ! $id || ! isset( $dead[ $id ] ) ) {
+			if ( $id && isset( $lost[ $id ], $kids[ $id ] ) && 1 === count( $kids[ $id ] ) && isset( $item->url, $kids[ $id ][0]->url ) && untrailingslashit( (string) $item->url ) === untrailingslashit( (string) $kids[ $id ][0]->url ) ) {
+				$drop[ (int) $kids[ $id ][0]->ID ] = true;
+			}
+			$out[] = $item;
+			continue;
+		}
+		if ( empty( $kids[ $id ] ) ) {
+			continue;
+		}
+		$head            = clone $item;
+		$head->url       = (string) $kids[ $id ][0]->url;
+		$head->type      = 'custom';
+		$head->object    = 'custom';
+		$head->object_id = $id;
+		$out[]           = $head;
+		if ( 1 === count( $kids[ $id ] ) ) {
+			$drop[ (int) $kids[ $id ][0]->ID ] = true;
+		}
+	}
+	if ( $drop ) {
+		$out = array_filter(
+			$out,
+			function ( $item ) use ( $drop ) {
+				return ! isset( $item->ID ) || ! isset( $drop[ (int) $item->ID ] );
+			}
+		);
+	}
+	return array_values( $out );
+}
+
+/**
+ * ใช้ fenix_chrome_menu_prune() กับทุกเมนูที่พิมพ์บนหน้าเว็บ (เมนูหลัก ลิ้นชักมือถือ และคอลัมน์ "หน้าในเว็บไซต์" ของ footer ที่อ่านเมนูเดียวกัน)
+ * ไม่ทำในหลังบ้าน (หน้า รูปแบบ → เมนู ต้องเห็นทุกรายการ) REST cron และหน้าต่างพรีวิวของ Customizer (รายการที่ผู้ดูแลกำลังเพิ่มต้องเห็นได้)
+ */
+function fenix_chrome_menu_items( $items ) {
+	if ( is_admin() || wp_doing_cron() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || is_customize_preview() ) {
+		return $items;
+	}
+	return fenix_chrome_menu_prune( $items );
+}
+add_filter( 'wp_get_nav_menu_items', 'fenix_chrome_menu_items', 20 );
 
 /**
  * โซเชียล + อีเมล ที่กรอกแล้ว
@@ -771,6 +933,26 @@ function fenix_chrome_spec_rows() {
 }
 
 /**
+ * ปลายทางของช่องในบาร์ล่างมือถือ (ค่าจากช่อง "ลิงก์หรือ slug") · '' = ไม่พิมพ์ช่องนี้
+ * slug ของเพจของธีมที่ถอดออกจากเว็บแล้ว หรือยังไม่เผยแพร่ = '' (ค่าที่เจ้าของเคยบันทึกไว้อาจยังชี้ไปเพจเดิม เช่น /how-to-install/)
+ * ค่าอื่น (URL เต็ม #anchor เพจที่เจ้าของสร้างเอง) ผ่าน fenix_link_url() ตามเดิม
+ */
+function fenix_chrome_slot_url( $value ) {
+	$value = trim( (string) $value );
+	if ( '' === $value ) {
+		return '';
+	}
+	if ( preg_match( '#^/?([a-z0-9][a-z0-9\-]*)/?$#i', $value, $m ) && function_exists( 'fenix_site_pages' ) ) {
+		$slug  = strtolower( $m[1] );
+		$pages = fenix_site_pages( true );
+		if ( isset( $pages[ $slug ] ) && empty( $pages[ $slug ]['front'] ) && '' === fenix_chrome_page_url( $slug ) ) {
+			return '';
+		}
+	}
+	return fenix_link_url( $value );
+}
+
+/**
  * บาร์ล่างมือถือ · 5 ช่อง (ช่องกลาง = ติดต่อ) + ช่องที่ active คิดฝั่ง PHP (ปิด JS ก็ถูก)
  *
  * @return array { items[], active (int, -1 = ไม่มี), x (float %) }
@@ -784,12 +966,12 @@ function fenix_chrome_dock() {
 	$slots = array(
 		array(
 			'label' => fenix_mod( 'mobile_nav_home_label' ),
-			'url'   => fenix_link_url( fenix_mod( 'mobile_nav_home_url' ) ),
+			'url'   => fenix_chrome_slot_url( fenix_mod( 'mobile_nav_home_url' ) ),
 			'icon'  => 'home',
 		),
 		array(
 			'label' => fenix_mod( 'mobile_nav_test_label' ),
-			'url'   => fenix_link_url( fenix_mod( 'mobile_nav_test_url' ) ),
+			'url'   => fenix_chrome_slot_url( fenix_mod( 'mobile_nav_test_url' ) ),
 			'icon'  => 'flask',
 			'group' => 'test',
 		),
@@ -806,13 +988,15 @@ function fenix_chrome_dock() {
 	}
 	$slots[] = array(
 		'label' => fenix_mod( 'mobile_nav_price_label' ),
-		'url'   => fenix_link_url( fenix_mod( 'mobile_nav_price_url' ) ),
+		'url'   => fenix_chrome_slot_url( fenix_mod( 'mobile_nav_price_url' ) ),
 		'icon'  => 'tag',
 	);
-	$slots[] = array(
+	/* ช่อง 5: ค่าเริ่มต้นไปหน้า /dashboard/ ของเว็บนี้ (ไอคอนจอ) · เจ้าของชี้ไปหน้าอื่น เช่นคู่มือ = ไอคอนหนังสือตามเดิม */
+	$last_url = fenix_chrome_slot_url( fenix_mod( 'mobile_nav_install_url' ) );
+	$slots[]  = array(
 		'label' => fenix_mod( 'mobile_nav_install_label' ),
-		'url'   => fenix_link_url( fenix_mod( 'mobile_nav_install_url' ) ),
-		'icon'  => 'book',
+		'url'   => $last_url,
+		'icon'  => preg_match( '#/dashboard/?(?:[?\#].*)?$#i', $last_url ) ? 'monitor' : 'book',
 	);
 
 	$items = array();
@@ -847,7 +1031,7 @@ function fenix_chrome_dock() {
 		}
 	}
 
-	/* หน้า Forward Test อยู่กลุ่มเดียวกับ Backtest → ช่อง "การทดสอบ" ติดไฟ */
+	/* หน้าอื่นของกลุ่มเดียวกันใน manifest (กลุ่ม test) → ช่อง "การทดสอบ" ติดไฟ */
 	if ( -1 === $active && is_page() && function_exists( 'fenix_site_pages' ) ) {
 		$slug  = (string) get_post_field( 'post_name', get_queried_object_id() );
 		$pages = fenix_site_pages();

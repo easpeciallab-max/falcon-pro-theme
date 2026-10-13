@@ -2,6 +2,7 @@
 /**
  * FALCON PRO EA · ส่วนประกอบกลางที่ทุกหน้าใช้ร่วมกัน (หน้าตาแบบ FALCON)
  *
+ * - เพจที่ถอดออกจากเว็บแล้ว: fenix_slugs_retired(), fenix_slug_retired() (อ่านจาก manifest ของ inc/setup.php)
  * - ช่องทางติดต่อ: fenix_has_line_url(), fenix_contact_href(), fenix_contact_button()
  * - ข้อความ: fenix_text(), fenix_rich_inline(), fenix_rich_text(), fenix_keep_words()
  * - หัวข้อเนื้อหาจาก Customizer: fenix_page_sections(), fenix_page_section_fields()
@@ -20,6 +21,68 @@
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
+}
+
+/* ==============================================================
+ * เพจที่ถอดออกจากเว็บแล้ว
+ * ============================================================== */
+
+/**
+ * slug ของเพจที่ถอดออกจากเว็บแล้ว (เจ้าของสั่ง 13 ต.ค. 2026: FALCON ใช้งานผ่านแดชบอร์ดทางเดียว
+ * จึงไม่มีหน้าวิธีติดตั้ง หน้า VPS และหน้า Forward Test อีกต่อไป)
+ *
+ * แหล่งความจริงคือ manifest ใน inc/setup.php (แถวที่มีคีย์ 'retired') อ่านผ่าน fenix_retired_pages() เสมอ
+ * เมื่อมีตัวช่วยนั้น คำตอบของมันถูกใช้ตามที่ได้ แม้เป็นรายการว่าง (เช่น เว็บที่ใช้ฟิลเตอร์ fenix_retired_pages เปิดเพจเดิมไว้ชั่วคราว)
+ * รายการสำรองท้ายฟังก์ชันใช้เฉพาะเมื่อ inc/setup.php ไม่ถูกโหลดหรือเป็นรุ่นที่ยังไม่มีตัวช่วยนั้น (ไฟล์นี้ต้องไม่พังในสองกรณีนั้น)
+ * ใช้ซ่อนลิงก์ รายการคู่มือ ภาพใน sitemap และ noindex ของเพจกลุ่มนี้ แม้เพจใน WordPress ยังเผยแพร่ค้างอยู่
+ *
+ * @return string[]
+ */
+function fenix_slugs_retired() {
+	static $slugs = null;
+	if ( null !== $slugs ) {
+		return $slugs;
+	}
+	$list = array();
+	if ( function_exists( 'fenix_retired_pages' ) ) {
+		/* รับได้ทั้งรายการ slug และแผนที่ slug => ปลายทาง */
+		foreach ( (array) fenix_retired_pages() as $key => $value ) {
+			$list[] = is_string( $key ) ? $key : (string) $value;
+		}
+	} else {
+		$flagged = false;
+		if ( function_exists( 'fenix_site_pages' ) ) {
+			foreach ( (array) fenix_site_pages( true ) as $slug => $page ) {
+				if ( is_array( $page ) && array_key_exists( 'retired', $page ) ) {
+					$flagged = true;
+					if ( ! empty( $page['retired'] ) ) {
+						$list[] = (string) $slug;
+					}
+				}
+			}
+		}
+		if ( ! $flagged ) {
+			$list = array( 'how-to-install', 'vps-windows', 'vps-android', 'vps-ios', 'forward-test' );
+		}
+	}
+	$list  = array_map( 'sanitize_title', array_map( 'strval', $list ) );
+	$slugs = array_values( array_unique( array_filter( (array) apply_filters( 'fenix_slugs_retired', $list ), 'strlen' ) ) );
+	return $slugs;
+}
+
+/**
+ * slug นี้เป็นเพจที่ถอดออกแล้วหรือไม่ (รับ 'vps-windows', '/vps-windows/' หรือ URL ภายในเว็บ)
+ */
+function fenix_slug_retired( $slug ) {
+	$slug = trim( (string) $slug );
+	if ( '' === $slug ) {
+		return false;
+	}
+	if ( false !== strpos( $slug, '/' ) ) {
+		$path = (string) wp_parse_url( $slug, PHP_URL_PATH );
+		$slug = basename( untrailingslashit( $path ) );
+	}
+	return in_array( sanitize_title( $slug ), fenix_slugs_retired(), true );
 }
 
 /* ==============================================================

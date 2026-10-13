@@ -231,7 +231,7 @@ function fenix_customize_register( $wp_customize ) {
 				'stat5_value'        => array( 'ข้อมูล 5 · ค่า', 'text' ),
 				'stat6_label'        => array( 'ข้อมูล 6 · หัวข้อ', 'text' ),
 				'stat6_value'        => array( 'ข้อมูล 6 · ค่า', 'text' ),
-				'perf_image'         => array( 'ภาพกราฟผลทดสอบ (Backtest/Forward)', 'image' ),
+				'perf_image'         => array( 'ภาพกราฟผลทดสอบ (Backtest)', 'image' ),
 				'perf_image_caption' => array( 'คำบรรยายภาพ', 'text' ),
 				'verified_link_label' => array( 'ข้อความปุ่มผลเรียลไทม์ (ถ้ามี)', 'text' ),
 				'verified_link_url'   => array( 'ลิงก์ผลที่ตรวจสอบได้ เช่น Myfxbook / FXBlue (แสดงปุ่มเมื่อกรอกเท่านั้น)', 'url' ),
@@ -372,7 +372,7 @@ function fenix_customize_register( $wp_customize ) {
 				'mobile_nav_test_url'    => array( 'เมนู 2 · ลิงก์หรือ slug', 'text' ),
 				'mobile_nav_price_label'   => array( 'เมนู 3 · ชื่อ', 'text' ),
 				'mobile_nav_price_url'     => array( 'เมนู 3 · ลิงก์หรือ slug', 'text' ),
-				'mobile_nav_install_label' => array( 'เมนู 4 · ชื่อ', 'text' ),
+				'mobile_nav_install_label' => array( 'เมนู 4 · ชื่อ (ช่องแดชบอร์ด)', 'text' ),
 				'mobile_nav_install_url'   => array( 'เมนู 4 · ลิงก์หรือ slug', 'text' ),
 				'mobile_nav_line_label'    => array( 'เมนู 5 · ชื่อปุ่ม LINE', 'text' ),
 			),
@@ -487,14 +487,16 @@ function fenix_customize_register( $wp_customize ) {
 			'backtest_img_caption' => array( 'คำบรรยายภาพ', 'text' ),
 			'backtest_note'        => array( 'หมายเหตุเงื่อนไขการทดสอบ', 'textarea' ),
 			'backtest_disclaimer'  => array( 'Disclaimer (จำเป็น)', 'textarea' ),
-			'results_pending_title' => array( 'การ์ดยังไม่มีผลทดสอบ · หัวข้อ (แสดงเมื่อยังไม่กรอกตัวเลขจริง ใช้ทั้งหน้า Backtest และ Forward)', 'text' ),
+			'results_pending_title' => array( 'การ์ดยังไม่มีผลทดสอบ · หัวข้อ (แสดงเมื่อยังไม่กรอกตัวเลขจริง)', 'text' ),
 			'results_pending_text'  => array( 'การ์ดยังไม่มีผลทดสอบ · รายละเอียด', 'textarea' ),
 		),
 	);
 
+	/* หน้า Forward Test และหน้า How to Install ถูกถอดออกจากเว็บแล้ว (13 ต.ค. 2026: FALCON ใช้งานผ่านแดชบอร์ดทางเดียว)
+	 * สองหมวดถัดไปคงไว้เพื่อเก็บค่าที่เคยบันทึก · หัวข้อและคำอธิบายที่ใช้จริงมาจาก inc/modules/pages.php และ inc/modules/guides.php */
 	$sections['fenix_forward'] = array(
-		'title'       => '21) หน้า Forward Test',
-		'description' => 'กรอกผลการทดสอบบนบัญชีจริง/เดโม่จริงเท่านั้น และอย่าลบ Disclaimer',
+		'title'       => '21) หน้า Forward Test (ถอดออกจากเว็บแล้ว)',
+		'description' => 'หน้า /forward-test/ ถูกถอดออกจากเว็บแล้วและถูกส่งต่อไปหน้า /backtest/ · ช่องในหมวดนี้ไม่แสดงบนหน้าใดของเว็บ ไม่ต้องแก้',
 		'fields'      => array(
 			'forward_sub'         => array( 'คำโปรยใต้ชื่อหน้า', 'text' ),
 			'forward_intro'       => array( 'ย่อหน้าเกริ่นนำ', 'textarea' ),
@@ -520,8 +522,8 @@ function fenix_customize_register( $wp_customize ) {
 	);
 
 	$sections['fenix_install'] = array(
-		'title'       => '22) หน้า How to Install',
-		'description' => 'คู่มือติดตั้งทีละขั้นตอน อัปโหลดภาพประกอบแต่ละขั้นได้ (เว้นว่างได้)',
+		'title'       => '22) หน้า How to Install (ถอดออกจากเว็บแล้ว)',
+		'description' => 'หน้า /how-to-install/ ถูกถอดออกจากเว็บแล้วและถูกส่งต่อไปหน้า /dashboard/ · ช่องในหมวดนี้ไม่แสดงบนหน้าใดของเว็บ ไม่ต้องแก้',
 		'fields'      => array(
 			'install_sub'      => array( 'คำโปรยใต้ชื่อหน้า', 'text' ),
 			'install_intro'    => array( 'ย่อหน้าเกริ่นนำ', 'textarea' ),

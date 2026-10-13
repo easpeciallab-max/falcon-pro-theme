@@ -4,12 +4,16 @@
  *
  * ทำงานร่วมกับ Yoast/Rank Math ได้ (ไม่ซ้ำกับสิ่งที่ปลั๊กอินสร้าง):
  * - FAQPage             : หน้าแรก (จาก Customizer) + ทุกเพจ/บทความที่มี <details class="faq-item"> ในเนื้อหา
- * - SoftwareApplication : หน้าแรก + หน้าแพ็กเกจ · Offer[] ออกเฉพาะเมื่อเจ้าของยืนยันราคาแล้ว (seo_pricing_confirmed)
+ * - WebApplication      : หน้าแรก + หน้าแพ็กเกจ · ชนิดย่อยของ SoftwareApplication สำหรับบริการที่ใช้ผ่านเว็บเบราว์เซอร์
+ *                         (FALCON ใช้งานผ่านแดชบอร์ดทางเดียว EA ทำงานบนเซิร์ฟเวอร์ ไม่มีไฟล์ให้ดาวน์โหลดหรือติดตั้ง: ห้ามใส่ downloadUrl / installUrl
+ *                         และห้ามระบุระบบปฏิบัติการเป็น Windows) · Offer[] ออกเฉพาะเมื่อเจ้าของยืนยันราคาแล้ว (seo_pricing_confirmed)
  * - Organization sameAs : มี Yoast = เติมเข้า Organization ของ Yoast · ไม่มี = ธีมออก Organization + WebSite เอง
  * - robots              : noindex /go/, /articles/ ที่ยังไม่มีบทความ, ค้นหา/ผู้เขียน/วันที่ และหมวด/แท็กที่ว่าง
  *                         ผ่าน wp_robots (Yoast รวมค่าเข้าแท็กเดียว) + ฟิลเตอร์ของ Yoast/Rank Math · ไม่พิมพ์แท็กเอง
  * - sitemap             : ตัดหน้า noindex ออกจาก sitemap ของ Yoast และของคอร์ · ปิด sitemap รายชื่อผู้ใช้
  *                         · เติมภาพขั้นตอนของหน้าคู่มือและแผนภาพ [falcon_figure] ลง image sitemap ของ Yoast
+ *                         · เพจที่ถอดออกจากเว็บแล้ว (วิธีติดตั้ง, VPS, Forward Test · fenix_slugs_retired) ถูกตัดออกจาก sitemap
+ *                           และไม่มีภาพของเพจกลุ่มนี้ใน image sitemap แม้เพจใน WordPress ยังเผยแพร่ค้างอยู่
  * - ข้อความล้วน         : fenix_seo_plain_text() แทน [falcon_brand] / [falcon_broker] ด้วยค่าจริงและทำตาม [falcon_if]
  *                         ก่อนส่งคำตอบ FAQ เข้า schema และก่อนใช้เนื้อหาเป็น meta description สำรอง
  * - ยืนยันเจ้าของเว็บ    : meta ของ Google Search Console / Bing + ตอบไฟล์ googleXXXX.html ให้เอง
@@ -50,10 +54,12 @@ function fenix_seo_default_values( $d ) {
 			'seo_gsc_file'             => '',
 			'seo_bing_verify'          => '',
 
-			/* ข้อมูลสินค้าในข้อมูลโครงสร้าง (SoftwareApplication) */
+			/* ข้อมูลสินค้าในข้อมูลโครงสร้าง (WebApplication) · FALCON ใช้งานผ่านแดชบอร์ดบนเว็บเบราว์เซอร์ ไม่มีโปรแกรมให้ติดตั้ง
+			 * seo_product_os: Any = ทุกระบบที่มีเว็บเบราว์เซอร์ (ห้ามใส่ Windows: จะสื่อว่าเป็นโปรแกรมที่ต้องดาวน์โหลด)
+			 * seo_product_requirements: สิ่งที่ผู้ใช้ต้องมี = บัญชี MT5 เงินจริงของโบรกเกอร์ที่แดชบอร์ดรองรับ (ห้ามพิมพ์ชื่อโบรกเกอร์ในไฟล์ธีม) */
 			'seo_product_name'         => 'FALCON PRO EA',
-			'seo_product_os'           => 'Windows',
-			'seo_product_requirements' => 'MetaTrader 5',
+			'seo_product_os'           => 'Any',
+			'seo_product_requirements' => 'บัญชีเทรด MetaTrader 5 แบบเงินจริงกับโบรกเกอร์ที่แดชบอร์ดรองรับ และเว็บเบราว์เซอร์',
 			'seo_product_version'      => '',
 			'seo_pricing_confirmed'    => false,
 		)
@@ -89,11 +95,11 @@ function fenix_seo_customizer_sections( $sections, $d ) {
 		),
 		'fenix_seo_product' => array(
 			'title'       => ( $num ? $num . '.2) ' : '' ) . 'SEO · ข้อมูลสินค้าที่ส่งให้ Google',
-			'description' => 'ใช้สร้างข้อมูลโครงสร้าง (Schema) ของสินค้าบนหน้าแรกและหน้าแพ็กเกจ ผู้เข้าชมมองไม่เห็นส่วนนี้ · ห้ามใส่ตัวเลขผลเทรด คะแนนรีวิว หรือคำรับประกันกำไร',
+			'description' => 'ใช้สร้างข้อมูลโครงสร้าง (Schema) ของสินค้าบนหน้าแรกและหน้าแพ็กเกจ ผู้เข้าชมมองไม่เห็นส่วนนี้ · ธีมประกาศสินค้าเป็นบริการที่ใช้ผ่านเว็บเบราว์เซอร์ (WebApplication) เพราะ FALCON ใช้งานผ่านแดชบอร์ดทางเดียว ไม่มีไฟล์ให้ดาวน์โหลดหรือติดตั้ง · ห้ามใส่ตัวเลขผลเทรด คะแนนรีวิว หรือคำรับประกันกำไร',
 			'fields'      => array(
 				'seo_product_name'         => array( 'ชื่อสินค้า (เว้นว่าง = ใช้ชื่อเว็บ)', 'text' ),
-				'seo_product_os'           => array( 'ระบบปฏิบัติการที่ใช้รัน EA', 'text', 'ใส่ชื่อระบบปฏิบัติการ ส่วน MT5 เป็นโปรแกรมเทรด ให้ใส่ในช่องถัดไป' ),
-				'seo_product_requirements' => array( 'โปรแกรมที่ต้องมีก่อนใช้งาน', 'text' ),
+				'seo_product_os'           => array( 'ระบบที่ใช้เปิดแดชบอร์ด', 'text', 'ค่าเริ่มต้น Any = ทุกระบบที่มีเว็บเบราว์เซอร์ (คอม มือถือ แท็บเล็ต) · อย่าใส่ Windows เพราะจะสื่อว่าเป็นโปรแกรมที่ต้องติดตั้งบนคอม · เว้นว่าง = ไม่ระบุ' ),
+				'seo_product_requirements' => array( 'สิ่งที่ต้องมีก่อนใช้งาน', 'text', 'เช่น บัญชีเทรด MetaTrader 5 แบบเงินจริง และเว็บเบราว์เซอร์ · อย่าเขียนว่าต้องมีคอมที่เปิดค้างหรือ VPS · เว้นว่าง = ไม่ระบุ' ),
 				'seo_product_version'      => array( 'เวอร์ชันของ EA (เว้นว่าง = ไม่ระบุ)', 'text' ),
 				'seo_pricing_confirmed'    => array( 'ยืนยันแล้วว่าราคาแพ็กเกจถูกต้อง ส่งราคาให้ Google ได้', 'checkbox', 'เปิดเมื่อหน้าแพ็กเกจแสดงราคาจริงเป็นตัวเลขแล้วเท่านั้น · ปิดไว้ หรืออยู่ในโหมดสอบถามราคา = ธีมไม่ประกาศราคาในข้อมูลโครงสร้าง · แพ็กเกจฟรีและแพ็กเกจที่ราคาไม่ใช่ตัวเลขจะถูกข้ามเสมอ' ),
 			),
@@ -388,8 +394,10 @@ function fenix_seo_is_product_page() {
 }
 
 /**
- * SoftwareApplication node · ไม่มี aggregateRating/review จนกว่าจะมีรีวิวจริง (ห้ามแต่ง)
- * จึงยังไม่ได้ rich result แต่ช่วยระบุตัวตนของสินค้าให้เสิร์ชเอนจิน
+ * node สินค้า · @type WebApplication (ชนิดย่อยของ SoftwareApplication): FALCON เป็นบริการที่ใช้ผ่านแดชบอร์ดบนเว็บเบราว์เซอร์
+ * EA ทำงานบนเซิร์ฟเวอร์ของ FALCON ไม่มีไฟล์ให้ดาวน์โหลดหรือติดตั้ง จึงไม่มี downloadUrl / installUrl / fileSize
+ * และ operatingSystem มาจากช่อง seo_product_os (ค่าเริ่มต้น Any) ไม่ใช่ Windows
+ * ไม่มี aggregateRating/review จนกว่าจะมีรีวิวจริง (ห้ามแต่ง) จึงยังไม่ได้ rich result แต่ช่วยระบุตัวตนของสินค้าให้เสิร์ชเอนจิน
  */
 function fenix_seo_product_schema() {
 	$name = trim( wp_strip_all_tags( (string) fenix_mod( 'seo_product_name' ) ) );
@@ -407,7 +415,7 @@ function fenix_seo_product_schema() {
 
 	$node = array(
 		'@context'               => 'https://schema.org',
-		'@type'                  => 'SoftwareApplication',
+		'@type'                  => 'WebApplication',
 		'@id'                    => home_url( '/' ) . '#product',
 		'name'                   => $name,
 		'applicationCategory'    => 'FinanceApplication',
@@ -907,12 +915,16 @@ function fenix_seo_is_go_page() {
 
 /**
  * เหตุผลที่หน้าปัจจุบันควร noindex · '' = ปล่อยตามค่าปกติ
- * go / articles-empty / search / author / date / empty-term (แก้เพิ่มได้ด้วยฟิลเตอร์ fenix_seo_noindex_reason)
+ * go / retired / articles-empty / search / author / date / empty-term (แก้เพิ่มได้ด้วยฟิลเตอร์ fenix_seo_noindex_reason)
+ * retired = เพจที่ถอดออกจากเว็บแล้ว (วิธีติดตั้ง, VPS, Forward Test) · ปกติ URL กลุ่มนี้ถูกส่งต่อ 301 โดย fenix_retired_redirect (inc/setup.php)
+ * ก่อนถึงจุดนี้ ค่านี้จึงเป็นตัวกันชั้นที่สองสำหรับกรณีที่หน้ายังถูกวาด (เช่นปิดการส่งต่อด้วยฟิลเตอร์)
  */
 function fenix_seo_noindex_reason() {
 	$reason = '';
 	if ( is_front_page() ) {
 		$reason = '';
+	} elseif ( is_page() && function_exists( 'fenix_slug_retired' ) && fenix_slug_retired( (string) get_post_field( 'post_name', get_queried_object_id() ) ) ) {
+		$reason = 'retired';
 	} elseif ( fenix_seo_is_go_page() ) {
 		$reason = apply_filters( 'fenix_seo_noindex_go', true ) ? 'go' : '';
 	} elseif ( is_home() ) {
@@ -964,10 +976,19 @@ add_filter( 'wpseo_robots_array', 'fenix_seo_plugin_robots', 20 );
 add_filter( 'rank_math/frontend/robots', 'fenix_seo_plugin_robots', 20 );
 
 /**
- * id ของเพจที่ noindex ตามกฎด้านบน (/go/ และ /articles/ ที่ยังว่าง) · ใช้ตัดออกจาก sitemap
+ * id ของเพจที่ noindex ตามกฎด้านบน (/go/ · /articles/ ที่ยังว่าง · เพจที่ถอดออกจากเว็บแล้วแต่ยังเผยแพร่ค้างใน WordPress) · ใช้ตัดออกจาก sitemap
  */
 function fenix_seo_noindex_page_ids() {
 	$ids = array();
+	/* เพจที่ถอดออกจากเว็บแล้ว (วิธีติดตั้ง, VPS, Forward Test): URL ถูกส่งต่อ 301 จึงต้องไม่อยู่ใน sitemap จนกว่าเจ้าของจะตั้งเพจเป็นฉบับร่าง */
+	if ( function_exists( 'fenix_slugs_retired' ) ) {
+		foreach ( fenix_slugs_retired() as $retired_slug ) {
+			$retired_page = get_page_by_path( $retired_slug );
+			if ( $retired_page && ! empty( $retired_page->ID ) ) {
+				$ids[] = (int) $retired_page->ID;
+			}
+		}
+	}
 	if ( apply_filters( 'fenix_seo_noindex_go', true ) ) {
 		$go = get_page_by_path( 'go' );
 		if ( $go && ! empty( $go->ID ) ) {
@@ -1208,8 +1229,10 @@ function fenix_seo_request_tracking_query() {
 }
 
 /**
- * ตาราง 301 สำหรับ slug ที่เลิกใช้ในอนาคต · ตอนนี้ว่าง (FALCON ไม่มี URL เก่า)
- * เพิ่มได้ด้วย add_filter( 'fenix_redirect_map', fn( $m ) => $m + array( '/old-slug/' => '/new-slug/' ) )
+ * ตาราง 301 สำหรับ slug ที่เลิกใช้ (ทำงานเฉพาะเมื่อ URL นั้นเป็น 404 แล้ว) · ค่าเริ่มต้นว่าง
+ * เพจของธีมที่ถอดออกจากเว็บ (วิธีติดตั้ง, VPS, Forward Test) ไม่ได้ใช้ตารางนี้: ส่งต่อด้วย fenix_retired_redirect ใน inc/setup.php
+ * ตามคีย์ 'retired' ของ manifest ซึ่งทำงานได้แม้เพจยังเผยแพร่ค้างอยู่
+ * เพิ่มรายการอื่นได้ด้วย add_filter( 'fenix_redirect_map', fn( $m ) => $m + array( '/old-slug/' => '/new-slug/' ) )
  */
 function fenix_seo_redirect_map() {
 	$map = apply_filters( 'fenix_redirect_map', array() );
@@ -1313,9 +1336,11 @@ add_filter( 'oembed_response_data', 'fenix_seo_oembed_hide_author', 20 );
 
 /**
  * URL ของภาพที่ธีมแสดงบนเพจนั้นโดยไม่ได้อยู่ใน post_content:
- * - ภาพขั้นตอนของหน้าคู่มือ ({prefix}_step{N}_img ตาม fenix_guide_map) และหน้าวิธีติดตั้ง (inst_step{N}_img)
+ * - ภาพขั้นตอนของหน้าคู่มือที่ยังอยู่บนเว็บ ({prefix}_step{N}_img ตาม fenix_guide_live_map: เปิดบัญชี ฝากเงิน ล็อกอินแอป MT5)
  *   ทั้งภาพตั้งต้นที่มากับธีม (assets/img/guides/) และภาพที่เจ้าของอัปโหลดลงช่องรูป · นับเฉพาะขั้นที่แสดงจริง
  * - แผนภาพจาก [falcon_figure] ในเนื้อหาเพจ (เฉพาะรายการที่มีไฟล์จริง และไม่อยู่ใน [falcon_if] ที่เงื่อนไขไม่ผ่าน)
+ * เพจที่ถอดออกจากเว็บแล้ว (วิธีติดตั้ง, VPS สามหน้า, Forward Test · fenix_slug_retired) ไม่ได้ภาพใดเลย:
+ * ทั้งภาพขั้นตอน (inst_step*, gvpsw_*, gvpsa_*, gvpsi_*) และแผนภาพในเนื้อหา (เช่น vps-flow) แม้เพจใน WordPress ยังเผยแพร่ค้างอยู่
  *
  * @return string[]
  */
@@ -1324,10 +1349,14 @@ function fenix_seo_theme_image_urls( $post ) {
 	if ( ! is_object( $post ) || empty( $post->post_name ) ) {
 		return $urls;
 	}
-	$slug   = (string) $post->post_name;
+	$slug = (string) $post->post_name;
+	if ( function_exists( 'fenix_slug_retired' ) && fenix_slug_retired( $slug ) ) {
+		return $urls;
+	}
 	$prefix = '';
-	if ( 'how-to-install' === $slug ) {
-		$prefix = 'inst_step';
+	if ( function_exists( 'fenix_guide_live_map' ) ) {
+		$map    = (array) fenix_guide_live_map();
+		$prefix = isset( $map[ $slug ] ) ? $map[ $slug ] . '_step' : '';
 	} elseif ( function_exists( 'fenix_guide_map' ) ) {
 		$map    = (array) fenix_guide_map();
 		$prefix = isset( $map[ $slug ] ) ? $map[ $slug ] . '_step' : '';

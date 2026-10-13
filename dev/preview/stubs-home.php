@@ -17,16 +17,20 @@
  *   /?hm_mod[ih_step5_img]=http://localhost:8765/theme/assets/img/guides/<file>.webp   one step picture → the film strip appears
  *   /?hm_mod[home_what_img]=http://localhost:8765/theme/assets/img/banners/<file>.webp square picture → chapter 01 side column
  *   /?hm_mod[home_show_devices]=0                             no device tiles
+ *   /?hm_mod[home_tests_show_fw]=1                            tests chapter with the Forward tab back (off by default: the chapter
+ *                                                             shows Backtest only, no tab bar · the Forward page itself is retired)
+ * Retired pages (/how-to-install/, /vps-*, /forward-test/) answer with a 301 in the preview and no link to them prints anywhere;
+ * /?unpub=dashboard shows the home page while /dashboard/ is not published (dock slot, step link and device tile drop their links).
  * The readiness checklist needs JavaScript for the tick boxes; to see the plain list, remove the class hm-js from <main> in DevTools.
  * Every page counts as published in the preview, so "link hidden while its page is unpublished" cannot be seen here
  * (fenix_home_link() → fenix_published_page_url()); it is covered by reading the code and by a harness run outside the repo.
  *
- * Dashboard on the home page (chapter #dashboard after the start path, quiet visit link in the hero, the "two ways" line of the
+ * Dashboard on the home page (chapter #dashboard after the start path, quiet visit link in the hero, the dashboard line under the heading of the
  * start path, the visit link under the tests chapter): all of it follows the dashboard module, so use its switches from
  * dev/preview/stubs-dashboard.php, e.g. /?dash=0 (feature off: the chapter is not counted, 11 chapters, no dashboard link anywhere),
  * /?dashimg=0 (block without the screenshot), /?dashhide=visit, plus
  *   /?hm_mod[show_home_dashboard]=0     chapter off: the visit links in the hero and under the tests chapter go with it (the
- *                                       sample-data note lives in the chapter), the "two ways" line of the start path stays
+ *                                       sample-data note lives in the chapter), the dashboard line of the start path stays
  *   /?hm_mod[home_hero_show_dash]=0     no visit link in the hero
  *
  * Headings stand alone by default (owner decision, 12 Oct 2026). Short switches that turn the removed labels back on, to check

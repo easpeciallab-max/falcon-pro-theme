@@ -23,9 +23,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * status: publish | draft (เพจกฎหมายสร้างเป็นร่างให้เจ้าของตรวจก่อนเผยแพร่)
  * order: ลำดับเพจในหลังบ้าน (menu_order) = ตำแหน่งในรายการนี้ × 10 · เติมให้อัตโนมัติ ไม่ต้องพิมพ์เอง
  *
+ * retired: เพจที่เจ้าของถอดออกจากเว็บแล้ว (13 ต.ค. 2026: FALCON ใช้ผ่านแดชบอร์ดอย่างเดียว ไม่มีทางติดตั้งเอง และถอดส่วน Forward Test)
+ *   ค่า = ปลายทางที่ URL เดิมถูกส่งต่อ (301 · fenix_retired_redirect) · แถวยังอยู่ใน manifest เพื่อให้ธีมรู้จัก slug เดิม
+ *
  * แถวที่ระบุไฟล์เนื้อหา (content) แต่ธีมยังไม่มีไฟล์นั้น = เพจที่เตรียมไว้ล่วงหน้า ยังไม่นับเป็นเพจของเว็บ:
  * ไม่ถูกสร้าง ไม่ขึ้นเมนู/footer/ดัชนีคู่มือ และไม่มีเส้นทางในพรีวิว จนกว่าไฟล์จะมา (กันเพจว่างและลิงก์ 404)
- * ส่ง $include_pending = true เพื่อดูทุกแถว (หน้า Setup ใช้แจ้งว่ามีแถวไหนยังรอไฟล์)
+ * แถวที่มี retired ก็ไม่นับเป็นเพจของเว็บเช่นกัน: ไม่ถูกสร้าง ไม่ถูกแทนเนื้อหา ไม่ขึ้นเมนู/footer/ดัชนีคู่มือ/การ์ด และลิงก์ไปหาถูกตัด
+ * (fenix_published_page_url คืนค่าว่างให้ slug เหล่านี้เสมอ แม้เพจใน WordPress ยังเผยแพร่อยู่ · fenix_unreachable_slugs นับรวม)
+ * ส่ง $include_pending = true เพื่อดูทุกแถว รวมแถวที่รอไฟล์และแถวที่ถอดแล้ว (รายการ slug ที่ถอดแล้ว: fenix_retired_pages)
  */
 function fenix_site_pages( $include_pending = false ) {
 	static $all   = null;
@@ -37,6 +42,9 @@ function fenix_site_pages( $include_pending = false ) {
 		foreach ( $all as $slug => $page ) {
 			$order                += 10;
 			$all[ $slug ]['order'] = $order;
+			if ( ! empty( $page['retired'] ) ) {
+				continue;
+			}
 			if ( ! empty( $page['content'] ) && ! file_exists( get_template_directory() . '/inc/content/' . $page['content'] . '.html' ) ) {
 				continue;
 			}
@@ -51,16 +59,16 @@ function fenix_site_pages( $include_pending = false ) {
  */
 function fenix_site_pages_manifest() {
 	return array(
-		'home'             => array( 'title' => 'หน้าแรก', 'template' => '', 'content' => '', 'group' => 'hub', 'front' => true, 'seo' => array( 'seo_title' => 'FALCON PRO EA · EA MT5 ผู้ช่วยเทรดอัตโนมัติบน MetaTrader 5', 'description' => 'FALCON PRO EA คือ Expert Advisor สำหรับ MetaTrader 5 ที่เทรดทองคำ XAUUSD ตามชุด EA ที่คุณเลือก ติดตั้งเองหรือรันผ่านแดชบอร์ดได้ พร้อมคู่มือภาษาไทยและทีมงานทาง LINE', 'keyword' => 'EA MT5' ) ),
+		'home'             => array( 'title' => 'หน้าแรก', 'template' => '', 'content' => '', 'group' => 'hub', 'front' => true, 'seo' => array( 'seo_title' => 'FALCON PRO EA · EA MT5 ผู้ช่วยเทรดอัตโนมัติบน MetaTrader 5', 'description' => 'FALCON PRO EA คือ Expert Advisor สำหรับ MetaTrader 5 ที่เทรดทองคำ XAUUSD ตามชุด EA ที่คุณเลือก ใช้งานผ่านแดชบอร์ดสมาชิก โดย EA ทำงานบนเซิร์ฟเวอร์ของเรา พร้อมคู่มือภาษาไทยและทีมงานทาง LINE', 'keyword' => 'EA MT5' ) ),
 		'backtest'         => array( 'title' => 'Backtest', 'template' => 'template-backtest.php', 'content' => 'pages/backtest', 'group' => 'test', 'menu' => 'Backtest' ),
-		'forward-test'     => array( 'title' => 'Forward Test', 'template' => 'template-forward.php', 'content' => 'pages/forward-test', 'group' => 'test', 'menu' => 'Forward Test' ),
-		'how-to-install'   => array( 'title' => 'วิธีติดตั้ง EA ใน MT5', 'template' => 'template-install.php', 'content' => 'pages/how-to-install', 'group' => 'guide', 'menu' => 'วิธีติดตั้ง EA บน MT5' ),
+		'forward-test'     => array( 'title' => 'Forward Test', 'template' => 'template-forward.php', 'content' => 'pages/forward-test', 'group' => 'test', 'menu' => 'Forward Test', 'retired' => '/backtest/' ),
+		'how-to-install'   => array( 'title' => 'วิธีติดตั้ง EA ใน MT5', 'template' => 'template-install.php', 'content' => 'pages/how-to-install', 'group' => 'guide', 'menu' => 'วิธีติดตั้ง EA บน MT5', 'retired' => '/dashboard/' ),
 		'open-mt5-account' => array( 'title' => 'เปิดบัญชี MT5', 'template' => 'template-guide.php', 'content' => 'pages/open-mt5-account', 'group' => 'guide', 'menu' => 'เปิดบัญชีเทรด MT5' ),
 		'deposit'          => array( 'title' => 'ฝากเงินเข้าบัญชีเทรด MT5', 'template' => 'template-guide.php', 'content' => 'pages/deposit', 'group' => 'guide', 'menu' => 'ฝากเงินเข้าบัญชีเทรด' ),
 		'mt5-login'        => array( 'title' => 'ติดตั้งและล็อกอิน MT5', 'template' => 'template-guide.php', 'content' => 'pages/mt5-login', 'group' => 'guide', 'menu' => 'ติดตั้งและล็อกอิน MT5' ),
-		'vps-windows'      => array( 'title' => 'คู่มือ VPS บน Windows', 'template' => 'template-guide.php', 'content' => 'pages/vps-windows', 'group' => 'guide', 'menu' => 'VPS บน Windows' ),
-		'vps-android'      => array( 'title' => 'คู่มือ VPS บน Android', 'template' => 'template-guide.php', 'content' => 'pages/vps-android', 'group' => 'guide', 'menu' => 'VPS บน Android' ),
-		'vps-ios'          => array( 'title' => 'คู่มือ VPS บน iPhone', 'template' => 'template-guide.php', 'content' => 'pages/vps-ios', 'group' => 'guide', 'menu' => 'VPS บน iPhone / iPad' ),
+		'vps-windows'      => array( 'title' => 'คู่มือ VPS บน Windows', 'template' => 'template-guide.php', 'content' => 'pages/vps-windows', 'group' => 'guide', 'menu' => 'VPS บน Windows', 'retired' => '/dashboard/' ),
+		'vps-android'      => array( 'title' => 'คู่มือ VPS บน Android', 'template' => 'template-guide.php', 'content' => 'pages/vps-android', 'group' => 'guide', 'menu' => 'VPS บน Android', 'retired' => '/dashboard/' ),
+		'vps-ios'          => array( 'title' => 'คู่มือ VPS บน iPhone', 'template' => 'template-guide.php', 'content' => 'pages/vps-ios', 'group' => 'guide', 'menu' => 'VPS บน iPhone / iPad', 'retired' => '/dashboard/' ),
 		'tools'            => array( 'title' => 'เครื่องมือคำนวณ', 'template' => 'template-guide.php', 'content' => 'pages/tools', 'group' => 'guide', 'menu' => 'เครื่องคำนวณ Lot / Drawdown' ),
 		'dashboard'        => array( 'title' => 'แดชบอร์ด FALCON PRO', 'template' => 'template-dashboard.php', 'content' => 'pages/dashboard', 'group' => 'guide', 'menu' => 'แดชบอร์ด FALCON PRO' ),
 		'pricing'          => array( 'title' => 'แพ็กเกจและราคา', 'template' => 'template-pricing.php', 'content' => 'pages/pricing', 'group' => 'pricing' ),
@@ -69,10 +77,102 @@ function fenix_site_pages_manifest() {
 		'privacy-policy'   => array( 'title' => 'นโยบายความเป็นส่วนตัว', 'template' => '', 'content' => 'pages/privacy-policy', 'group' => 'doc', 'status' => 'draft' ),
 		'terms-of-use'     => array( 'title' => 'ข้อกำหนดและเงื่อนไขการใช้บริการ', 'template' => '', 'content' => 'pages/terms-of-use', 'group' => 'doc', 'status' => 'draft' ),
 		'data-deletion'    => array( 'title' => 'คำขอลบข้อมูลส่วนบุคคล', 'template' => '', 'content' => 'pages/data-deletion', 'group' => 'doc', 'status' => 'draft' ),
-		'go'               => array( 'title' => 'ติดต่อ FALCON PRO EA', 'template' => 'template-go.php', 'content' => '', 'group' => 'hub', 'seo' => array( 'seo_title' => 'ติดต่อ FALCON PRO EA · LINE และลิงก์เริ่มต้นใช้งาน EA MT5', 'description' => 'ช่องทางติดต่อ FALCON PRO EA ทาง LINE พร้อมลิงก์เริ่มต้นใช้งาน 6 ขั้น ตั้งแต่เปิดบัญชี ดาวน์โหลด MT5 ติดตั้ง EA จนถึงตั้งค่า VPS ให้ระบบทำงานต่อเนื่อง', 'keyword' => 'FALCON PRO EA' ) ),
+		'go'               => array( 'title' => 'ติดต่อ FALCON PRO EA', 'template' => 'template-go.php', 'content' => '', 'group' => 'hub', 'seo' => array( 'seo_title' => 'ติดต่อ FALCON PRO EA · LINE และลิงก์เริ่มต้นใช้งาน EA MT5', 'description' => 'ช่องทางติดต่อ FALCON PRO EA ทาง LINE พร้อมลิงก์เริ่มต้นใช้งานทีละขั้น ตั้งแต่เปิดบัญชี MT5 ลงแอป MT5 ฝากเงิน จนถึงสมัครสมาชิกแดชบอร์ดและสั่งให้ EA เริ่มทำงาน', 'keyword' => 'FALCON PRO EA' ) ),
 		'articles'         => array( 'title' => 'บทความ EA และ MT5', 'template' => '', 'content' => '', 'group' => 'hub', 'posts' => true, 'seo' => array( 'seo_title' => 'คลังความรู้ EA บน MT5 ภาษาไทย · FALCON PRO EA', 'description' => 'รวมบทความและคู่มือ EA MT5 ภาษาไทย ตั้งแต่พื้นฐาน EA คืออะไร การคำนวณ Lot, Drawdown, Spread, Margin Call ไปจนถึงการเลือกโบรกเกอร์และ VPS สำหรับบอทเทรด', 'keyword' => 'บทความ EA' ) ),
 	);
 }
+
+/**
+ * เพจที่ถอดออกจากเว็บแล้ว: slug => ปลายทางในเว็บ (path ขึ้นต้นและลงท้ายด้วย /) · มาจากช่อง retired ของ manifest
+ * ฟิลเตอร์ fenix_retired_pages เพิ่มหรือเอาออกได้ (เช่นเว็บที่ยังอยากเปิดเพจเดิมไว้ชั่วคราว)
+ * ทุกจุดที่ต้องรู้ว่า slug ใดถูกถอดให้ถามฟังก์ชันนี้ ไม่พิมพ์รายชื่อ slug ซ้ำในไฟล์อื่น
+ */
+function fenix_retired_pages() {
+	static $map = null;
+	if ( null !== $map ) {
+		return $map;
+	}
+	$map = array();
+	foreach ( fenix_site_pages_manifest() as $slug => $page ) {
+		if ( ! empty( $page['retired'] ) ) {
+			$map[ $slug ] = '/' . trim( (string) $page['retired'], '/' ) . '/';
+		}
+	}
+	$map = (array) apply_filters( 'fenix_retired_pages', $map );
+	return $map;
+}
+
+/**
+ * slug นี้เป็นเพจที่ถอดออกแล้วหรือไม่
+ */
+function fenix_is_retired_page( $slug ) {
+	$slug = strtolower( trim( (string) $slug, "/ \t\n\r" ) );
+	return '' !== $slug && array_key_exists( $slug, fenix_retired_pages() );
+}
+
+/**
+ * URL เต็มที่ผู้เข้าชมของเพจที่ถอดแล้วถูกส่งต่อไป · '' = slug นี้ไม่ได้ถูกถอด
+ * ปลายทางเป็นเพจในเว็บที่ยังไม่เผยแพร่ (เช่นยังไม่ได้กด FALCON Setup ให้สร้าง /dashboard/) = ส่งไปหน้าแรกแทน ไม่ส่งคนไปหน้า 404
+ */
+function fenix_retired_url( $slug ) {
+	$slug    = strtolower( trim( (string) $slug, "/ \t\n\r" ) );
+	$retired = fenix_retired_pages();
+	if ( '' === $slug || ! isset( $retired[ $slug ] ) ) {
+		return '';
+	}
+	$target = trim( (string) $retired[ $slug ], '/' );
+	if ( '' === $target || $target === $slug || isset( $retired[ $target ] ) || '' === fenix_published_page_url( $target ) ) {
+		return home_url( '/' );
+	}
+	return home_url( '/' . $target . '/' );
+}
+
+/**
+ * ผู้เข้าชมที่เปิด URL ของเพจที่ถอดแล้ว → 301 ไปปลายทาง (fenix_retired_url)
+ * ทำงานทั้งตอนที่เพจใน WordPress ยังเผยแพร่อยู่ เป็นฉบับร่าง หรือถูกลบไปแล้ว: ดูจากที่อยู่ที่ถูกขอ ไม่ได้ดูว่ามีเพจหรือไม่
+ * · ลำดับ 0: ก่อน redirect_canonical / wp_old_slug_redirect (ลำดับ 10) ซึ่งอาจเดา URL ของหน้า 404 ไปลงที่บทความชื่อคล้ายกัน
+ * · ไม่ทำกับ: หลังบ้าน AJAX cron REST ฟีด trackback robots.txt · หน้าพรีวิวของผู้แก้ไข (is_preview: ลิงก์ "ดูตัวอย่าง" ของหน้าแก้ไขเพจ
+ *   และฉบับร่างที่ผู้มีสิทธิ์แก้เปิดดู) · หน้าต่างพรีวิวของ Customizer · คำขอที่ไม่ใช่ GET หรือ HEAD
+ * · ที่อยู่ต้องเป็น slug นั้นพอดี (/how-to-install/) หรือเป็นเพจนั้นเอง (ลิงก์แบบ ?page_id= ของเว็บที่ไม่ใช้ลิงก์ถาวร) · query string เดิมถูกส่งต่อไปด้วย
+ */
+function fenix_retired_redirect() {
+	if ( is_admin() || wp_doing_cron() || ( function_exists( 'wp_doing_ajax' ) && wp_doing_ajax() ) || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return;
+	}
+	if ( is_feed() || is_trackback() || is_robots() || is_preview() || is_customize_preview() ) {
+		return;
+	}
+	$method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_key( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) : 'GET';
+	if ( 'GET' !== $method && 'HEAD' !== $method ) {
+		return;
+	}
+	$request = ( isset( $GLOBALS['wp'] ) && is_object( $GLOBALS['wp'] ) && isset( $GLOBALS['wp']->request ) ) ? trim( (string) $GLOBALS['wp']->request, '/' ) : '';
+	$slug    = strtolower( rawurldecode( $request ) );
+	if ( ! fenix_is_retired_page( $slug ) ) {
+		/* เพจนั้นเองที่ถูกเปิดด้วยที่อยู่แบบอื่น (?page_id= · ?pagename= · หน้าแบ่งหน้า /slug/2/) */
+		$slug = is_page() ? (string) get_post_field( 'post_name', get_queried_object_id() ) : '';
+		if ( ! fenix_is_retired_page( $slug ) || (int) get_post_field( 'post_parent', get_queried_object_id() ) > 0 ) {
+			return;
+		}
+	}
+	$url = fenix_retired_url( $slug );
+	if ( '' === $url ) {
+		return;
+	}
+	/* พารามิเตอร์วัดผลของลิงก์เดิม (utm_* และรหัสคลิกของโฆษณา) ตามไปปลายทางด้วย · พารามิเตอร์อื่นไม่ส่งต่อ (เช่น ?s= จะทำให้ปลายทางกลายเป็นหน้าค้นหา) */
+	$query = array();
+	foreach ( (array) $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- อ่านอย่างเดียวเพื่อส่งต่อ ไม่ได้เปลี่ยนข้อมูล
+		if ( is_string( $key ) && is_scalar( $value ) && preg_match( '/^(?:utm_[a-z0-9_]{1,40}|gclid|gbraid|wbraid|fbclid|ttclid|msclkid)$/', $key ) ) {
+			$query[ $key ] = rawurlencode( sanitize_text_field( wp_unslash( (string) $value ) ) );
+		}
+	}
+	if ( $query ) {
+		$url = add_query_arg( $query, $url );
+	}
+	wp_safe_redirect( $url, 301, 'FALCON PRO EA' );
+	exit;
+}
+add_action( 'template_redirect', 'fenix_retired_redirect', 0 );
 
 /**
  * รายการบทความเริ่มต้น: slug => แบนเนอร์สำรอง
@@ -217,11 +317,17 @@ function fenix_guide_links( $groups = array( 'guide', 'test' ) ) {
 
 /**
  * URL ของเพจตาม slug เฉพาะเมื่อเผยแพร่แล้ว (ฉบับร่าง/ไม่มี = '') · กันลิงก์ 404 ไปยังเพจกฎหมายที่ยังเป็นร่าง
+ * เพจที่ถอดออกจากเว็บแล้ว (fenix_retired_pages) = '' เสมอ แม้เพจใน WordPress ยังเผยแพร่อยู่: เมนู footer การ์ด ปุ่ม และลิงก์ในข้อความ
+ * ทุกจุดถามฟังก์ชันนี้ก่อนพิมพ์ลิงก์ จึงเลิกลิงก์ไปเพจเหล่านั้นพร้อมกันทั้งเว็บ
  */
 function fenix_published_page_url( $slug ) {
 	static $cache = array();
 	if ( isset( $cache[ $slug ] ) ) {
 		return $cache[ $slug ];
+	}
+	if ( fenix_is_retired_page( $slug ) ) {
+		$cache[ $slug ] = '';
+		return '';
 	}
 	$page            = get_page_by_path( $slug );
 	$cache[ $slug ] = ( $page && 'publish' === get_post_status( $page ) ) ? get_permalink( $page ) : '';
@@ -318,10 +424,12 @@ function fenix_unlink_draft_pages( $content ) {
  * เพจใน manifest ที่ยังไม่เผยแพร่มีสามแบบ: เพจที่ Setup สร้างเป็นฉบับร่าง (เพจกฎหมาย) · เพจที่ธีมรุ่นใหม่เพิ่มเข้ามา
  * แต่เจ้าของยังไม่ได้กด FALCON Setup ให้สร้าง (เช่น /deposit/ ซึ่งข้อความเริ่มต้นของคู่มือเปิดบัญชีลิงก์ไปหาทันทีที่อัปเดตธีม)
  * · และเพจที่เจ้าของถอดออกเอง · ทั้งสามแบบต้องไม่เป็นลิงก์ 404 เหมือนที่เมนู footer หน้าแรก และหน้า /go ตรวจอยู่แล้ว
+ * เพจที่ถอดออกจากเว็บแล้ว (ช่อง retired ของ manifest · fenix_retired_pages) นับรวมเสมอ แม้เพจใน WordPress ยังเผยแพร่อยู่:
+ * ลิงก์ไปหาในเนื้อหาเพจ บทความ และข้อความ Customizer ถูกตัดแบบเดียวกับลิงก์ไปเพจที่ยังไม่เผยแพร่
  * fenix_published_page_url() จำผลต่อ slug ไว้ตลอดคำขอ และส่วนใหญ่ถูกถามโดย footer อยู่แล้ว จึงเพิ่ม query ไม่กี่ครั้งต่อหน้า
  */
 function fenix_unreachable_slugs() {
-	$drafts = array();
+	$drafts = array_keys( fenix_retired_pages() );
 	foreach ( fenix_site_pages() as $slug => $page ) {
 		if ( empty( $page['front'] ) && ! fenix_published_page_url( $slug ) ) {
 			$drafts[] = $slug;
@@ -329,12 +437,19 @@ function fenix_unreachable_slugs() {
 	}
 	/* แถวใน manifest ที่ยังรอไฟล์เนื้อหา: Setup ยังสร้างเพจนี้ไม่ได้ ลิงก์ไปหาจึงยังไม่มีปลายทาง (ปกติรายการนี้ว่าง ไม่มี query เพิ่ม)
 	 * เว้นแต่เจ้าของสร้างเพจ slug นั้นเองและเผยแพร่แล้ว */
-	foreach ( array_diff( array_keys( fenix_site_pages( true ) ), array_keys( fenix_site_pages() ) ) as $slug ) {
+	foreach ( fenix_pending_page_slugs() as $slug ) {
 		if ( ! fenix_published_page_url( $slug ) ) {
 			$drafts[] = $slug;
 		}
 	}
-	return array_merge( $drafts, fenix_unpublished_seed_articles() );
+	return array_values( array_unique( array_merge( $drafts, fenix_unpublished_seed_articles() ) ) );
+}
+
+/**
+ * แถวใน manifest ที่ยังรอไฟล์เนื้อหา (เพจที่เตรียมไว้ล่วงหน้า) · ไม่นับแถวที่ถอดออกแล้ว
+ */
+function fenix_pending_page_slugs() {
+	return array_values( array_diff( array_keys( fenix_site_pages( true ) ), array_keys( fenix_site_pages() ), array_keys( fenix_retired_pages() ) ) );
 }
 add_filter( 'the_content', 'fenix_unlink_draft_pages', 15 );
 
@@ -598,11 +713,61 @@ function fenix_setup_create_pages( $overwrite = false ) {
 	if ( $ordered ) {
 		$log[] = '✓ จัดลำดับเพจในหลังบ้านตามลำดับของธีม ' . $ordered . ' เพจ (เฉพาะเพจที่ยังไม่เคยจัดลำดับ)';
 	}
-	$pending = array_diff( array_keys( fenix_site_pages( true ) ), array_keys( fenix_site_pages() ) );
+	$pending = fenix_pending_page_slugs();
 	if ( $pending ) {
 		$log[] = '• ยังไม่สร้าง /' . implode( '/ /', $pending ) . '/ · ธีมรุ่นนี้ยังไม่มีไฟล์เนื้อหาของเพจนี้';
 	}
+	/* เพจที่ถอดออกจากเว็บแล้ว: ไม่สร้าง ไม่เขียนทับ · บอกเฉพาะเพจที่ยังเผยแพร่ค้างอยู่ ให้เจ้าของตั้งเป็นฉบับร่างเอง (ธีมไม่เปลี่ยนสถานะเพจให้) */
+	$live = array();
+	foreach ( fenix_setup_retired_rows() as $row ) {
+		if ( 'publish' === $row['status'] ) {
+			$live[] = '/' . $row['slug'] . '/';
+		}
+	}
+	if ( $live ) {
+		$log[] = '• เพจที่ถอดออกจากเว็บแล้วแต่ยังเผยแพร่อยู่: ' . implode( ' ', $live ) . ' · ผู้เข้าชมถูกส่งต่อไปหน้าใหม่ให้แล้ว ควรตั้งเพจเหล่านี้เป็นฉบับร่าง (รายการอยู่ใต้ตารางสถานะเพจ)';
+	}
 	return $log;
+}
+
+/**
+ * เพจที่ถอดออกจากเว็บแล้ว พร้อมสถานะของเพจนั้นใน WordPress ตอนนี้ (หน้า Setup ใช้แสดงเป็นบรรทัดแยกใต้ตารางสถานะเพจ)
+ *
+ * @return array[] { slug, to (path ปลายทาง), id (0 = ไม่มีเพจ), status ('' = ไม่มีเพจ) }
+ */
+function fenix_setup_retired_rows() {
+	$rows = array();
+	foreach ( fenix_retired_pages() as $slug => $to ) {
+		$found  = fenix_find_page( $slug );
+		$rows[] = array(
+			'slug'   => $slug,
+			'to'     => $to,
+			'id'     => $found ? (int) $found->ID : 0,
+			'status' => $found ? (string) $found->post_status : '',
+		);
+	}
+	return $rows;
+}
+
+/**
+ * รายการในเมนู $menu_id ที่ยังชี้ไปเพจที่ถอดออกจากเว็บแล้ว (ชื่อรายการ) · อ่านอย่างเดียว
+ * บนหน้าเว็บธีมไม่พิมพ์รายการเหล่านี้อยู่แล้ว (fenix_chrome_menu_items) แต่รายการยังค้างในหน้า รูปแบบ → เมนู จนกว่าเจ้าของจะลบ
+ */
+function fenix_setup_menu_retired( $menu_id ) {
+	$titles = array();
+	$home   = untrailingslashit( home_url( '/' ) );
+	foreach ( (array) wp_get_nav_menu_items( $menu_id ) as $item ) {
+		$slug = '';
+		if ( isset( $item->object, $item->object_id ) && 'page' === $item->object ) {
+			$slug = (string) get_post_field( 'post_name', (int) $item->object_id );
+		} elseif ( ! empty( $item->url ) && 0 === strpos( untrailingslashit( (string) $item->url ), $home . '/' ) ) {
+			$slug = trim( (string) substr( untrailingslashit( (string) $item->url ), strlen( $home ) ), '/' );
+		}
+		if ( fenix_is_retired_page( $slug ) ) {
+			$titles[] = wp_strip_all_tags( (string) $item->title ) . ' (/' . $slug . '/)';
+		}
+	}
+	return $titles;
 }
 
 /**
@@ -665,6 +830,10 @@ function fenix_setup_menu_build() {
 			}
 			$log[] = '• เพจที่ยังไม่อยู่ในเมนูหลัก: ' . implode( ' · ', $names ) . ' · เพิ่มเองที่ รูปแบบ → เมนู (วางใต้หัวข้อคู่มือ ตามลำดับในตารางสถานะเพจด้านล่าง)';
 		}
+		$stale = fenix_setup_menu_retired( $locations['primary'] );
+		if ( $stale ) {
+			$log[] = '• รายการในเมนูหลักที่ชี้ไปเพจที่ถอดออกแล้ว: ' . implode( ' · ', $stale ) . ' · หน้าเว็บไม่แสดงรายการเหล่านี้แล้ว ลบออกจากเมนูได้ที่ รูปแบบ → เมนู';
+		}
 		return $log;
 	}
 	// มีเมนู FALCON อยู่แล้ว (เช่นกดซ้ำ หรือเคยถอดออกจากตำแหน่ง) → แค่ตั้งตำแหน่งให้ ไม่เพิ่มรายการซ้ำ
@@ -701,14 +870,32 @@ function fenix_setup_menu_build() {
 		return wp_update_nav_menu_item( $menu_id, 0, $args );
 	};
 
+	/* กลุ่มที่มีเพจเดียว (การทดสอบ เหลือ Backtest หน้าเดียว) = รายการระดับบนรายการเดียว ไม่มีเมนูย่อยที่ซ้ำกับหัวกลุ่ม
+	 * กลุ่มที่มีหลายเพจ: หัวกลุ่มชี้ไปเพจแรกของกลุ่ม · หน้า /dashboard/ เป็นรายการระดับบนของตัวเอง ต่อจากกลุ่มคู่มือ (ลำดับเดียวกับเมนูสำรองของธีม) */
 	$add( 'หน้าแรก', home_url( '/' ) );
-	$test = $add( 'การทดสอบ', 'backtest' );
-	foreach ( fenix_guide_links( array( 'test' ) ) as $slug => $link ) {
-		$add( $link['label'], $slug, $test );
+	$test = array_keys( fenix_guide_links( array( 'test' ) ) );
+	if ( $test ) {
+		$parent = $add( 'การทดสอบ', $test[0] );
+		if ( count( $test ) > 1 ) {
+			foreach ( fenix_guide_links( array( 'test' ) ) as $slug => $link ) {
+				$add( $link['label'], $slug, $parent );
+			}
+		}
 	}
-	$guide = $add( 'คู่มือการใช้งาน', 'how-to-install' );
-	foreach ( fenix_guide_links( array( 'guide' ) ) as $slug => $link ) {
-		$add( $link['label'], $slug, $guide );
+	$guides = fenix_guide_links( array( 'guide' ) );
+	$dash   = isset( $guides['dashboard'] );
+	unset( $guides['dashboard'] );
+	if ( $guides ) {
+		$parent = $add( 'คู่มือการใช้งาน', (string) key( $guides ) );
+		if ( count( $guides ) > 1 ) {
+			foreach ( $guides as $slug => $link ) {
+				$add( $link['label'], $slug, $parent );
+			}
+		}
+	}
+	if ( $dash ) {
+		$dash_label = trim( (string) fenix_mod( 'nav_dashboard_label' ) );
+		$add( '' !== $dash_label ? $dash_label : 'แดชบอร์ด', 'dashboard' );
 	}
 	$add( 'แพ็กเกจ', 'pricing' );
 	$add( 'บทความ', 'articles' );
@@ -1590,10 +1777,37 @@ function fenix_setup_screen() {
 			</tbody>
 		</table>
 		<?php
-		$fenix_pending = array_diff( array_keys( fenix_site_pages( true ) ), array_keys( $pages ) );
+		$fenix_pending = fenix_pending_page_slugs();
 		if ( $fenix_pending ) :
 			?>
 			<p style="max-width:980px;color:#b26c09">เพจที่ธีมเตรียมไว้แต่ยังไม่มีไฟล์เนื้อหาในรุ่นนี้ (ยังไม่ถูกสร้างและยังไม่ขึ้นเมนู): <code>/<?php echo esc_html( implode( '/ /', $fenix_pending ) ); ?>/</code></p>
+		<?php endif; ?>
+		<?php
+		/* เพจที่ถอดออกจากเว็บแล้ว: ไม่อยู่ในตาราง ไม่มีปุ่มสร้างหรือแทนเนื้อหา · บรรทัดเดียวบอกปลายทางของ URL เดิมและสถานะเพจใน WordPress ตอนนี้ */
+		$fenix_retired = fenix_setup_retired_rows();
+		if ( $fenix_retired ) :
+			$fenix_retired_live = 0;
+			?>
+			<p style="max-width:980px;color:#50575e">
+				<strong>เพจที่ถอดออกจากเว็บแล้ว</strong> (ธีมไม่สร้างและไม่แทนเนื้อหาให้อีก ลิงก์ในเมนู ท้ายเว็บ และเนื้อหาถูกซ่อน และผู้เข้าชมที่เปิด URL เดิมถูกส่งต่อแบบ 301):
+				<?php foreach ( $fenix_retired as $fenix_i => $fenix_row ) : ?>
+					<?php
+					$fenix_retired_live += 'publish' === $fenix_row['status'] ? 1 : 0;
+					echo $fenix_i ? ' · ' : '';
+					?>
+					<code>/<?php echo esc_html( $fenix_row['slug'] ); ?>/</code> → <code><?php echo esc_html( $fenix_row['to'] ); ?></code>
+					<?php if ( 'publish' === $fenix_row['status'] ) : ?>
+						<span style="color:#b26c09">(ยังเผยแพร่อยู่ · <a href="<?php echo esc_url( get_edit_post_link( $fenix_row['id'] ) ); ?>">แก้ไข</a>)</span>
+					<?php elseif ( '' !== $fenix_row['status'] ) : ?>
+						(ไม่ได้เผยแพร่แล้ว)
+					<?php else : ?>
+						(ไม่มีเพจนี้)
+					<?php endif; ?>
+				<?php endforeach; ?>
+				<?php if ( $fenix_retired_live ) : ?>
+					<br>ควรตั้งเพจที่ยังเผยแพร่อยู่เป็นฉบับร่าง (หน้าแก้ไขเพจ → สถานะ → ฉบับร่าง) เพื่อไม่ให้ค้างในแผนผังเว็บไซต์ของปลั๊กอิน SEO และลบรายการของเพจเหล่านี้ออกจาก <a href="<?php echo esc_url( admin_url( 'nav-menus.php' ) ); ?>">รูปแบบ → เมนู</a> · ไม่ต้องลบเพจ URL เดิมยังส่งต่อให้เหมือนเดิม
+				<?php endif; ?>
+			</p>
 		<?php endif; ?>
 		<?php if ( $fenix_stale_drafts ) : ?>
 			<div class="notice notice-error inline" style="max-width:980px;margin:12px 0"><p><strong>ฉบับร่างที่ยังเป็นรุ่นเก่า: <code>/<?php echo esc_html( implode( '/ /', $fenix_stale_drafts ) ); ?>/</code></strong> · อย่าเพิ่งกดเผยแพร่ ติ๊ก "ยืนยัน" แล้วกด "แทนด้วยรุ่นล่าสุด" ในแถวของเพจนั้นก่อน ฉบับร่างรุ่นเก่ายังมีข้อความ วันที่มีผล และโน้ตถึงผู้ดูแลของรุ่นก่อนอยู่ในเนื้อหา</p></div>

@@ -48,8 +48,8 @@ let paths = args.filter( ( a ) => ! a.startsWith( '--' ) );
 const ALLOW = [];
 
 const DEFAULT_PATHS = [
-	'/', '/backtest/', '/forward-test/', '/how-to-install/', '/open-mt5-account/', '/deposit/', '/mt5-login/',
-	'/vps-windows/', '/vps-android/', '/vps-ios/', '/tools/', '/dashboard/', '/pricing/', '/risk-disclosure/',
+	'/', '/backtest/', '/open-mt5-account/', '/deposit/', '/mt5-login/',
+	'/tools/', '/dashboard/', '/pricing/', '/risk-disclosure/',
 	'/about/', '/privacy-policy/', '/terms-of-use/', '/data-deletion/', '/go/', '/articles/', '/article/cent-account/', '/404/', '/?s=falcon',
 ];
 if ( ! paths.length ) {

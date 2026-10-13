@@ -55,7 +55,7 @@
 }
 
 /* ==========================================================
-   2) สองทางในการใช้ FALCON · การ์ดเทียบสองใบ
+   2) ใครทำอะไร (คุณ / เซิร์ฟเวอร์ของ FALCON) · การ์ดสองใบ (ชื่อคลาส .dash-ways / .dash-way คงไว้จากรุ่นก่อน)
    แถวของสองใบอยู่บนเส้นเดียวกันด้วย subgrid (จำนวนแถว = --dash-rows จาก PHP) · เบราว์เซอร์ที่ไม่มี subgrid ได้การ์ดสองใบปกติ
    ========================================================== */
 .dash-ways-grid {
@@ -105,18 +105,6 @@
 	line-height: 1.35;
 }
 
-.dash-way-flag {
-	display: inline-block;
-	margin-bottom: 6px;
-	padding: 2px 10px;
-	border-radius: var(--btn-radius-xs, 6px); /* ป้ายสถานะ: มุมมนเล็กน้อยแบบเดียวกับปุ่ม ไม่ใช้ทรงแคปซูล */
-	background: var(--ember);
-	font-size: 0.72rem;
-	font-weight: 600;
-	line-height: 1.6;
-	color: var(--on-ember);
-}
-
 .dash-way-list {
 	display: contents;
 }
@@ -153,6 +141,22 @@
 .dash-way-foot:empty {
 	padding-top: 0;
 	border-top: 0;
+}
+
+/* ปุ่มท้ายการ์ด: ข้อความยาวตัดบรรทัดได้ และไม่ดันการ์ดให้กว้างเกินจอ (.btn ปกติห้ามตัดบรรทัด) */
+.dash-way > *,
+.dash-way-row {
+	min-width: 0;
+}
+
+.dash-way-foot .btn {
+	max-width: 100%;
+	white-space: normal;
+	text-align: left;
+}
+
+.dash-way-foot .btn .icon {
+	flex: 0 0 auto;
 }
 
 .is-dark .dash-way {
@@ -400,7 +404,7 @@
 		padding: 60px 0;
 	}
 
-	/* การ์ดเทียบเรียงซ้อน: แต่ละใบอ่านครบในตัวเอง */
+	/* การ์ดสองใบเรียงซ้อน: แต่ละใบอ่านครบในตัวเอง */
 	.dash-ways-grid {
 		grid-template-columns: minmax(0, 1fr);
 	}

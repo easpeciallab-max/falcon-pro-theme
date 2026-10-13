@@ -259,13 +259,14 @@ function fenix_defaults() {
 		/* ป้ายบนรูปที่กดเปิดขนาดเต็มได้ (fenix_media_open · ใช้ทุกหน้าที่มีช่องรูป) · เว้นว่าง = แสดงเฉพาะไอคอน */
 		'media_open_label'   => 'เปิดภาพขนาดเต็ม',
 		'contact_title'      => 'พร้อมคุยเรื่อง FALCON PRO EA กับทีมงานแล้วหรือยัง?',
-		'contact_text'       => 'ทักมาทาง LINE ทีมงานช่วยประเมินทุน ความเสี่ยง และแนะนำการติดตั้งให้เหมาะกับบัญชีของคุณ ไม่มีข้อผูกมัด',
+		'contact_text'       => 'ทักมาทาง LINE ทีมงานช่วยดูเรื่องทุน ความเสี่ยง และขั้นตอนเริ่มใช้งานผ่านแดชบอร์ดให้เข้ากับบัญชีของคุณ ไม่มีข้อผูกมัด',
 
 		/* สถานะผลทดสอบ (แสดงเมื่อยังไม่ได้กรอกตัวเลขจริง) */
 		'results_pending_title' => 'ยังไม่มีผลทดสอบที่เผยแพร่',
 		'results_pending_text'  => 'เราไม่แสดงตัวเลขที่ยังตรวจสอบไม่ได้ เมื่อมีผลที่พร้อมเผยแพร่ จะแสดงที่หน้านี้พร้อมเงื่อนไขการทดสอบครบทุกค่า ระหว่างนี้อ่านวิธีทดสอบและวิธีอ่านผลด้วยตัวเองได้ด้านล่าง',
 
-		/* หน้า /go (ลิงก์รวม) */
+		/* หน้า /go (ลิงก์รวม) · คีย์ go_step1..6 เป็นชุดเดิมของรุ่นก่อน: inc/modules/go.php ถอดออกจากค่าเริ่มต้นแล้วใช้คีย์ใหม่ของตัวเอง
+		 * ข้อความหกบรรทัดด้านล่างจึงไม่ถูกพิมพ์ที่ใด (ขั้นขอไฟล์ EA ติดตั้ง EA และ VPS ไม่มีแล้ว: FALCON ใช้งานผ่านแดชบอร์ดทางเดียว) */
 		'go_sub'         => 'ผู้ช่วยเทรดอัตโนมัติสำหรับ MT5 · ทักทีมงาน หรือเริ่มตามขั้นตอนด้านล่าง',
 		'go_steps_title' => 'เริ่มต้นใน 6 ขั้น',
 		'go_step1'       => 'เปิดบัญชีเทรด MT5',
@@ -297,19 +298,22 @@ function fenix_defaults() {
 		'show_mobile_nav'         => true,
 		'mobile_nav_home_label'   => 'หน้าแรก',
 		'mobile_nav_home_url'     => '/',
+		/* ค่าที่ใช้จริงอยู่ใน inc/modules/chrome.php (ทับสี่บรรทัดนี้) · ที่นี่ชี้เฉพาะเพจที่ยังอยู่บนเว็บ
+		 * (คีย์ mobile_nav_install_* เป็นชื่อเดิม: ตอนนี้คือช่องแดชบอร์ด หน้าวิธีติดตั้งถูกถอดออกแล้ว) */
 		'mobile_nav_test_label'   => 'ผลทดสอบ',
-		'mobile_nav_test_url'     => '/forward-test/',
+		'mobile_nav_test_url'     => '/backtest/',
 		'mobile_nav_price_label'   => 'แพ็กเกจ',
 		'mobile_nav_price_url'     => '/pricing/',
-		'mobile_nav_install_label' => 'วิธีติดตั้ง',
-		'mobile_nav_install_url'   => '/how-to-install/',
+		'mobile_nav_install_label' => 'แดชบอร์ด',
+		'mobile_nav_install_url'   => '/dashboard/',
 		'mobile_nav_line_label'    => 'ทัก LINE',
 
 		/* SEO / แชร์ลิงก์ (Open Graph) */
 		'og_default_image'       => '',
-		/* ต้องตรงกับตัวระบบ: เทรดทองคำ XAUUSD อย่างเดียว บน MT5 · ใช้ได้สองทาง · ห้ามเขียนว่าระบบคุมหรือบริหารความเสี่ยงให้ และห้ามใส่ตัวเลขผลทดสอบ
-		 * (ใช้เป็น meta description สำรอง และ description ของ SoftwareApplication schema) */
-		'og_default_description' => 'FALCON PRO EA · EA เทรดทองคำ XAUUSD บน MetaTrader 5 ติดตั้งเองหรือรันผ่านแดชบอร์ด การเทรดมีความเสี่ยงและขาดทุนได้',
+		/* ต้องตรงกับตัวระบบ: เทรดทองคำ XAUUSD อย่างเดียว บน MT5 · ใช้งานผ่านแดชบอร์ดสมาชิกทางเดียว EA ทำงานบนเซิร์ฟเวอร์ของ FALCON
+		 * (ไม่มีไฟล์ให้ดาวน์โหลดหรือติดตั้ง · เจ้าของยืนยัน 13 ต.ค. 2026) · ห้ามเขียนว่าระบบคุมหรือบริหารความเสี่ยงให้ และห้ามใส่ตัวเลขผลทดสอบ
+		 * (ใช้เป็น meta description สำรอง และ description ของ schema สินค้าใน inc/seo.php) */
+		'og_default_description' => 'FALCON PRO EA · EA เทรดทองคำ XAUUSD บน MetaTrader 5 ใช้งานผ่านแดชบอร์ดสมาชิก EA ทำงานบนเซิร์ฟเวอร์ ไม่ต้องติดตั้งโปรแกรมเอง การเทรดมีความเสี่ยงและขาดทุนได้',
 
 		/* คุกกี้ / Consent + Tracking (โหลด tracking เฉพาะหลังกดยอมรับ) */
 		'show_cookie_consent' => false,
@@ -327,8 +331,8 @@ function fenix_defaults() {
 		'hero_desc'      => 'EA MT5 ที่เทรดทองคำ XAUUSD ตามกลยุทธ์ของชุด EA ที่คุณเลือก ไม่ตัดสินใจตามอารมณ์ ทุนและชุด EA ที่ใช้คุณเป็นคนกำหนดเอง',
 		'hero_point1_title' => 'เทรดอัตโนมัติตามกฎ',
 		'hero_point1_desc'  => 'เปิดและปิดออเดอร์เมื่อเงื่อนไขครบ ไม่เดา ไม่ไล่ราคา',
-		'hero_point2_title' => 'ติดตั้งง่าย ตั้งค่าไม่ซับซ้อน',
-		'hero_point2_desc'  => 'มีคู่มือภาษาไทยและทีมช่วยตั้งค่าผ่าน LINE',
+		'hero_point2_title' => 'ไม่ต้องติดตั้งโปรแกรมเอง',
+		'hero_point2_desc'  => 'EA ทำงานบนเซิร์ฟเวอร์ คุณสั่งเริ่มและหยุดจากแดชบอร์ด',
 		'hero_point3_title' => 'บริหารความเสี่ยงอย่างเป็นระบบ',
 		'hero_point3_desc'  => 'กำหนดขนาดออเดอร์และระดับ Drawdown ที่รับได้เอง',
 		'hero_btn1_text' => 'สอบถามทาง LINE',
@@ -389,7 +393,7 @@ function fenix_defaults() {
 		/* ภาพระบบ */
 		'show_gallery'     => true,
 		'gallery_title'    => 'FALCON PRO EA บนทุกหน้าจอ',
-		'gallery_subtitle' => 'EA รันบน MetaTrader 5 ในคอมพิวเตอร์หรือ VPS ส่วนมือถือและแท็บเล็ตใช้ติดตามสถานะบัญชีผ่านแอป MT5',
+		'gallery_subtitle' => 'EA ทำงานบนเซิร์ฟเวอร์ของ FALCON คุณสั่งงานจากแดชบอร์ด ส่วนแอป MT5 บนมือถือ แท็บเล็ต หรือคอมใช้ดูสถานะบัญชี',
 		'gallery_note'     => 'ภาพประกอบการนำเสนอ ตัวเลขในภาพเป็นตัวอย่างเพื่อให้เห็นหน้าตาการใช้งาน ไม่ใช่ผลการเทรดจริงและไม่ใช่การรับประกันผลลัพธ์',
 		'gallery_img1'     => $banner_assets . 'falcon-pro-ea-mt5-feature-toggles.webp',
 		'gallery_cap1'     => 'โมดูลหลัก: Auto Trading, Risk Management, Multi-Symbol, Smart Filter',
@@ -436,7 +440,7 @@ function fenix_defaults() {
 		'stat6_label'       => 'จำนวนออเดอร์',
 		'stat6_value'       => 'ระบุจำนวน',
 		'perf_image'        => '',
-		'perf_image_caption'=> 'กราฟผลการทดสอบระบบ (Backtest / Forward Test)',
+		'perf_image_caption'=> 'กราฟผลการทดสอบย้อนหลังของระบบ (Backtest)',
 		'perf_note'         => 'หมายเหตุ: ผลการทดสอบขึ้นอยู่กับ Spread, Commission และ Slippage ของแต่ละโบรกเกอร์',
 		'perf_disclaimer'   => 'ผลการทดสอบใช้เพื่อประกอบการศึกษาเท่านั้น ผลลัพธ์ในอดีตไม่ได้รับประกันผลลัพธ์ในอนาคต ผู้ใช้งานควรเข้าใจความเสี่ยงก่อนตัดสินใจใช้งานระบบ',
 
@@ -471,20 +475,20 @@ function fenix_defaults() {
 		'pkg2_tag'         => 'สำหรับใช้งานจริงต่อเนื่อง',
 		'pkg2_price'       => '6,990',
 		'pkg2_period'      => 'บาท · ชำระครั้งเดียว',
-		'pkg2_features'    => "ใช้งานได้ 1 ถึง 2 บัญชีเทรด\nไฟล์ Preset ตั้งค่าพร้อมใช้\nอัปเดตระบบต่อเนื่อง\nSupport ส่วนตัวผ่าน LINE",
+		'pkg2_features'    => "ใช้งานได้ 1 ถึง 2 บัญชีเทรด\nรัน EA ผ่านแดชบอร์ด รวมในค่าแพ็กเกจแล้ว\nอัปเดตระบบต่อเนื่อง\nSupport ส่วนตัวผ่าน LINE",
 		'pkg2_featured'    => true,
 		'pkg3_name'        => 'VIP',
 		'pkg3_tag'         => 'สำหรับคนที่อยากให้ทีมดูแลใกล้ชิด',
 		'pkg3_price'       => '9,990',
 		'pkg3_period'      => 'บาท · ชำระครั้งเดียว',
-		'pkg3_features'    => "ทีมงานช่วยติดตั้งบนเครื่อง / VPS\nสอนตั้งค่าและแนวคิดบริหารความเสี่ยง\nติดตามผลในช่วงเริ่มต้นใช้งาน\nSupport ส่วนตัวแบบใกล้ชิด",
+		'pkg3_features'    => "ทีมงานพาตั้งค่าบัญชีในแดชบอร์ดไปด้วยกัน\nสอนตั้งค่าและแนวคิดบริหารความเสี่ยง\nติดตามผลในช่วงเริ่มต้นใช้งาน\nSupport ส่วนตัวแบบใกล้ชิด",
 		'pkg3_featured'    => false,
 
 		/* รีวิว (ปิดไว้ก่อน จนกว่าจะมีรีวิวจริง) */
 		'show_reviews'     => false,
 		'reviews_title'    => 'เสียงจากผู้ใช้งานจริง',
 		'reviews_subtitle' => 'รีวิวจากลูกค้าที่ใช้งาน FALCON PRO EA',
-		'rev1_text'        => 'ทีมงานช่วยติดตั้งดีมาก อธิบายเข้าใจง่าย มือใหม่ก็เริ่มต้นได้',
+		'rev1_text'        => 'ทีมงานอธิบายขั้นตอนเข้าใจง่าย มือใหม่ก็เริ่มต้นได้',
 		'rev1_name'        => 'ตัวอย่างรีวิว · แทนที่ด้วยรีวิวจริง',
 		'rev2_text'        => 'Dashboard ดูง่าย เหมาะกับคนที่อยากเทรดอย่างเป็นระบบ',
 		'rev2_name'        => 'ตัวอย่างรีวิว · แทนที่ด้วยรีวิวจริง',
@@ -524,7 +528,7 @@ function fenix_defaults() {
 		/* CTA ปิดท้าย */
 		'show_cta'     => true,
 		'cta_title'    => 'พร้อมเริ่มเทรดอย่างเป็นระบบกับ FALCON PRO EA แล้วหรือยัง?',
-		'cta_subtitle' => 'สอบถามรายละเอียด การติดตั้ง แพ็กเกจ และความเหมาะสมกับทุนของคุณได้ทาง LINE',
+		'cta_subtitle' => 'สอบถามรายละเอียด ขั้นตอนเริ่มใช้งาน แพ็กเกจ และความเหมาะสมกับทุนของคุณได้ทาง LINE',
 		'cta_btn_text' => 'ทัก LINE เพื่อขอรายละเอียด',
 
 		/* Footer */
@@ -559,7 +563,8 @@ function fenix_defaults() {
 			'steps_checklist_title' => 'ต้องมีอะไรบ้างก่อนเริ่ม',
 			'steps_checklist'       => "บัญชี MT5 กับโบรกเกอร์ที่รองรับ\nทุนที่พร้อมรับความเสี่ยง\nคอมพิวเตอร์ที่เปิดตลอด หรือ VPS\nเวลาอ่านคู่มือประมาณ 30 นาที",
 
-			/* หน้าแรก · วิธีทดสอบ (Backtest / Forward) */
+			/* หน้าแรก · วิธีทดสอบ และ ติดตั้งย่อ: ข้อความสองหมวดถัดไปเป็นของรุ่นก่อน (ยังพูดถึง Forward Test การติดตั้งเอง และ VPS)
+			 * ค่าที่หน้าแรกใช้จริงอยู่ใน inc/modules/home.php ซึ่งทับคีย์ชุดนี้ทั้งหมด · FALCON ใช้งานผ่านแดชบอร์ดทางเดียวตั้งแต่ 13 ต.ค. 2026 */
 			'show_tests'      => true,
 			'tests_kicker'    => 'Testing',
 			'tests_title'     => 'วิธีทดสอบ FALCON PRO EA ด้วย Backtest และ Forward Test',
@@ -589,7 +594,7 @@ function fenix_defaults() {
 			/* หน้าแรก · แถบสถานะ / Control center */
 			'show_live_status'     => false,
 			'live_status_kicker'   => 'Live System Flow',
-			'live_status_items'    => "FALCON PRO EA บน MetaTrader 5\nRisk-first setup\nBacktest และ Forward Test\nตั้งค่าตามทุนและความเสี่ยง\nLINE Support ภาษาไทย",
+			'live_status_items'    => "FALCON PRO EA บน MetaTrader 5\nRisk-first setup\nผล Backtest พร้อมเงื่อนไขการทดสอบ\nตั้งค่าตามทุนและความเสี่ยง\nLINE Support ภาษาไทย",
 			'show_control_center'  => false,
 			'control_kicker'       => 'FALCON PRO EA Control Center',
 			'control_title'        => 'ภาพรวมก่อนเริ่มใช้งาน FALCON PRO EA',
@@ -605,7 +610,7 @@ function fenix_defaults() {
 			'control_metric3_label' => 'Focus',
 			'control_metric3_value' => 'Risk-first',
 			'control_list_title'   => 'สิ่งที่ควรเตรียมก่อนเริ่ม',
-			'control_list_items'   => "บัญชี MetaTrader 5 และโบรกเกอร์ที่ใช้งาน\nทุนที่ต้องการนำมาใช้กับระบบ\nระดับความเสี่ยงที่รับได้\nเป้าหมายการใช้งาน: ติดตั้ง / ทดลอง / ปรับพอร์ต",
+			'control_list_items'   => "บัญชี MetaTrader 5 และโบรกเกอร์ที่ใช้งาน\nทุนที่ต้องการนำมาใช้กับระบบ\nระดับความเสี่ยงที่รับได้\nเป้าหมายการใช้งาน: เริ่มใช้ผ่านแดชบอร์ด / สอบถามแพ็กเกจ",
 
 			/* หน้าแรก · การ์ดนำทาง */
 			'home_cards_title' => 'คู่มือและข้อมูลเชิงลึก',
@@ -613,21 +618,22 @@ function fenix_defaults() {
 			'card1_title'      => 'Backtest EA บน MT5',
 			'card1_desc'       => 'วิธีทดสอบย้อนหลังใน Strategy Tester และวิธีอ่านรายงานผลให้เป็น',
 			'card1_url'        => '/backtest/',
-			'card2_title'      => 'Forward Test',
-			'card2_desc'       => 'ทดสอบกับตลาดจริงบนบัญชีเดโม เซ็นต์ หรือบัญชีจริง ต่างจาก Backtest อย่างไร',
-			'card2_url'        => '/forward-test/',
+			/* การ์ดนำทางชุดนี้ไม่มีเทมเพลตใดพิมพ์แล้ว (หน้าแรกใช้ชุดของ inc/modules/home.php) · ปลายทางชี้เฉพาะเพจที่ยังอยู่บนเว็บ */
+			'card2_title'      => 'แดชบอร์ด FALCON PRO',
+			'card2_desc'       => 'วิธีใช้ FALCON: EA ทำงานบนเซิร์ฟเวอร์ คุณสั่งเริ่ม หยุด และติดตามบัญชีจากเว็บ',
+			'card2_url'        => '/dashboard/',
 			'card3_title'      => 'แพ็กเกจ & ราคา',
 			'card3_desc'       => 'เปรียบเทียบแพ็กเกจและสิ่งที่ได้รับในแต่ละระดับ',
 			'card3_url'        => '/pricing/',
-			'card4_title'      => 'วิธีติดตั้ง',
-			'card4_desc'       => 'คู่มือติดตั้ง EA บน MT5 ทีละขั้น พร้อมวิธีแก้ปัญหาที่เจอบ่อย',
-			'card4_url'        => '/how-to-install/',
+			'card4_title'      => 'เปิดบัญชี MT5',
+			'card4_desc'       => 'คู่มือเปิดบัญชีเทรดเงินจริงทีละขั้น ก่อนนำไปเชื่อมกับแดชบอร์ด',
+			'card4_url'        => '/open-mt5-account/',
 			'card5_title'      => 'คำเตือนความเสี่ยง',
 			'card5_desc'       => 'ข้อมูลความเสี่ยงที่ควรอ่านก่อนเริ่มใช้งานจริง',
 			'card5_url'        => '/risk-disclosure/',
-			'card6_title'      => 'คู่มือ VPS',
-			'card6_desc'       => 'รัน EA ต่อเนื่องบน VPS และเชื่อมต่อจาก Windows, Android หรือ iPhone',
-			'card6_url'        => '/vps-windows/',
+			'card6_title'      => 'เครื่องมือคำนวณ',
+			'card6_desc'       => 'คิดขนาด Lot ตามความเสี่ยง และกำไรที่ต้องทำคืนหลัง Drawdown',
+			'card6_url'        => '/tools/',
 
 			/* หน้า Backtest */
 			'backtest_sub'        => 'วิธีทดสอบย้อนหลังใน Strategy Tester ของ MT5 และวิธีอ่านผลให้เป็น',
@@ -653,8 +659,9 @@ function fenix_defaults() {
 			'backtest_note'       => 'หมายเหตุ: ผลขึ้นอยู่กับคุณภาพข้อมูลราคา Spread, Commission และ Slippage ที่ใช้ในการทดสอบ',
 			'backtest_disclaimer' => 'ผลการทดสอบย้อนหลังใช้เพื่อการศึกษาเท่านั้น ไม่ได้รับประกันผลลัพธ์ในอนาคต และไม่ใช่คำแนะนำในการลงทุน',
 
-			/* หน้า Forward Test */
-			'forward_sub'        => 'ทดสอบกับตลาดจริงบนบัญชีเดโม เซ็นต์ หรือบัญชีจริง และต่างจาก Backtest อย่างไร',
+			/* หน้า Forward Test · ถอดออกจากเว็บแล้ว (13 ต.ค. 2026 · /forward-test/ ถูกส่งต่อไป /backtest/)
+			 * คีย์ชุด forward_* / fw_stat* คงไว้เพื่อเก็บค่าที่เคยบันทึก · พิมพ์เฉพาะใน template-forward.php ซึ่งไม่มีเพจใดใช้แล้ว */
+			'forward_sub'        =>'ทดสอบกับตลาดจริงบนบัญชีเดโม เซ็นต์ หรือบัญชีจริง และต่างจาก Backtest อย่างไร',
 			'forward_intro'      => 'Forward Test คือการรันระบบกับสภาวะตลาดจริงแบบเรียลไทม์ สะท้อนสภาพการเทรดจริงได้ดีกว่าการทดสอบย้อนหลัง เมื่อมีผลที่ตรวจสอบได้ ข้อมูลจะแสดงและอัปเดตที่หน้านี้',
 			'fw_stat1_label'     => 'ช่วงเวลาทดสอบ',
 			'fw_stat1_value'     => 'ระบุช่วงเวลา',
@@ -675,8 +682,9 @@ function fenix_defaults() {
 			'forward_note'       => 'หมายเหตุ: ผลในช่วงเวลาหนึ่งไม่ได้บ่งบอกถึงผลในอีกช่วงเวลาหนึ่ง',
 			'forward_disclaimer' => 'ผลการทดสอบบนบัญชีจริง/เดโม่สะท้อนช่วงเวลาที่ทดสอบเท่านั้น ผลในอดีตไม่ได้รับประกันผลลัพธ์ในอนาคต และไม่ใช่คำแนะนำในการลงทุน',
 
-			/* หน้า How to Install */
-			'install_sub'       => 'คู่มือติดตั้งและเริ่มใช้งานทีละขั้นตอน',
+			/* หน้า How to Install · ถอดออกจากเว็บแล้ว (13 ต.ค. 2026 · ไม่มีไฟล์ EA ให้ลูกค้าติดตั้งเอง · /how-to-install/ ถูกส่งต่อไป /dashboard/)
+			 * คีย์ชุด install_* / inst_* คงไว้เพื่อเก็บค่าที่เคยบันทึก (ค่าที่ใช้จริงอยู่ใน inc/modules/guides.php) · พิมพ์เฉพาะใน template-install.php */
+			'install_sub'       =>'คู่มือติดตั้งและเริ่มใช้งานทีละขั้นตอน',
 			'install_intro'     => 'ทำตามขั้นตอนด้านล่างเพื่อเริ่มใช้งาน FALCON PRO EA หากติดขั้นตอนไหน ทีมงานพร้อมช่วยเหลือผ่าน LINE',
 			'install_req'       => "บัญชีเทรดของโบรกเกอร์ที่รองรับ MetaTrader 5\nโปรแกรม MetaTrader 5 (PC หรือ VPS)\nไฟล์ FALCON PRO EA ที่ได้รับหลังสั่งซื้อ\nแนะนำใช้ VPS เพื่อให้ระบบทำงานต่อเนื่อง 24 ชม.",
 			'inst_step1_title'  => 'ติดตั้ง MetaTrader 5 / เตรียม VPS',
@@ -702,7 +710,7 @@ function fenix_defaults() {
 			/* หน้า Pricing (เพิ่มเติม) · ค่าที่ใช้จริงอยู่ใน inc/modules/pages.php (ทับสามบรรทัดนี้) · คงโมเดลเดียวกันไว้: Starter = ปรึกษาฟรี ยังไม่มีสิทธิ์ใช้งาน */
 			'pricing_sub'   => 'เลือกแพ็กเกจที่เหมาะกับการใช้งานของคุณ',
 			'compare_title' => 'ตารางเปรียบเทียบแพ็กเกจ',
-			'compare_rows'  => "รายการ | Starter | Pro | VIP\nบัญชีเทรดที่ใช้สิทธิ์ได้ | ✗ | 1 ถึง 2 บัญชี | ตามที่ตกลง\nไฟล์ Preset ตั้งค่าพร้อมใช้ | ✗ | ✓ | ✓\nทีมงานลงระบบให้บนเครื่องหรือ VPS | ✗ | ✗ | ✓\nอัปเดตระบบ | ✗ | ✓ | ✓\nระดับการ Support | ปรึกษาก่อนเริ่ม | ส่วนตัว | ใกล้ชิด",
+			'compare_rows'  => "รายการ | Starter | Pro | VIP\nบัญชีเทรดที่ใช้สิทธิ์ได้ | ✗ | 1 ถึง 2 บัญชี | ตามที่ตกลง\nรัน EA ผ่านแดชบอร์ด | ✗ | ✓ | ✓\nทีมงานพาตั้งค่าบัญชีในแดชบอร์ด | ✗ | ✗ | ✓\nอัปเดตระบบ | ✗ | ✓ | ✓\nระดับการ Support | ปรึกษาก่อนเริ่ม | ส่วนตัว | ใกล้ชิด",
 
 			/* หน้า Risk Disclosure */
 			'riskpage_sub'     => 'ข้อมูลความเสี่ยงที่ควรอ่านก่อนเริ่มใช้งาน',
@@ -743,7 +751,7 @@ function fenix_defaults() {
 			'assurance_kicker'   => 'Before You Start',
 			'assurance_title'    => 'สบายใจก่อนเริ่มใช้งาน',
 			'assurance_subtitle' => 'เราอยากให้คุณเข้าใจระบบและมั่นใจก่อนตัดสินใจ ไม่ใช่เร่งให้รีบซื้อ',
-			'assurance_items'    => "ทดลองแนวคิดระบบบนบัญชี Demo ก่อนได้\nมีทีมไทยช่วยแนะนำการติดตั้งจนระบบทำงานได้จริง\nสอบถามและปรึกษาทีมก่อนตัดสินใจได้\nอัปเดตระบบตามรอบเวอร์ชันอย่างต่อเนื่อง",
+			'assurance_items'    => "เข้าชมแดชบอร์ดในโหมดเยี่ยมชมได้ก่อนสมัคร\nมีทีมไทยช่วยแนะนำขั้นตอนเริ่มใช้งานผ่านแดชบอร์ด\nสอบถามและปรึกษาทีมก่อนตัดสินใจได้\nอัปเดตระบบตามรอบเวอร์ชันอย่างต่อเนื่อง",
 
 			/* Mid CTA (แถบทัก LINE คั่นกลางหน้า) */
 			'show_mid_cta'  => true,
@@ -984,8 +992,9 @@ function fenix_icon_badge( $name, $variant = 'dark' ) {
 }
 
 /**
- * เมนูสำรอง กรณียังไม่ได้สร้างเมนูใน WordPress
- * ชี้ไปยังหน้าย่อยตาม slug ที่แนะนำ (ปรับเมนูจริงได้ที่ รูปแบบ → เมนู)
+ * เมนูสำรอง กรณียังไม่ได้สร้างเมนูใน WordPress (ปรับเมนูจริงได้ที่ รูปแบบ → เมนู)
+ * ฟังก์ชันนี้ไม่มีรายชื่อเพจของตัวเอง: โมดูล chrome สร้างเมนูจาก manifest (fenix_guide_links · inc/setup.php) เฉพาะเพจที่เผยแพร่แล้ว
+ * เพจที่ถอดออกจากเว็บ (วิธีติดตั้ง, VPS, Forward Test) ไม่อยู่ใน manifest ชุดที่ใช้งาน จึงไม่ขึ้นเมนู · ไม่มีโมดูล chrome = ไม่พิมพ์เมนูสำรอง
  */
 function fenix_fallback_menu() {
 	if ( function_exists( 'fenix_chrome_fallback_menu' ) ) {
@@ -1216,15 +1225,34 @@ function fenix_breadcrumbs( $title = '' ) {
 		$slug   = (string) get_post_field( 'post_name', get_queried_object_id() );
 		$pages  = fenix_site_pages();
 		$group  = isset( $pages[ $slug ]['group'] ) ? $pages[ $slug ]['group'] : '';
-		$parent = array(
-			'test'  => array( fenix_mod( 'nav_test_label' ) ? fenix_mod( 'nav_test_label' ) : 'การทดสอบ', '/backtest/' ),
-			'guide' => array( fenix_mod( 'nav_guide_label' ) ? fenix_mod( 'nav_guide_label' ) : 'คู่มือการใช้งาน', '/how-to-install/' ),
+		$labels = array(
+			'test'  => fenix_mod( 'nav_test_label' ) ? fenix_mod( 'nav_test_label' ) : 'การทดสอบ',
+			'guide' => fenix_mod( 'nav_guide_label' ) ? fenix_mod( 'nav_guide_label' ) : 'คู่มือการใช้งาน',
 		);
+		/* หัวกลุ่ม = เพจแรกของกลุ่มที่เผยแพร่แล้ว ตามลำดับใน manifest (ปลายทางเดียวกับหัวกลุ่มของเมนูใน inc/modules/chrome.php)
+		 * เพจที่ถอดออกจากเว็บแล้ว (วิธีติดตั้ง, VPS, Forward Test) ไม่อยู่ใน fenix_site_pages() จึงไม่มีวันเป็นหัวกลุ่ม
+		 * หน้าแดชบอร์ดเป็นรายการระดับบนของเมนูเอง (fenix_chrome_dashboard_top) จึงไม่นับเป็นหัวกลุ่มคู่มือและไม่มีระดับกลุ่มคั่น */
+		$dash_top = function_exists( 'fenix_chrome_dashboard_top' ) && fenix_chrome_dashboard_top();
+		$head     = '';
+		if ( isset( $labels[ $group ] ) ) {
+			foreach ( $pages as $fenix_slug => $fenix_page ) {
+				if ( ! isset( $fenix_page['group'] ) || $group !== $fenix_page['group'] || ( 'dashboard' === $fenix_slug && $dash_top ) ) {
+					continue;
+				}
+				if ( function_exists( 'fenix_slug_retired' ) && fenix_slug_retired( $fenix_slug ) ) {
+					continue;
+				}
+				if ( ! function_exists( 'fenix_published_page_url' ) || '' !== (string) fenix_published_page_url( $fenix_slug ) ) {
+					$head = (string) $fenix_slug;
+					break;
+				}
+			}
+		}
 		// เมื่อมีปลั๊กอิน SEO: ให้ breadcrumb ที่มองเห็นตรงกับ BreadcrumbList ของปลั๊กอิน (ไม่ใส่ระดับกลุ่มที่ปลั๊กอินไม่รู้จัก)
-		if ( isset( $parent[ $group ] ) && ! in_array( $slug, array( 'backtest', 'how-to-install' ), true ) && ! ( function_exists( 'fenix_has_seo_plugin' ) && fenix_has_seo_plugin() ) ) {
+		if ( '' !== $head && $head !== $slug && ! ( 'dashboard' === $slug && $dash_top ) && ! ( function_exists( 'fenix_has_seo_plugin' ) && fenix_has_seo_plugin() ) ) {
 			$crumbs[] = array(
-				'name' => $parent[ $group ][0],
-				'url'  => home_url( $parent[ $group ][1] ),
+				'name' => $labels[ $group ],
+				'url'  => home_url( '/' . $head . '/' ),
 			);
 		}
 	}

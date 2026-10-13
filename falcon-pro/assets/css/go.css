@@ -604,6 +604,33 @@ a.lh-tile:hover .lh-tile-lbl {
 	height: auto;
 }
 
+/* ---------- ขั้นแดชบอร์ด (ขั้นสุดท้ายของเส้นทาง · fenix_go_dash_body ใน inc/modules/go.php) ----------
+   ปุ่มเข้าชม (.lh-btn-accent) และปุ่มสมัคร (.lh-btn) ใช้สไตล์ปุ่มของหน้านี้ตามเดิม
+   หมายเหตุใต้ปุ่ม (ul.dash-notes ของโมดูล dashboard: ข้อมูลตัวอย่าง · รหัสเชิญ · สถานะ) อ่านสีจากโทเคนของการ์ดหน้านี้
+   จึงถูกทั้งบนการ์ดเข้มและการ์ดขาว โดยไม่พึ่งคลาส .is-dark ของหน้าอื่น */
+.lh-step-body .lh-dash-notes {
+	gap: 6px;
+	margin: 12px 0;
+}
+
+.lh-card .lh-dash-notes .dash-note {
+	font-size: 0.8rem;
+	line-height: 1.6;
+	color: var(--lh-muted);
+}
+
+.lh-card .lh-dash-notes .dash-note .icon {
+	color: var(--lh-accent);
+}
+
+.lh-card--dark .lh-dash-notes .dash-note--status .icon {
+	color: #F2B04A;
+}
+
+.lh-card--light .lh-dash-notes .dash-note--status .icon {
+	color: var(--warn);
+}
+
 /* ---------- โซเชียล ---------- */
 .lh-socials {
 	display: flex;
