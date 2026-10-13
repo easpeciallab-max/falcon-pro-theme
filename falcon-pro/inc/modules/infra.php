@@ -591,6 +591,19 @@ remove_action( 'wp_head', 'wlwmanifest_link' );
 remove_action( 'wp_head', 'wp_generator' );
 
 /**
+ * WordPress เดาว่าคนที่เปิด /dashboard /admin หรือ /login แล้วไม่พบหน้า กำลังหาหลังบ้าน จึงส่งต่อไป /wp-admin/ หรือหน้าล็อกอิน
+ * (wp_redirect_admin_locations ที่ template_redirect ลำดับ 1000) · เว็บนี้ใช้ /dashboard/ เป็นหน้าของสมาชิก:
+ * ช่วงที่เพจนั้นยังไม่ถูกสร้าง เป็นฉบับร่าง หรือถูกถอดออก ผู้อ่านต้องได้หน้า 404 ของธีม ไม่ใช่ฟอร์มล็อกอินของ WordPress
+ * ถอดที่ init: ถึงตอนนั้นคอร์ลงทะเบียนตัวส่งต่อไว้แล้วแน่นอน · หาลำดับจริงด้วย has_action() เผื่อคอร์ย้าย (หาไม่ได้ = 1000)
+ * ผลที่ตามมาโดยตั้งใจ: /admin และ /login ตอบ 404 เช่นกัน · เข้าหลังบ้านที่ /wp-admin/ หรือ /wp-login.php ตามเดิม
+ */
+function fenix_infra_no_admin_guess_redirect() {
+	$priority = has_action( 'template_redirect', 'wp_redirect_admin_locations' );
+	remove_action( 'template_redirect', 'wp_redirect_admin_locations', is_int( $priority ) ? $priority : 1000 );
+}
+add_action( 'init', 'fenix_infra_no_admin_guess_redirect' );
+
+/**
  * header ของหน้าเว็บฝั่งผู้ชม
  */
 function fenix_infra_response_headers( $headers ) {
@@ -805,6 +818,8 @@ function fenix_nocaps_pattern() {
  * ทุกขั้นที่ regex ทำงานไม่สำเร็จ (HTML ใหญ่เกิน backtrack limit, ข้อความไม่ใช่ UTF-8) คืนของเดิม หน้าเว็บจึงไม่มีวันหาย
  */
 function fenix_nocaps_buffer( $html ) {
+	/* บัฟเฟอร์ทั้งหน้ากำลังถูกเทออก = จังหวะสุดท้ายที่ header ยังแก้ได้: ตรวจตัวจำกัดอายุแคชของข้อ 6 อีกรอบ */
+	fenix_infra_page_cache_recheck();
 	$html = (string) $html;
 	$at   = stripos( $html, '<body' );
 	if ( false === $at ) {
@@ -860,7 +875,9 @@ add_action( 'template_redirect', 'fenix_nocaps_start', 99 );
  * คำตอบที่ต้องไม่ถูกเก็บ (ตัวจำกัดนี้ไม่ส่ง และถ้าส่งไปแล้วจะถูกยกเลิก):
  * - หน้า 404: WordPress ตอบพร้อม no-store อยู่แล้ว ถ้าทับด้วยตัวจำกัด โฮสต์จะเก็บ 404 ไว้ 5 นาที
  *   เพจที่เพิ่งเผยแพร่หรือบทความที่เพิ่งถึงเวลาจึงยังตอบ 404 ต่อ
- * - คำตอบที่มี Set-Cookie หรือมี Cache-Control แบบ no-store / private เข้าคิวไว้ก่อนแล้ว (เป็นของผู้เปิดคนเดียว)
+ * - คำตอบที่มี Set-Cookie หรือมี Cache-Control แบบ no-store / private (เป็นของผู้เปิดคนเดียว) ไม่ว่า header นั้นเข้าคิว
+ *   ก่อนจุดที่ส่งตัวจำกัด หรือหลังจากนั้นระหว่างวาดหน้า (ปลั๊กอินตั้งคุกกี้หรือเริ่ม session ใน wp_head / wp_footer):
+ *   ตรวจซ้ำตอนคำตอบกำลังจะออก ดู fenix_infra_page_cache_recheck()
  * - สถานะ 4xx / 5xx ที่ตั้งก่อนหรือหลังจุดนี้ และทุกครั้งที่ WordPress ประกาศว่าห้ามแคช (wp_die หน้า error ของ PHP fatal)
  *   X-Accel-Expires ชนะ Cache-Control ที่ชั้นแคชของเซิร์ฟเวอร์ จึงต้องส่งค่า 0 ทับเอง WordPress ไม่รู้จัก header นี้
  * ============================================================== */
@@ -960,18 +977,27 @@ function fenix_infra_page_cache_on_status( $status_header, $code = 200 ) {
 add_filter( 'status_header', 'fenix_infra_page_cache_on_status', 10, 2 );
 
 /**
- * ด่านสุดท้ายก่อน WordPress เทบัฟเฟอร์ออก (shutdown priority 1): คำตอบจบด้วยสถานะข้อผิดพลาดหรือ PHP fatal
- * โดยไม่ผ่านสองทางข้างบน เช่น fatal ระหว่างที่ WP Pusher สลับไฟล์ธีม (โหมด maintenance ตัวจัดการ error ของ WordPress ไม่ทำงาน)
- * ใช้ได้เพราะบัฟเฟอร์ทั้งหน้าของข้อ 5 ทำให้ header ยังไม่ถูกส่งจนถึงตรงนี้
+ * ตรวจซ้ำตอนคำตอบกำลังจะออก: ตัวจำกัดถูกส่งไปแล้ว แต่คำตอบจบไม่เหมือนตอนที่ตัดสินใจส่ง ให้ยกเลิก
+ * - สถานะข้อผิดพลาดหรือ PHP fatal ที่ไม่ผ่านสองทางข้างบน เช่น fatal ระหว่างที่ WP Pusher สลับไฟล์ธีม
+ *   (โหมด maintenance ตัวจัดการ error ของ WordPress ไม่ทำงาน)
+ * - Set-Cookie หรือ Cache-Control แบบ no-store / private ที่เข้าคิวหลังจุดส่งตัวจำกัด: บัฟเฟอร์ทั้งหน้าของข้อ 5 เปิดโอกาสให้
+ *   ปลั๊กอินตั้งคุกกี้หรือเริ่ม session ระหว่างวาดหน้าได้ คำตอบนั้นเป็นของผู้เปิดคนเดียว ห้ามออกไปพร้อมคำว่าเก็บร่วมกันได้
+ *   (หลังส่งตัวจำกัด Cache-Control ของคำขอนี้คือบรรทัด public ของธีมเอง จึงมีแต่ header ที่มาทีหลังเท่านั้นที่เข้าเงื่อนไขนี้)
+ * เรียกจากสองจุด: ตอนบัฟเฟอร์ทั้งหน้าถูกเทออก (fenix_nocaps_buffer) และ shutdown priority 0 ก่อน WordPress เทบัฟเฟอร์
+ * ที่ priority 1 · ใช้ได้เฉพาะตอนที่ header ยังไม่ถูกส่ง
  */
-function fenix_infra_page_cache_shutdown() {
+function fenix_infra_page_cache_recheck() {
 	if ( ! fenix_infra_page_cache_capped() || headers_sent() ) {
 		return;
 	}
 	$error = error_get_last();
 	$fatal = is_array( $error ) && in_array( (int) $error['type'], array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR ), true );
-	if ( $fatal || (int) http_response_code() >= 400 ) {
+	if ( $fatal || (int) http_response_code() >= 400 || fenix_infra_response_is_private() ) {
 		fenix_infra_page_cache_cancel();
 	}
+}
+
+function fenix_infra_page_cache_shutdown() {
+	fenix_infra_page_cache_recheck();
 }
 add_action( 'shutdown', 'fenix_infra_page_cache_shutdown', 0 );

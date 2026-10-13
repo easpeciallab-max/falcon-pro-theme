@@ -480,6 +480,8 @@ function fenix_setup_page_content( $rel ) {
 
 /**
  * สร้างเพจที่ยังไม่มี · ไม่แตะเนื้อหาเพจที่มีอยู่แล้ว (เว้นแต่เลือก overwrite)
+ * overwrite แทนเนื้อหา ชื่อเพจ (เมื่อไฟล์ระบุ title) เทมเพลต และค่า SEO (ชื่อ คำอธิบาย คีย์เวิร์ดหลัก) ของทุกเพจ
+ * เพจที่ไม่มีไฟล์เนื้อหา (home, go, articles) ได้เฉพาะค่า SEO จากแถว seo ของ manifest: ไม่มีทางอื่นที่ค่านั้นถูกเขียนซ้ำหลังสร้างเพจ
  * ลำดับเพจ (menu_order) มาจากลำดับใน fenix_site_pages(): เพจใหม่ได้ลำดับตั้งแต่สร้าง · เพจเดิมที่ลำดับยังเป็น 0 ได้ลำดับนี้
  * (เขียนคอลัมน์ตรง ๆ ไม่ผ่าน wp_update_post วันที่ "ปรับปรุงล่าสุด" ของเพจจึงไม่ขยับ) · ลำดับที่เจ้าของจัดเองไม่ถูกแตะ
  */
@@ -526,10 +528,17 @@ function fenix_setup_create_pages( $overwrite = false ) {
 					$ordered++;
 				}
 			}
-			// เพจ Privacy Policy ฉบับร่างที่ WordPress สร้างให้ตอนติดตั้ง (ยังไม่เคยแก้) → แทนด้วยเนื้อหาของธีม
+			// เพจ Privacy Policy ฉบับร่างที่ WordPress สร้างให้ตอนติดตั้ง (ยังไม่เคยแก้) → แทนด้วยเนื้อหาของธีม หนึ่งครั้ง
+			// ต้องเป็นเพจที่ธีมยังไม่เคยวางเนื้อหา (ไม่มี meta fenix_seed_rev: ธีมเขียน meta นี้ทั้งตอนสร้างเพจและตอนแทนเพจ)
+			// และมีวันที่ GMT จริง: เพจของ WordPress ตอนติดตั้งมี ส่วนฉบับร่างที่สร้างผ่าน wp_insert_post มีค่าเป็นศูนย์
+			// แล้ว post_modified จะเท่ากับ post_date ทุกครั้งที่บันทึก ใช้ตัดสินว่า "ยังไม่แก้" ไม่ได้
+			// ฉบับร่างที่ธีมสร้างเองหรือเคยแทนไปแล้ว และฉบับร่างที่เจ้าของเขียนเอง จึงถูกแทนเฉพาะเมื่อติ๊กเขียนทับ
+			// หรือกด "แทนด้วยรุ่นล่าสุด" ในแถวของเพจ
 			$core_privacy = 'privacy-policy' === $slug
 				&& (int) get_option( 'wp_page_for_privacy_policy' ) === (int) $id
 				&& 'draft' === $found->post_status
+				&& '' === (string) get_post_meta( $id, 'fenix_seed_rev', true )
+				&& ! empty( $found->post_date_gmt ) && '0000-00-00 00:00:00' !== $found->post_date_gmt
 				&& $found->post_modified === $found->post_date;
 			if ( $core_privacy && $content && ! $overwrite ) {
 				wp_update_post(
@@ -542,7 +551,7 @@ function fenix_setup_create_pages( $overwrite = false ) {
 				update_post_meta( $id, '_wp_page_template', $page['template'] );
 				update_post_meta( $id, 'fenix_seed_rev', ! empty( $meta['rev'] ) ? (int) $meta['rev'] : 1 );
 				fenix_apply_seo_meta( $id, $meta );
-				$log[] = '↻ แทนเพจ Privacy Policy เริ่มต้นของ WordPress ด้วยฉบับของธีม (ยังเป็นฉบับร่าง)';
+				$log[] = '↻ /privacy-policy/ · เพจ Privacy Policy ที่ WordPress สร้างไว้ตอนติดตั้ง (ยังไม่เคยถูกแก้) ถูกแทนด้วยฉบับของธีมทั้งชื่อเพจ เนื้อหา และค่า SEO · ทำครั้งเดียว เพจยังเป็นฉบับร่าง';
 				continue;
 			}
 			if ( $overwrite && $content ) {
@@ -556,7 +565,23 @@ function fenix_setup_create_pages( $overwrite = false ) {
 				}
 				wp_update_post( $update );
 				update_post_meta( $id, 'fenix_seed_rev', $seed_rev );
-				$log[] = '↻ เขียนทับเนื้อหา' . ( ! empty( $meta['title'] ) ? 'และชื่อเพจ' : '' ) . ' /' . $slug . '/';
+			}
+			if ( $overwrite ) {
+				// บอกให้ครบว่าเพจนี้ถูกเขียนทับส่วนไหน: ค่า SEO (ชื่อ คำอธิบาย คีย์เวิร์ดหลัก) ถูกแทนด้านล่างด้วย และเป็นส่วนเดียว
+				// ที่เพจไม่มีไฟล์เนื้อหา (home, go, articles) ได้รับ
+				$parts = array();
+				if ( $content ) {
+					$parts[] = 'เนื้อหา';
+					if ( ! empty( $meta['title'] ) ) {
+						$parts[] = 'ชื่อเพจ';
+					}
+				}
+				if ( ! empty( $meta['seo_title'] ) || ! empty( $meta['description'] ) || ! empty( $meta['keyword'] ) ) {
+					$parts[] = 'ค่า SEO';
+				}
+				if ( $parts ) {
+					$log[] = '↻ เขียนทับ /' . $slug . '/ · ' . implode( ' · ', $parts );
+				}
 			}
 		}
 
@@ -1280,7 +1305,25 @@ function fenix_setup_replace_page( $slug ) {
 	if ( $meta ) {
 		fenix_apply_seo_meta( $found->ID, $meta );
 	}
-	return array( '↻ แทนเนื้อหา /' . $slug . '/ ด้วยรุ่นล่าสุดแล้ว' . ( $retitled ? ' และเปลี่ยนชื่อเพจเป็น "' . $meta['title'] . '"' : '' ) . ' (รุ่นเดิมอยู่ใน Revisions ของเพจ)' );
+	return array( '↻ แทนเนื้อหาและค่า SEO ของ /' . $slug . '/ ด้วยรุ่นล่าสุดแล้ว' . ( $retitled ? ' และเปลี่ยนชื่อเพจเป็น "' . $meta['title'] . '"' : '' ) . ' (เนื้อหารุ่นเดิมอยู่ใน Revisions ของเพจ)' );
+}
+
+/**
+ * บรรทัดปฏิเสธของปุ่มที่ต้องมีสิทธิ์ผู้ดูแลระบบ (manage_options) · $do = ค่า fenix_do ของปุ่ม
+ * ทุกปุ่มของหน้า Setup ยกเว้น "สร้างเมนูอย่างเดียว" อยู่ในกลุ่มนี้: สร้าง เผยแพร่ หรือเขียนทับเพจและบทความ
+ * และเปลี่ยนค่าหน้าแรก / หน้าบทความ ซึ่ง WordPress สงวนให้ผู้ดูแลระบบ (เมนูเป็นงานของสิทธิ์ edit_theme_options อยู่แล้ว)
+ */
+function fenix_setup_refusal( $do ) {
+	$names = array(
+		'all'      => 'ตั้งค่าเว็บทั้งหมด',
+		'pages'    => 'สร้างเพจอย่างเดียว',
+		'reading'  => 'ตั้งหน้าแรกและหน้าบทความ',
+		'replace'  => 'แทนด้วยรุ่นล่าสุด',
+		'articles' => 'นำเข้าบทความ',
+		'release'  => 'เผยแพร่และตั้งเวลา',
+		'seo'      => 'ตั้งค่า SEO และระบบ',
+	);
+	return '✗ ' . ( isset( $names[ $do ] ) ? '"' . $names[ $do ] . '" ' : 'คำสั่งนี้' ) . 'ทำได้เฉพาะผู้ดูแลระบบ (สิทธิ์ manage_options) · ไม่ได้เปลี่ยนค่าใด';
 }
 
 function fenix_setup_handle() {
@@ -1288,6 +1331,15 @@ function fenix_setup_handle() {
 		wp_die( 'ไม่มีสิทธิ์' );
 	}
 	check_admin_referer( 'fenix_setup' );
+
+	$do = isset( $_POST['fenix_do'] ) ? sanitize_key( wp_unslash( $_POST['fenix_do'] ) ) : '';
+	// ผู้ที่มีแค่ edit_theme_options เปิดหน้านี้ดูตารางสถานะและสร้างเมนูได้ ปุ่มอื่นทุกปุ่มต้องมีสิทธิ์ manage_options
+	// ตรวจก่อนตั้งตัวล็อก: คำขอที่ถูกปฏิเสธต้องไม่ทิ้งล็อกค้างและไม่แตะค่าใด
+	if ( 'menu' !== $do && ! current_user_can( 'manage_options' ) ) {
+		set_transient( 'fenix_setup_log', array( fenix_setup_refusal( $do ) ), 120 );
+		wp_safe_redirect( admin_url( 'themes.php?page=falcon-setup' ) );
+		exit;
+	}
 
 	// กันกดซ้ำขณะกำลังทำงาน (ดับเบิลคลิก / สองแท็บ)
 	if ( get_transient( 'fenix_setup_lock' ) ) {
@@ -1301,7 +1353,6 @@ function fenix_setup_handle() {
 	}
 	ignore_user_abort( true );
 
-	$do  = isset( $_POST['fenix_do'] ) ? sanitize_key( wp_unslash( $_POST['fenix_do'] ) ) : '';
 	$log = array();
 
 	if ( 'pages' === $do || 'all' === $do ) {
@@ -1329,12 +1380,12 @@ function fenix_setup_handle() {
 	}
 	if ( 'seo' === $do ) {
 		// ปุ่มนี้เขียนค่าระบบของ WordPress และค่าของ Yoast SEO ซึ่ง WordPress สงวนให้ผู้ดูแลระบบ: ต้องมีสิทธิ์ manage_options
-		// (ผู้ที่มีแค่ edit_theme_options เข้าหน้านี้ได้ แต่ไม่เห็นฟอร์มนี้ และคำขอที่ส่งมาตรง ๆ ถูกปฏิเสธที่นี่)
+		// (ด่านบนสุดของฟังก์ชันปฏิเสธไปแล้ว ตรวจซ้ำตรงนี้เผื่อด่านนั้นถูกแก้ในวันหลัง)
 		if ( current_user_can( 'manage_options' ) ) {
 			// ช่องติ๊ก "หน้าหมวดบทความ" ไม่ติ๊กเป็นค่าเริ่มต้น: ไม่ติ๊ก = ไม่แตะรูปแบบชื่อหน้าหมวดใน Yoast
 			$log = array_merge( $log, fenix_setup_seo( ! empty( $_POST['fenix_seo_category'] ) ) );
 		} else {
-			$log[] = '✗ "ตั้งค่า SEO และระบบ" ทำได้เฉพาะผู้ดูแลระบบ (สิทธิ์ manage_options) · ไม่ได้เปลี่ยนค่าใด';
+			$log[] = fenix_setup_refusal( 'seo' );
 		}
 	}
 	if ( 'all' === $do ) {
@@ -1366,10 +1417,16 @@ function fenix_setup_screen() {
 	delete_transient( 'fenix_setup_log' );
 	/* ลิงก์สมัครบัญชีถูกบันทึกแล้ว แต่พาร์ตเนอร์ยังตั้งไม่ครบ (ยังไม่มีชื่อโบรกเกอร์จริง): ปุ่มสมัครและข้อความเปิดเผยถูกซ่อนอยู่ */
 	$fenix_partner_pending = function_exists( 'fenix_partner_pending' ) && fenix_partner_pending();
+	/* ทุกปุ่มยกเว้น "สร้างเมนูอย่างเดียว" ต้องมีสิทธิ์ manage_options (ตรวจจริงที่ fenix_setup_handle) · หน้านี้ยังเปิดให้ผู้มีสิทธิ์แก้ธีมดูตารางสถานะได้ */
+	$fenix_can_manage = current_user_can( 'manage_options' );
 	?>
 	<div class="wrap">
 		<h1>FALCON PRO EA · ตั้งค่าเว็บ</h1>
-		<p>สร้างเพจทั้งหมดของเว็บพร้อมเทมเพลตและเนื้อหาเริ่มต้นในคลิกเดียว เพจที่มีอยู่แล้วจะ<strong>ไม่ถูกแก้ไข</strong> (เว้นแต่ติ๊กเขียนทับ)</p>
+		<p>สร้างเพจทั้งหมดของเว็บพร้อมเทมเพลตและเนื้อหาเริ่มต้นในคลิกเดียว เพจที่มีอยู่แล้วจะ<strong>ไม่ถูกแก้ไข</strong> (เว้นแต่ติ๊กเขียนทับ) · ข้อยกเว้นเดียว: เพจ Privacy Policy ฉบับร่างที่ WordPress สร้างไว้ตอนติดตั้งและยังไม่เคยถูกแก้ จะถูกแทนด้วยฉบับของธีมหนึ่งครั้ง</p>
+
+		<?php if ( ! $fenix_can_manage ) : ?>
+			<div class="notice notice-info"><p><strong>บัญชีนี้ไม่มีสิทธิ์ผู้ดูแลระบบ (manage_options)</strong> · ดูตารางสถานะเพจและกด "สร้างเมนูอย่างเดียว" ได้ ส่วนปุ่มอื่นในหน้านี้สร้าง เผยแพร่ หรือเขียนทับเพจและบทความ และเปลี่ยนค่าหน้าแรกของ WordPress จึงทำได้เฉพาะผู้ดูแลระบบ คำขอจากบัญชีนี้จะถูกปฏิเสธโดยไม่เปลี่ยนค่าใด</p></div>
+		<?php endif; ?>
 
 		<?php if ( ! get_option( 'blog_public' ) ) : ?>
 			<div class="notice notice-warning"><p><strong>เว็บยังปิดไม่ให้ Google ทำดัชนี</strong> · ไปที่ <a href="<?php echo esc_url( admin_url( 'options-reading.php' ) ); ?>">ตั้งค่า → การอ่าน</a> แล้วเอาเครื่องหมายออกจาก "ขอให้ search engines ไม่ทำดัชนีเว็บไซต์นี้" เมื่อพร้อมเปิดตัว</p></div>
@@ -1393,10 +1450,20 @@ function fenix_setup_screen() {
 			<input type="hidden" name="action" value="fenix_setup">
 			<h2 style="margin-top:0">1) ตั้งค่าเว็บทั้งหมด</h2>
 			<p>สร้างเพจที่ยังไม่มี → ตั้งหน้าแรก/หน้าบทความ → สร้างเมนูหลัก</p>
-			<p><label><input type="checkbox" name="fenix_overwrite" value="1"> เขียนทับเนื้อหาและชื่อเพจที่มีอยู่ด้วยเนื้อหาเริ่มต้นของธีม (ระวัง: ข้อความและชื่อเพจที่แก้ไว้จะหาย)</label></p>
-			<p><button class="button button-primary" name="fenix_do" value="all">ตั้งค่าเว็บทั้งหมด</button>
-				<button class="button" name="fenix_do" value="pages">สร้างเพจอย่างเดียว</button>
+			<p><label><input type="checkbox" name="fenix_overwrite" value="1"<?php disabled( $fenix_can_manage, false ); ?>> เขียนทับเพจที่มีอยู่ด้วยค่าเริ่มต้นของธีม: <strong>ชื่อเพจ เนื้อหา และค่า SEO</strong> (ชื่อ SEO คำอธิบาย และคีย์เวิร์ดหลักในช่องของ Yoast) ของทุกเพจ · หน้าแรก /go/ และ /articles/ ไม่มีไฟล์เนื้อหา จึงถูกแทนเฉพาะค่า SEO · ระวัง: ข้อความ ชื่อเพจ และค่า SEO ที่แก้ไว้เองจะหายทุกเพจ และค่า SEO เดิมไม่ถูกเก็บใน Revisions ของเพจ</label></p>
+			<p><button class="button button-primary" name="fenix_do" value="all"<?php disabled( $fenix_can_manage, false ); ?>>ตั้งค่าเว็บทั้งหมด</button>
+				<button class="button" name="fenix_do" value="pages"<?php disabled( $fenix_can_manage, false ); ?>>สร้างเพจอย่างเดียว</button>
 				<button class="button" name="fenix_do" value="menu">สร้างเมนูอย่างเดียว</button></p>
+			<p style="margin:16px 0 4px"><strong>ลำดับงานหลังอัปเดตธีมเป็นรุ่นใหม่</strong></p>
+			<ol style="margin:0 0 10px 20px">
+				<li>อัปเดตธีมบนเว็บให้เป็นรุ่นล่าสุดก่อน แล้วเปิดหน้านี้ใหม่</li>
+				<li>กรอกค่าใน <a href="<?php echo esc_url( admin_url( 'customize.php' ) ); ?>">ปรับแต่ง</a> ให้ครบ: ช่องทางติดต่อ โบรกเกอร์ และหมวดที่ธีมรุ่นใหม่เพิ่มเข้ามา · ค่าที่เคยบันทึกไว้ไม่เปลี่ยนตามค่าเริ่มต้นใหม่ของธีม ต้องแก้เอง</li>
+				<li>ติ๊กช่องเขียนทับด้านบน แล้วกด "ตั้งค่าเว็บทั้งหมด": เพจใหม่ถูกสร้าง ส่วนเพจเดิมได้ชื่อเพจ เนื้อหา และค่า SEO ของรุ่นล่าสุด</li>
+				<li>กด "ตั้งค่า SEO และระบบ" ในข้อ 4</li>
+				<li>เพิ่มเพจที่เพิ่งสร้างเข้าเมนูเองที่ <a href="<?php echo esc_url( admin_url( 'nav-menus.php' ) ); ?>">รูปแบบ → เมนู</a> ("สร้างเมนูอย่างเดียว" บอกว่าเพจไหนยังไม่อยู่ในเมนู)</li>
+				<li>อ่านตรวจเพจกฎหมายฉบับร่าง แก้วันที่มีผลกับเลขรุ่นให้ตรงวันเผยแพร่จริง แล้วกดเผยแพร่</li>
+			</ol>
+			<p style="color:#50575e">มีเพจที่แก้ข้อความเองและต้องการเก็บไว้ (รวมถึงเพจกฎหมายที่แก้วันที่มีผลหรือเลขรุ่นไว้ตามข้อ 6): อย่าติ๊กเขียนทับ กดปุ่มโดยไม่ติ๊ก (สร้างเฉพาะเพจที่ยังไม่มี) แล้วใช้ "แทนด้วยรุ่นล่าสุด" ในตารางสถานะเพจทีละเพจ · หน้าแรก /go/ และ /articles/ ไม่มีปุ่มนั้น ค่า SEO ของสามเพจนี้ถูกเขียนเฉพาะตอนสร้างเพจและตอนติ๊กเขียนทับ ถ้าไม่ติ๊กให้แก้ในช่อง Yoast ของเพจเอง</p>
 		</form>
 
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin:0 0 26px;padding:18px 20px;background:#fff;border:1px solid #dcdcde;border-radius:8px;max-width:760px">
@@ -1405,7 +1472,7 @@ function fenix_setup_screen() {
 			<h2 style="margin-top:0">2) นำเข้าบทความ SEO (<?php echo (int) count( fenix_seed_articles() ); ?> บทความ)</h2>
 			<p>นำเข้าเป็น <strong>ฉบับร่าง</strong> พร้อมหมวดหมู่ คำอธิบาย SEO และรูปหน้าปก · กดซ้ำได้ บทความที่มีอยู่แล้วจะไม่ถูกสร้างซ้ำ และฉบับร่างที่ยังไม่เคยแก้จะอัปเดตตามไฟล์รุ่นล่าสุดของธีม</p>
 			<p><label><input type="checkbox" name="fenix_publish" value="1"> เผยแพร่ทันที (ไม่แนะนำ)</label></p>
-			<p><button class="button button-primary" name="fenix_do" value="articles">นำเข้าบทความ</button></p>
+			<p><button class="button button-primary" name="fenix_do" value="articles"<?php disabled( $fenix_can_manage, false ); ?>>นำเข้าบทความ</button></p>
 		</form>
 
 		<?php $fenix_counts = fenix_setup_article_counts(); ?>
@@ -1434,7 +1501,7 @@ function fenix_setup_screen() {
 					</select>
 				</label>
 			</p>
-			<p><button class="button button-primary" name="fenix_do" value="release"<?php disabled( 0, (int) $fenix_counts['draft'] ); ?>>เผยแพร่และตั้งเวลา</button></p>
+			<p><button class="button button-primary" name="fenix_do" value="release"<?php disabled( ! $fenix_can_manage || 0 === (int) $fenix_counts['draft'] ); ?>>เผยแพร่และตั้งเวลา</button></p>
 		</form>
 
 		<?php if ( ! current_user_can( 'manage_options' ) ) : ?>
@@ -1512,8 +1579,8 @@ function fenix_setup_screen() {
 								<?php wp_nonce_field( 'fenix_setup' ); ?>
 								<input type="hidden" name="action" value="fenix_setup">
 								<input type="hidden" name="fenix_slug" value="<?php echo esc_attr( $slug ); ?>">
-								<label style="white-space:nowrap" title="ข้อความและชื่อเพจที่แก้เองในเพจนี้จะถูกแทน (รุ่นเดิมยังอยู่ใน Revisions ของเพจ)"><input type="checkbox" name="fenix_confirm" value="1" required> ยืนยัน</label>
-								<button class="button button-small" name="fenix_do" value="replace">แทนด้วยรุ่นล่าสุด</button>
+								<label style="white-space:nowrap" title="ข้อความ ชื่อเพจ และค่า SEO (ชื่อ SEO คำอธิบาย คีย์เวิร์ดหลัก) ที่แก้เองในเพจนี้จะถูกแทน · ข้อความและชื่อเพจรุ่นเดิมยังอยู่ใน Revisions ของเพจ ส่วนค่า SEO เดิมไม่ถูกเก็บ"><input type="checkbox" name="fenix_confirm" value="1" required<?php disabled( $fenix_can_manage, false ); ?>> ยืนยัน</label>
+								<button class="button button-small" name="fenix_do" value="replace"<?php disabled( $fenix_can_manage, false ); ?>>แทนด้วยรุ่นล่าสุด</button>
 							</form>
 						<?php else : ?>✓ รุ่น <?php echo (int) $srev; ?><?php endif; ?>
 					</td>

@@ -1651,7 +1651,9 @@
 		flex-direction: column;
 	}
 
+	/* คอนเทนเนอร์เป็นคอลัมน์แล้ว: flex-basis 320px ของกฎหลักจะกลายเป็นความสูง (ช่องค้นหาเคยลอยอยู่กลางกล่องขาวสูง 320px) จึงปิด flex ที่นี่ */
 	.search-bar .search-bar-form {
+		flex: 0 0 auto;
 		width: 100%;
 		max-width: none;
 	}

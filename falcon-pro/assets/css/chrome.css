@@ -990,7 +990,7 @@
 		display: grid;
 		justify-items: center;
 		align-content: center;
-		gap: 4px;
+		gap: 2px;
 		min-width: 0;
 		min-height: 56px;
 		padding: 4px 2px;
@@ -1018,9 +1018,12 @@
 		height: 20px;
 	}
 
+	/* ป้ายมีกล่องบรรทัดของตัวเอง (1.5) เพราะ overflow:hidden ตัดตามกล่องนี้: line-height 1.1 ของ .dock-key เคยตัดวรรณยุกต์ที่ซ้อนบนสระบน
+	   เช่น "ตั้" ใน "วิธีติดตั้ง" · บรรทัดสูงขึ้นราว 4px จึงลดช่องไฟของ .dock-key จาก 4px เหลือ 2px ให้บาร์สูงใกล้เคียงเดิม */
 	.dock-label {
 		max-width: 100%;
-		max-height: 1.4em;
+		max-height: 1.6em;
+		line-height: 1.5;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;

@@ -2129,7 +2129,7 @@ h3 {
 	top: 12px;
 	left: 12px;
 	padding: 4px 12px;
-	border-radius: 999px;
+	border-radius: var(--btn-radius-xs, 6px); /* ป้ายหมวดบนรูปปก: มุมมนเล็กน้อยแบบเดียวกับป้ายสถานะอื่น ไม่ใช้ทรงแคปซูล */
 	background: rgba(255, 255, 255, 0.90);
 	border: 1px solid rgba(34, 197, 94, 0.4);
 	color: var(--flare);
@@ -5004,11 +5004,12 @@ h3 {
 	border-color: var(--ember);
 }
 
+/* ตอนชี้: เขียวเข้มขึ้น + ยกขึ้น 2px (.btn:hover) + ลูกศรขยับ เท่านั้น · ไม่มีเงาสี (เงาที่ใช้ได้มีแค่ --shadow-soft / --shadow-lift สีเทา) */
 .btn-fire:hover {
 	background: var(--ember-deep);
 	border-color: var(--ember-deep);
 	color: var(--on-ember);
-	box-shadow: 0 10px 22px rgba(22, 163, 74, 0.22);
+	box-shadow: none;
 }
 
 .btn-fire .icon:last-child {
@@ -8259,7 +8260,8 @@ body.theme-dark .page-body {
    - กระดาษ A4 แนวตั้งกว้างราว 718px (ต่ำกว่า 760) จึงได้เลย์เอาต์มือถือ: dock เป็น position:fixed ถูกพิมพ์ซ้ำทุกหน้าทับเนื้อหา → ซ่อน
    - หัวเว็บแบบ sticky ไม่ต้องตามไปทุกหน้ากระดาษ · ปุ่มลอย LINE, lightbox, ปุ่มเมนู, รางเลขบท ไม่มีประโยชน์บนกระดาษ
    - การ์ดคุกกี้ซ่อนอยู่แล้วใน assets/css/consent.css
-   ไม่บังคับพิมพ์สีพื้น (ไม่ใช้ print-color-adjust) เบราว์เซอร์ปรับตัวอักษรบนพื้นเข้มให้อ่านได้เองเมื่อไม่พิมพ์พื้นหลัง
+   - ทั้งหน้าพิมพ์เป็นตัวอักษรเข้มบนกระดาษขาว (กฎชุดท้ายของบล็อกนี้) · ไม่บังคับพิมพ์สีพื้นของส่วนเข้ม (print-color-adjust ใช้กับป้ายบนรูปปกจุดเดียว)
+     เดิมปล่อยให้เบราว์เซอร์ปรับเอง แต่ Chrome/Safari แค่หรี่ตัวขาวเป็นเทาอ่อน #ABABAB (2.3:1) หัวเรื่องในส่วนเข้มจึงซีดจนอ่านยาก
    ทุกกฎเป็น !important เพราะไฟล์ CSS ของโมดูลโหลดทีหลังไฟล์นี้
    ========================================================== */
 @media print {
@@ -8282,7 +8284,41 @@ body.theme-dark .page-body {
 	.nav-toggle,
 	.skip-link,
 	.hm-rail,
-	.hm-progress {
+	.hm-progress,
+	.media-open-hint {
 		display: none !important;
+	}
+
+	/* กระดาษขาว ตัวอักษรเข้ม: ถอดสีพื้นกับเงาของทุกชิ้นในหน้า แล้วใช้ตัวอักษรสี --ink · ผลเหมือนกันทั้งตอนติ๊กและไม่ติ๊ก "Background graphics"
+	   - ไม่ติ๊ก (ค่าเริ่มต้นของเบราว์เซอร์): สีพื้นไม่ถูกพิมพ์อยู่แล้ว กฎนี้จึงเปลี่ยนแค่สีตัวอักษร จากเทาซีดเป็นเข้ม
+	   - ติ๊ก: ส่วนพื้นเข้มกลายเป็นพื้นขาวตัวเข้มเหมือนกัน (ถ้าบังคับแค่สีตัวอักษร จะได้ตัวเข้มบนพื้นเข้ม จึงต้องถอดสีพื้นไปพร้อมกันเสมอ)
+	   - ใช้กับทั้งหน้า ไม่ไล่ชื่อส่วนพื้นเข้มทีละคลาส: โหมดขาว/ดำสลับและชิ้นส่วนที่เพิ่มทีหลังจึงได้ผลเองโดยไม่ต้องมาแก้ที่นี่
+	   - body อยู่ในกฎเดียวกัน ให้ได้ผลทั้งชุดหรือไม่ได้เลย (เบราว์เซอร์ที่ไม่รู้จัก :not() แบบหลายตัวเลือกข้ามทั้งกฎ = พิมพ์แบบเดิม)
+	   - html body นำหน้า ให้ชนะกฎ !important ระดับคลาสเดียวของไฟล์โมดูลที่โหลดทีหลัง (เช่น .hm-diag-label ใน home.css)
+	   - ยกเว้น .site-header: โลโก้บนหัวเว็บโหมดเข้มเป็นรุ่นตัวอักษรขาว ต้องอยู่บนแถบเข้มของมันเอง (แถบนี้พิมพ์เมื่อผู้ใช้ติ๊กพิมพ์พื้นหลัง)
+	   - รูป <img> และสีใน SVG (fill/stroke ที่ระบุสีเอง) ไม่ถูกแตะ · ไอคอนที่ใช้ currentColor เป็นสีเข้มตามตัวอักษร */
+	html body,
+	html body *:not(.site-header, .site-header *),
+	html body *:not(.site-header, .site-header *)::before,
+	html body *:not(.site-header, .site-header *)::after {
+		background: none !important;
+		box-shadow: none !important;
+		color: #0F1216 !important;
+	}
+
+	/* ของที่ซ่อนด้วยสีโปร่งโดยตั้งใจ ต้องไม่ถูกบังคับเป็นสีเข้ม: เครื่องหมายถูกของช่องที่ยังไม่ติ๊กในเช็กลิสต์ความพร้อม (ไม่งั้นพิมพ์ออกมาเหมือนติ๊กครบ)
+	   และลายน้ำท้ายเว็บที่เป็นตัวอักษรโปร่งมีแต่เส้นขอบ · เพิ่มของที่ซ่อนด้วย color: transparent เมื่อไร ให้เติมที่นี่ */
+	html .hm-js .hp-ready-box:not(:checked) + .hp-ready-tick,
+	html .hm-js .hp-ready-box:not(:checked) + .hp-ready-tick *,
+	html body .ft-wm,
+	html body .ft-wm * {
+		color: transparent !important;
+	}
+
+	/* ป้ายหมวดลอยอยู่บนรูปปกบทความ: พื้นขาวของป้ายต้องพิมพ์เสมอ ไม่งั้นตัวอักษรเข้มจะจมไปกับรูป (ข้อยกเว้นเดียวที่บังคับพิมพ์สีพื้น) */
+	html body .post-card-cat {
+		background: #FFFFFF !important;
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
 	}
 }

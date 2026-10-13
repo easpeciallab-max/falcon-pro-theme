@@ -142,6 +142,21 @@
 	}
 }
 
+/* รูปที่ไฟล์จริงไม่กว้างกว่าขนาดที่แสดงอยู่บนจอใหญ่: เปิด lightbox แล้วได้ภาพเท่าเดิม
+   main.js จึงถอดลิงก์ออกและใส่ .is-actual → ไม่มีเคอร์เซอร์ซูม ไม่มีป้ายชวนกด รูปไม่ขยับตอนชี้ · กรอบและคำบรรยายคงเดิม
+   จอมือถือ (≤760px) ไม่ได้คลาสนี้ ลิงก์เปิดไฟล์ในแท็บใหม่ตามเดิม */
+.media-open.is-actual {
+	cursor: default;
+}
+
+.media-open.is-actual .media-open-hint {
+	display: none;
+}
+
+.media-open.is-actual:hover img {
+	transform: none;
+}
+
 .media-cap {
 	display: flex;
 	flex-wrap: wrap;

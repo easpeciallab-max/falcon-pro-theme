@@ -292,7 +292,7 @@ function fenix_figure_registry() {
 	return (array) apply_filters(
 		'fenix_figure_registry',
 		array(
-			/* แผนภาพที่เรนเดอร์ด้วย dev/make-art.php (ข้อความในภาพอยู่ที่ dev/preview/art.php) · ไฟล์จอแคบชื่อ …-mobile-v2.webp ถูกหยิบใช้เอง
+			/* แผนภาพที่เรนเดอร์ด้วย dev/make-art.php (ข้อความในภาพอยู่ที่ dev/preview/art.php) · ไฟล์จอแคบชื่อ …-mobile-v<เลขเดียวกับไฟล์หลัก>.webp ถูกหยิบใช้เอง
 			 * แก้ภาพเมื่อไหร่ให้เพิ่มเลข v ทั้งใน art.php และชื่อไฟล์ตรงนี้ */
 			'account-flow' => array(
 				'file'    => 'falcon-pro-ea-account-flow-v2.webp',
@@ -300,7 +300,7 @@ function fenix_figure_registry() {
 				'caption' => 'ภาพประกอบลำดับงานฝั่งโบรกเกอร์ ชื่อเมนูและหน้าจอจริงอาจต่างกันไปตามโบรกเกอร์',
 			),
 			'vps-flow'     => array(
-				'file'    => 'falcon-pro-ea-vps-flow-v2.webp',
+				'file'    => 'falcon-pro-ea-vps-flow-v3.webp',
 				'alt'     => 'อุปกรณ์ของคุณเชื่อมต่อผ่าน Remote Desktop ไปยัง Windows VPS ซึ่งเปิด MT5 และ EA ค้างไว้ให้ทำงานต่อเนื่อง',
 				'caption' => 'ภาพประกอบการทำงานของ VPS: MT5 และ EA ทำงานบน VPS ส่วนอุปกรณ์ของคุณใช้เปิดเข้าไปดูและสั่งงาน',
 			),

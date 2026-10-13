@@ -71,9 +71,10 @@ $fx_arts = array(
 	),
 
 	/* คู่มือ VPS สามหน้า: เครื่องของคุณ → Remote Desktop → Windows VPS ที่เปิด MT5 กับ EA ค้างไว้ (ทางติดตั้งเอง)
-	 * v2: ไม่มีป้ายเหนือหัวเรื่อง ข้อความอื่นเหมือนรุ่นแรก */
+	 * v2: ไม่มีป้ายเหนือหัวเรื่อง ข้อความอื่นเหมือนรุ่นแรก
+	 * v3 (13 ต.ค. 2026): ป้ายสั้นในการ์ด (Windows / Android / iPhone ฯลฯ) เป็นสี่เหลี่ยมมุมมนเล็กน้อย ไม่ใช่ทรงแคปซูล ข้อความเหมือน v2 ทุกคำ */
 	'vps-flow'     => array(
-		'v'      => 2,
+		'v'      => 3,
 		'title'  => 'EA ทำงานบน VPS ส่วนคุณแค่เปิดเข้าไปดู',
 		'sub'    => 'เครื่องของคุณเป็นเพียงหน้าจอควบคุม ตัวที่เทรดจริงคือ~MT5~บน~VPS',
 		'mode'   => 'chain',
@@ -169,7 +170,8 @@ h1{font-size:calc(<?php echo $tall ? 50 : 56; ?>px*var(--k));line-height:1.3;fon
 .step h2{font-size:calc(<?php echo $tall ? 34 : ( $chain ? 35 : 37 ); ?>px*var(--k));line-height:1.36;font-weight:700;color:var(--ink)}
 .step p{margin-top:<?php echo $tall ? 2 : 8; ?>px;font-size:calc(<?php echo $tall ? 26 : 28; ?>px*var(--k));line-height:1.5;color:var(--ink2)}
 .chips{display:flex;flex-wrap:wrap;gap:8px;<?php echo $tall ? 'margin-top:8px' : 'margin-top:auto;padding-top:14px'; ?>}
-.chip{padding:4px 14px;border-radius:999px;background:var(--deep);border:2px solid var(--line);font-size:calc(21px*var(--k));line-height:1.5;font-weight:600;color:var(--ink);white-space:nowrap}
+/* ป้ายสั้น = สี่เหลี่ยมมุมมนเล็กน้อย (10px บนผืน 1600px ย่อแล้วเท่ากับราว 6px ของป้ายสถานะบนเว็บ) · ห้ามใช้ทรงแคปซูล 999px */
+.chip{padding:4px 14px;border-radius:10px;background:var(--deep);border:2px solid var(--line);font-size:calc(21px*var(--k));line-height:1.5;font-weight:600;color:var(--ink);white-space:nowrap}
 .step.hl .chip{background:var(--green);border-color:var(--green);color:var(--on-green)}
 .arrow{flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:var(--green);<?php echo $tall ? 'height:' . ( $chain ? 28 : 24 ) . 'px' : 'width:' . ( $chain ? 60 : 44 ) . 'px'; ?>}
 .arrow svg{width:<?php echo $tall ? 28 : 34; ?>px;height:<?php echo $tall ? 28 : 34; ?>px;stroke-width:2.8<?php echo $tall ? ';transform:rotate(90deg)' : ''; ?>}

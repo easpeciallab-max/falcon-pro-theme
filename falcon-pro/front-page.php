@@ -232,7 +232,8 @@ $fenix_labels   = fenix_show_kickers();
 					<aside class="hm-principle">
 						<?php echo fenix_icon_badge( 'shield', 'green' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 						<div>
-							<?php if ( '' !== $fenix_principle_label ) : ?>
+							<?php /* หัวข้อเล็กของกล่องหลักการ: พิมพ์เฉพาะเมื่อเปิด "คำเล็กเหนือหัวข้อ" (show_kickers · หมวด 1 · fenix_kicker) · ปิด = กล่องมีแค่ข้อความ */ ?>
+							<?php if ( '' !== fenix_kicker( $fenix_principle_label ) ) : ?>
 								<p class="hm-principle-label"><?php echo esc_html( $fenix_principle_label ); ?></p>
 							<?php endif; ?>
 							<p class="hm-principle-text"><?php echo fenix_home_text( $fenix_principle ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?></p>
@@ -291,7 +292,8 @@ $fenix_labels   = fenix_show_kickers();
 					<span class="hm-diag-idx" aria-hidden="true"><?php echo fenix_icon( 'check', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
 					<i class="hm-led hm-led--ok" aria-hidden="true"></i>
 					<div class="hm-diag-body">
-						<?php if ( '' !== $fenix_resolved_label ) : ?>
+						<?php /* หัวข้อเล็กของแถวสรุป: พิมพ์เฉพาะเมื่อเปิด "คำเล็กเหนือหัวข้อ" (show_kickers · หมวด 1 · fenix_kicker) · ปิด = แถวมีแค่ข้อความ */ ?>
+						<?php if ( '' !== fenix_kicker( $fenix_resolved_label ) ) : ?>
 							<p class="hm-diag-label"><?php echo esc_html( $fenix_resolved_label ); ?></p>
 						<?php endif; ?>
 						<p><?php echo fenix_home_text( $fenix_resolved_text ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?></p>
@@ -900,7 +902,7 @@ if ( function_exists( 'fenix_homeplus_section' ) ) {
 	?>
 <section class="hm-ch hm-risk" id="risk"<?php fenix_home_ch_attrs( 'risk' ); ?> aria-labelledby="hm-risk-title">
 	<div class="container hm-hazard">
-		<?php /* ตราเตือน (ไอคอน + คำว่าคำเตือน) บอกว่าส่วนนี้คือคำเตือนความเสี่ยง จึงแสดงเสมอเมื่อมีข้อความ · เลขบทกับป้ายบทที่ต่อท้ายพิมพ์เฉพาะเมื่อเปิด show_kickers (หมวด 1)
+		<?php /* ตราเตือน (ไอคอน + ข้อความของ home_risk_label): ค่าเริ่มต้นว่าง หัวข้อจึงขึ้นเดี่ยว ๆ ไม่มีคำเหนือหัวข้อ (เจ้าของสั่ง 12 ต.ค. 2026) · พิมพ์เฉพาะเมื่อเจ้าของใส่ข้อความเอง · เลขบทกับป้ายบทที่ต่อท้ายพิมพ์เฉพาะเมื่อเปิด show_kickers (หมวด 1)
 		 * ไม่มีทั้งสองอย่าง = ไม่พิมพ์บรรทัดนี้เลย (ไม่เหลือ <p> เปล่า) */ ?>
 		<?php if ( '' !== $fenix_risk_label || $fenix_labels ) : ?>
 		<p class="hm-hazard-label">

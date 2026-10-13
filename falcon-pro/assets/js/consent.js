@@ -131,7 +131,9 @@
 		}
 		window.gtag('consent', 'update', signals(choice));
 		window.gtag('js', new Date());
-		window.gtag('config', gaId);
+		/* cookie_domain 'none' = gtag ตั้ง _ga / _ga_* โดยไม่ใส่ Domain คุกกี้จึงอยู่กับโฮสต์ของเว็บไซต์นี้เท่านั้น ไม่ถูกส่งไปโดเมนย่อยอื่น (เช่น แดชบอร์ด)
+		   ค่าเริ่มต้น 'auto' ตั้งไว้ทั้งโดเมนหลัก · clearCookies() ลบได้ทั้งสองแบบ (ไม่ระบุ domain = ของโฮสต์นี้ · ระบุ domain = สำเนาเก่าบนโดเมนแม่) */
+		window.gtag('config', gaId, { cookie_domain: 'none' });
 		var tag = document.createElement('script');
 		tag.async = true;
 		tag.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(gaId);

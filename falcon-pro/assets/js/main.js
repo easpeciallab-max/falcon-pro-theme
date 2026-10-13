@@ -609,6 +609,37 @@
 		var fullSrc = function (a) {
 			return a.getAttribute('data-full') || a.getAttribute('href');
 		};
+		/* จอใหญ่: รูปที่ไฟล์จริงไม่กว้างกว่าขนาดที่แสดงอยู่ เปิด lightbox แล้วได้ภาพเท่าเดิม → ถอดลิงก์ออก (เก็บ URL ไว้ที่ data-full) และใส่ .is-actual
+		   ให้ CSS ซ่อนป้ายกับเคอร์เซอร์ซูม (assets/css/components.css) · ความกว้างจริงมาจาก --media-w ที่ fenix_media_picture() พิมพ์ไว้บน <img>
+		   ไม่มีค่านี้ = ไม่รู้ขนาดจริง → คงลิงก์ไว้ · จอมือถือคืนลิงก์เสมอ (แตะแล้วเปิดไฟล์ไปซูมด้วยนิ้ว) · ไม่มี JS = ลิงก์เปิดไฟล์ตามเดิม
+		   รูปยังอยู่ในกลุ่ม data-group เดิม: เปิดจากรูปอื่นในกลุ่มแล้วกดลูกศรมาดูได้ */
+		var lbSync = function (a) {
+			var img = a.querySelector('img');
+			var real = img ? parseFloat(img.style.getPropertyValue('--media-w')) : 0;
+			var shown = img ? img.offsetWidth : 0;
+			var flat = !(lbPhone && lbPhone.matches) && real > 0 && shown > 0 && real <= shown + 1;
+			if (flat === a.classList.contains('is-actual')) {
+				return;
+			}
+			if (flat) {
+				a.setAttribute('data-full', fullSrc(a));
+				a.removeAttribute('href');
+				a.classList.add('is-actual');
+			} else {
+				a.setAttribute('href', fullSrc(a));
+				a.classList.remove('is-actual');
+			}
+		};
+		var lbSyncAll = function () {
+			lbLinks.forEach(lbSync);
+		};
+		/* ขนาดกล่องของรูปเปลี่ยน (ย่อขยายหน้าต่าง, แท็บหรือบล็อกที่ซ่อนอยู่ถูกเปิด) = ตรวจใหม่ · resize ครอบกรณีข้ามเส้น 760px โดยที่รูปกว้างเท่าเดิม */
+		var lbWatch = window.ResizeObserver ? new window.ResizeObserver(function (entries) {
+			entries.forEach(function (en) {
+				var a = en.target.closest ? en.target.closest('a.lightbox') : null;
+				if (a) lbSync(a);
+			});
+		}) : null;
 		var show = function () {
 			var a = group[idx];
 			lbImg.src = fullSrc(a);
@@ -625,7 +656,15 @@
 			if (lastFocus) lastFocus.focus();
 		};
 		lbLinks.forEach(function (a) {
+			var watched = a.querySelector('img');
+			if (lbWatch && watched) lbWatch.observe(watched);
 			a.addEventListener('click', function (e) {
+				lbSync(a);
+				if (a.classList.contains('is-actual')) {
+					/* ไม่มีอะไรให้ขยาย: ไม่เปิด lightbox (ลิงก์ถูกถอดแล้ว จึงไม่มีการเปิดแท็บใหม่ด้วย) */
+					e.preventDefault();
+					return;
+				}
 				var full = fullSrc(a);
 				if (lbPhone && lbPhone.matches) {
 					/* รูปที่เห็นอยู่เป็นไฟล์สำหรับจอแคบ (<source media> ของ <picture> ตรงกับจอนี้) → เปิดไฟล์นั้น ไม่ใช่ไฟล์แนวกว้างที่ตัวหนังสือเล็กกว่า
@@ -650,6 +689,8 @@
 				setTimeout(function () { lb.querySelector('.lb-close').focus(); }, 30);
 			});
 		});
+		lbSyncAll();
+		window.addEventListener('resize', lbSyncAll);
 		lb.addEventListener('click', function (e) {
 			if (e.target === lb) close();
 		});
