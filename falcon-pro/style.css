@@ -8208,6 +8208,17 @@ body.theme-dark .page-body {
 	margin-top: 1.1em;
 }
 
+/* กล่องในเนื้อหา (ตาราง กล่องแจ้งเตือน กล่องลิงก์ รูป รายการพับได้) ตามด้วยย่อหน้าหรือรายการ · ใช้ทั้งบทความและเพจ
+   เหตุเดียวกับกฎด้านบน: ย่อหน้าไม่มีขอบบน กล่องไม่มีขอบล่าง ในบทความข้อความจึงเคยติดขอบล่างของตาราง (เหลือ 2px) */
+.entry-content > :is(div, figure, table, aside, nav, details, blockquote, section) + :is(p, ul, ol) {
+	margin-top: 1.25em;
+}
+
+/* กล่องตามด้วยกล่องในบทความ (เพจมี .guide-content > * + * อยู่แล้ว) */
+.entry-content:not(.guide-content) > :is(div, figure, table, aside, nav, details, blockquote, section) + :is(div, figure, table, aside, nav, details, blockquote, section) {
+	margin-top: 1.25em;
+}
+
 /* ==========================================================
    v3 · ปุ่มทั้งเว็บ = สี่เหลี่ยมมุมมนเล็กน้อย (ไม่ใช่แคปซูล ไม่ใช่วงกลม)
    รัศมีมุมมาจาก token ชุดเดียวใน :root

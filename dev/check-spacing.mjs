@@ -5,6 +5,7 @@
  *   surface  text or a box ends closer than the limit to the place where the background changes
  *            (the end of a band, the edge of a card, the next band starting right under a row of buttons)
  *   border   text or a box sits closer than the limit to a visible border line of a frame around it
+ *   stack    a box and the text or box right above or below it on the same surface are closer than 6px
  *   viewport text or a box touches the side of the screen
  *   overflow the page scrolls sideways
  * Limits (px): a band across the page 20 above/below and 10 at the sides · a box 8 (a box inside a box 5) · a control (button, chip, field) 1.
@@ -530,6 +531,51 @@ async function audit( cfg ) {
 			}
 		}
 	}
+	// ----- a box and the block right above or below it on the same surface -----
+	const boxes = items.filter( ( it ) => 'box' === it.kind );
+	for ( const B of boxes ) {
+		const bw = B.r - B.l;
+		if ( bw < 120 && B.b - B.t < 32 ) {
+			continue; // a small tag inside a line of text follows the line spacing
+		}
+		for ( const side of [ 'bottom', 'top' ] ) {
+			let best = null;
+			for ( const n of items ) {
+				if ( n === B || n.el === B.el || n.surf.el !== B.surf.el || B.el.contains( n.el ) || n.el.contains( B.el ) ) {
+					continue;
+				}
+				const over = Math.min( n.r, B.r ) - Math.max( n.l, B.l );
+				if ( over < Math.min( bw, n.r - n.l ) * 0.3 ) {
+					continue;
+				}
+				const gap = 'bottom' === side ? n.t - B.b : B.t - n.b;
+				if ( gap < -1 || gap >= cfg.stack * ( cfg.all ? 2 : 1 ) ) {
+					continue;
+				}
+				if ( ! best || gap < best.gap ) {
+					best = { gap, n };
+				}
+			}
+			if ( ! best ) {
+				continue;
+			}
+			if ( 'box' === best.n.kind && best.gap <= 2 ) {
+				// tiles of a hairline grid, table cells, joined rows of one list and bands under bands touch on purpose;
+				// two different blocks of running content (a table, then a note box) do not
+				const par = B.el.parentElement;
+				const sig = ( e ) => e.tagName + '.' + ( e.classList[ 0 ] || '' );
+				const sw = pageRect( B.surf.el ).width;
+				const flow = par && par === best.n.el.parentElement && /^(block|flow-root)$/.test( cs( par ).display )
+					&& sig( B.el ) !== sig( best.n.el ) && ! /^(TD|TH|TR|LI)$/.test( B.el.tagName )
+					&& bw < sw * 0.96 && best.n.r - best.n.l < sw * 0.96;
+				if ( ! flow ) {
+					continue;
+				}
+			}
+			flags.push( { kind: 'stack', side, gap: Math.max( 0, Math.round( best.gap ) ), type: best.n.kind, limit: cfg.stack, item: desc( B.el ), text: B.text, edge: desc( best.n.el ) + ( best.n.text ? ' "' + best.n.text.slice( 0, 20 ) + '"' : '' ), on: desc( B.surf.el ), x: B.l, y: B.t, w: bw, h: B.b - B.t } );
+		}
+	}
+
 	window.scrollTo( { left: 0, top: 0, behavior: 'instant' } );
 	return {
 		flags,
@@ -621,6 +667,7 @@ const cdp = new CDP( ws );
 const cfg = {
 	colorDelta: 9,
 	boxInBox: 5,
+	stack: 6,
 	viewportSide: 8,
 	all: showAll,
 	limit: { band: [ 20, 10 ], box: [ 8, 8 ], control: [ 1, 3 ] },
