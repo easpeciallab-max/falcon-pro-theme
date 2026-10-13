@@ -1,0 +1,421 @@
+/*
+ * FALCON PRO EA · แดชบอร์ด: ปุ่ม หมายเหตุ และบล็อกแนะนำ (inc/modules/dashboard.php)
+ * โหลดทุกหน้า รวมหน้า /go (ลำดับใน fenix_asset_modules: หลัง pages.css และ go.css) · สไตล์เฉพาะหน้า /dashboard/ อยู่ที่ dashboard-page.css
+ *
+ * - ใช้ token ใน :root ของ style.css เท่านั้น · สีเขียวใช้ทึบ ไม่มี gradient / glow · มุมโค้ง 14 ถึง 22px · ปุ่มสี่เหลี่ยมมุมมน (--btn-radius)
+ * - ทุกบล็อกใช้ได้ทั้งบนพื้นขาวและพื้นเข้ม (.is-dark) · การ์ดย่อของหน้า /go อ่านโทเคน --lh-* ของการ์ดหน้านั้นเมื่อมี
+ * - จุดตัดจอ: 960 / 640
+ */
+
+/* ==========================================================
+   1) ปุ่มไปแดชบอร์ด (fenix_dashboard_button · a[data-dash])
+   ========================================================== */
+
+/* ข้อความปุ่มยาว ("เข้าชมแดชบอร์ดก่อนสมัคร") ตัดบรรทัดได้บนจอแคบ ไม่ดันกรอบออกนอกจอ */
+a.btn[data-dash] {
+	max-width: 100%;
+	white-space: normal;
+	text-align: center;
+}
+
+/* ไอคอนลิงก์ออกนอกเว็บท้ายปุ่ม: เล็กและจางกว่าข้อความ */
+a.btn[data-dash] .icon-sm:last-of-type {
+	opacity: 0.72;
+}
+
+/* แถวปุ่ม: ค่าเริ่มต้นเรียงซ้อนเต็มความกว้าง (การ์ดด้านข้างของบล็อก) · --row = เรียงแนวนอน */
+.dash-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.dash-actions .btn {
+	width: 100%;
+}
+
+.dash-actions--row {
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px 14px;
+}
+
+.dash-actions--row .btn {
+	width: auto;
+}
+
+/* ลิงก์ข้อความ (เข้าสู่ระบบ) ข้างปุ่มหลัก */
+.dash-textlink {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 4px;
+	font-weight: 600;
+	font-size: 0.95rem;
+	color: var(--flare);
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 4px;
+}
+
+.dash-textlink:hover {
+	color: var(--ember-deep);
+}
+
+.is-dark .dash-textlink {
+	color: var(--mint);
+}
+
+.is-dark .dash-textlink:hover {
+	color: #FFFFFF;
+}
+
+/* ==========================================================
+   2) หมายเหตุประกอบปุ่ม (fenix_dashboard_notes · ul.dash-notes)
+   ========================================================== */
+.dash-notes {
+	list-style: none;
+	display: grid;
+	gap: 8px;
+	margin: 16px 0 0;
+	padding: 0;
+}
+
+.dash-note {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	font-size: 0.84rem;
+	line-height: 1.65;
+	color: var(--ash);
+	text-align: left;
+}
+
+.dash-note .icon {
+	flex: 0 0 auto;
+	margin-top: 0.3em;
+	color: var(--flare);
+}
+
+.dash-note--status .icon {
+	color: var(--warn);
+}
+
+.is-dark .dash-note,
+.phero .dash-note {
+	color: var(--on-black-2);
+}
+
+.is-dark .dash-note .icon,
+.phero .dash-note .icon {
+	color: var(--mint);
+}
+
+.is-dark .dash-note--status .icon,
+.phero .dash-note--status .icon {
+	color: #F2B04A;
+}
+
+/* ==========================================================
+   3) บล็อกแนะนำแดชบอร์ด (fenix_dashboard_block)
+   ซ้าย: ป้าย + หัวข้อ + คำอธิบาย + จุดเด่น + ข้อควรรู้ · ขวา: (ภาพหน้าจอ) + ปุ่ม + หมายเหตุ + ลิงก์หน้า /dashboard/
+   ========================================================== */
+.dash-promo.section {
+	padding: 80px 0;
+}
+
+/* ผู้เรียกวางการ์ดใน section ของตัวเอง (wrap = false): ไม่ทาพื้นซ้ำ */
+div.dash-promo.is-dark {
+	background: none;
+}
+
+.dash-card {
+	position: relative;
+	display: grid;
+	grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+	align-items: start;
+	gap: 36px 48px;
+	padding: 44px 44px 44px 48px;
+	border: 1px solid var(--border);
+	border-radius: 22px;
+	background: #FFFFFF;
+	box-shadow: var(--shadow-soft);
+	overflow: hidden;
+	text-align: left;
+}
+
+/* แถบเขียวทึบขอบซ้าย (แบบเดียวกับการ์ดภาพรวมในหัวหน้าคู่มือ) */
+.dash-card::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	width: 5px;
+	background: var(--ember);
+}
+
+.dash-promo--media .dash-card {
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.dash-card .kicker {
+	margin-bottom: 12px;
+}
+
+.dash-card-title {
+	margin: 0 0 14px;
+	font-size: clamp(1.45rem, 2.7vw, 2rem);
+	line-height: 1.3;
+	color: var(--ink);
+}
+
+.dash-card-text {
+	margin: 0;
+	line-height: 1.8;
+	color: var(--ash);
+}
+
+.dash-points {
+	list-style: none;
+	display: grid;
+	gap: 10px;
+	margin: 22px 0 0;
+	padding: 0;
+}
+
+.dash-points li {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	line-height: 1.65;
+	color: var(--ink);
+}
+
+.dash-points .icon {
+	flex: 0 0 auto;
+	margin-top: 0.32em;
+	color: var(--flare);
+}
+
+.dash-caution {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	margin: 22px 0 0;
+	padding: 12px 14px;
+	border: 1px solid rgba(178, 108, 9, 0.3);
+	border-radius: 12px;
+	background: #FFFBF3;
+	font-size: 0.88rem;
+	line-height: 1.65;
+	color: #5C3A05;
+}
+
+.dash-caution .icon {
+	flex: 0 0 auto;
+	margin-top: 0.25em;
+	color: var(--warn);
+}
+
+.dash-card-side {
+	padding: 24px;
+	border: 1px solid var(--border);
+	border-radius: 16px;
+	background: var(--coal);
+}
+
+.dash-card-shot {
+	margin: 0 0 18px;
+}
+
+.dash-card-shot .media-open {
+	border-radius: 12px;
+	box-shadow: none;
+}
+
+.dash-card-shot .media-cap {
+	margin-top: 8px;
+	font-size: 0.76rem;
+}
+
+.dash-more {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 18px;
+	font-weight: 600;
+	font-size: 0.94rem;
+	color: var(--flare);
+}
+
+.dash-more .icon {
+	transition: transform 0.18s ease;
+}
+
+.dash-more:hover {
+	color: var(--ember-deep);
+}
+
+.dash-more:hover .icon {
+	transform: translateX(3px);
+}
+
+.dash-admin-hint {
+	display: block;
+	width: min(1140px, calc(100% - 48px));
+	margin: 24px auto;
+}
+
+/* ---------- บนพื้นเข้ม ---------- */
+.is-dark .dash-card {
+	border-color: var(--border-dark);
+	background: var(--black-2);
+	box-shadow: none;
+}
+
+.is-dark.is-dark-2 .dash-card {
+	background: var(--black);
+}
+
+.is-dark .dash-card-title {
+	color: #FFFFFF;
+}
+
+.is-dark .dash-card-text {
+	color: var(--on-black-2);
+}
+
+.is-dark .dash-points li {
+	color: var(--on-black);
+}
+
+.is-dark .dash-points .icon,
+.is-dark .dash-more {
+	color: var(--mint);
+}
+
+.is-dark .dash-more:hover {
+	color: #FFFFFF;
+}
+
+.is-dark .dash-caution {
+	border-color: rgba(242, 176, 74, 0.34);
+	background: rgba(178, 108, 9, 0.12);
+	color: var(--on-black);
+}
+
+.is-dark .dash-caution .icon {
+	color: #F2B04A;
+}
+
+.is-dark .dash-card-side {
+	border-color: var(--border-dark);
+	background: var(--black-3);
+}
+
+/* ---------- การ์ดย่อของหน้า /go (อยู่ในการ์ดกลางจอกว้าง 460px) ---------- */
+.dash-promo--go {
+	margin: 22px 0 0;
+}
+
+.dash-promo--go .dash-card {
+	grid-template-columns: minmax(0, 1fr);
+	gap: 16px;
+	padding: 20px 18px 18px 22px;
+	border-color: var(--lh-line, var(--border));
+	border-radius: 16px;
+	background: var(--lh-surface, #FFFFFF);
+	box-shadow: none;
+}
+
+.dash-promo--go.is-dark .dash-card {
+	border-color: var(--lh-line, var(--border-dark));
+	background: var(--lh-surface, var(--black-2));
+}
+
+.dash-promo--go .dash-card::before {
+	width: 4px;
+}
+
+.dash-promo--go .dash-card-title {
+	margin-bottom: 8px;
+	font-size: 1.08rem;
+	line-height: 1.4;
+}
+
+.dash-promo--go .dash-card-text {
+	font-size: 0.88rem;
+	line-height: 1.7;
+}
+
+.dash-promo--go .dash-caution {
+	margin-top: 14px;
+	font-size: 0.82rem;
+}
+
+.dash-promo--go .dash-card-side,
+.dash-promo--go.is-dark .dash-card-side {
+	padding: 0;
+	border: 0;
+	background: none;
+}
+
+.dash-promo--go .dash-notes {
+	margin-top: 12px;
+}
+
+.dash-promo--go .dash-note {
+	font-size: 0.8rem;
+}
+
+.dash-promo--go .dash-more {
+	margin-top: 14px;
+	font-size: 0.88rem;
+}
+
+/* ---------- จอแคบ ---------- */
+@media (max-width: 960px) {
+	.dash-card,
+	.dash-promo--media .dash-card {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 28px;
+		padding: 34px 28px 30px 32px;
+	}
+}
+
+@media (max-width: 640px) {
+	.dash-promo.section {
+		padding: 56px 0;
+	}
+
+	.dash-card,
+	.dash-promo--media .dash-card {
+		padding: 26px 18px 22px 22px;
+		border-radius: 18px;
+	}
+
+	.dash-card-side {
+		padding: 18px 16px;
+	}
+
+	.dash-actions--row {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.dash-actions--row .btn {
+		width: 100%;
+	}
+
+	.dash-actions--row .dash-textlink {
+		justify-content: center;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.dash-more .icon {
+		transition: none;
+	}
+}

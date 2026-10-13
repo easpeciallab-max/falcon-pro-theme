@@ -4,7 +4,8 @@
  *
  * - fenix_site_pages()     : รายการเพจทั้งหมดของเว็บ (slug → template, เนื้อหาเริ่มต้น, กลุ่มเมนู)
  * - fenix_seed_articles()  : บทความ SEO เริ่มต้น (นำเข้าเป็นฉบับร่าง)
- * - หน้า admin             : สร้างเพจที่ยังไม่มี, ตั้งหน้าแรก/หน้าบทความ, สร้างเมนู, นำเข้าบทความ
+ * - หน้า admin             : สร้างเพจที่ยังไม่มี, ตั้งหน้าแรก/หน้าบทความ, สร้างเมนู, นำเข้าบทความ, ปล่อยบทความ,
+ *                            ตั้งค่า SEO และระบบ (fenix_setup_seo: Yoast + ค่าเริ่มต้นของ WordPress + ภาพปกของเพจเป็นภาพเด่น)
  *
  * เนื้อหาเริ่มต้นอยู่ใน inc/content/pages/*.html และ inc/content/articles/*.html
  * บรรทัดแรกของไฟล์เป็น <!--meta {...json...} --> (title, seo_title, description, keyword, excerpt, category, kicker)
@@ -20,19 +21,48 @@ if ( ! defined( 'ABSPATH' ) ) {
  * รายการเพจของเว็บ (ลำดับ = ลำดับที่แสดงในหน้า Setup)
  * group: test | guide | pricing | doc | hub
  * status: publish | draft (เพจกฎหมายสร้างเป็นร่างให้เจ้าของตรวจก่อนเผยแพร่)
+ * order: ลำดับเพจในหลังบ้าน (menu_order) = ตำแหน่งในรายการนี้ × 10 · เติมให้อัตโนมัติ ไม่ต้องพิมพ์เอง
+ *
+ * แถวที่ระบุไฟล์เนื้อหา (content) แต่ธีมยังไม่มีไฟล์นั้น = เพจที่เตรียมไว้ล่วงหน้า ยังไม่นับเป็นเพจของเว็บ:
+ * ไม่ถูกสร้าง ไม่ขึ้นเมนู/footer/ดัชนีคู่มือ และไม่มีเส้นทางในพรีวิว จนกว่าไฟล์จะมา (กันเพจว่างและลิงก์ 404)
+ * ส่ง $include_pending = true เพื่อดูทุกแถว (หน้า Setup ใช้แจ้งว่ามีแถวไหนยังรอไฟล์)
  */
-function fenix_site_pages() {
+function fenix_site_pages( $include_pending = false ) {
+	static $all   = null;
+	static $ready = null;
+	if ( null === $all ) {
+		$all   = fenix_site_pages_manifest();
+		$ready = array();
+		$order = 0;
+		foreach ( $all as $slug => $page ) {
+			$order                += 10;
+			$all[ $slug ]['order'] = $order;
+			if ( ! empty( $page['content'] ) && ! file_exists( get_template_directory() . '/inc/content/' . $page['content'] . '.html' ) ) {
+				continue;
+			}
+			$ready[ $slug ] = $all[ $slug ];
+		}
+	}
+	return $include_pending ? $all : $ready;
+}
+
+/**
+ * ตัว manifest ดิบ (แก้รายการเพจที่นี่) · โค้ดอื่นเรียกผ่าน fenix_site_pages() เสมอ
+ */
+function fenix_site_pages_manifest() {
 	return array(
-		'home'             => array( 'title' => 'หน้าแรก', 'template' => '', 'content' => '', 'group' => 'hub', 'front' => true, 'seo' => array( 'seo_title' => 'FALCON PRO EA · EA MT5 ผู้ช่วยเทรดอัตโนมัติบน MetaTrader 5', 'description' => 'FALCON PRO EA คือ Expert Advisor สำหรับ MetaTrader 5 เทรดอัตโนมัติตามกฎที่ตั้งไว้ ใช้ได้กับ Forex ทองคำ และสินทรัพย์บน MT5 พร้อมคู่มือภาษาไทยและทีมช่วยติดตั้งทาง LINE', 'keyword' => 'EA MT5' ) ),
+		'home'             => array( 'title' => 'หน้าแรก', 'template' => '', 'content' => '', 'group' => 'hub', 'front' => true, 'seo' => array( 'seo_title' => 'FALCON PRO EA · EA MT5 ผู้ช่วยเทรดอัตโนมัติบน MetaTrader 5', 'description' => 'FALCON PRO EA คือ Expert Advisor สำหรับ MetaTrader 5 ที่เทรดทองคำ XAUUSD ตามชุด EA ที่คุณเลือก ติดตั้งเองหรือรันผ่านแดชบอร์ดได้ พร้อมคู่มือภาษาไทยและทีมงานทาง LINE', 'keyword' => 'EA MT5' ) ),
 		'backtest'         => array( 'title' => 'Backtest', 'template' => 'template-backtest.php', 'content' => 'pages/backtest', 'group' => 'test', 'menu' => 'Backtest' ),
 		'forward-test'     => array( 'title' => 'Forward Test', 'template' => 'template-forward.php', 'content' => 'pages/forward-test', 'group' => 'test', 'menu' => 'Forward Test' ),
 		'how-to-install'   => array( 'title' => 'วิธีติดตั้ง EA ใน MT5', 'template' => 'template-install.php', 'content' => 'pages/how-to-install', 'group' => 'guide', 'menu' => 'วิธีติดตั้ง EA บน MT5' ),
 		'open-mt5-account' => array( 'title' => 'เปิดบัญชี MT5', 'template' => 'template-guide.php', 'content' => 'pages/open-mt5-account', 'group' => 'guide', 'menu' => 'เปิดบัญชีเทรด MT5' ),
+		'deposit'          => array( 'title' => 'ฝากเงินเข้าบัญชีเทรด MT5', 'template' => 'template-guide.php', 'content' => 'pages/deposit', 'group' => 'guide', 'menu' => 'ฝากเงินเข้าบัญชีเทรด' ),
 		'mt5-login'        => array( 'title' => 'ติดตั้งและล็อกอิน MT5', 'template' => 'template-guide.php', 'content' => 'pages/mt5-login', 'group' => 'guide', 'menu' => 'ติดตั้งและล็อกอิน MT5' ),
 		'vps-windows'      => array( 'title' => 'คู่มือ VPS บน Windows', 'template' => 'template-guide.php', 'content' => 'pages/vps-windows', 'group' => 'guide', 'menu' => 'VPS บน Windows' ),
 		'vps-android'      => array( 'title' => 'คู่มือ VPS บน Android', 'template' => 'template-guide.php', 'content' => 'pages/vps-android', 'group' => 'guide', 'menu' => 'VPS บน Android' ),
 		'vps-ios'          => array( 'title' => 'คู่มือ VPS บน iPhone', 'template' => 'template-guide.php', 'content' => 'pages/vps-ios', 'group' => 'guide', 'menu' => 'VPS บน iPhone / iPad' ),
 		'tools'            => array( 'title' => 'เครื่องมือคำนวณ', 'template' => 'template-guide.php', 'content' => 'pages/tools', 'group' => 'guide', 'menu' => 'เครื่องคำนวณ Lot / Drawdown' ),
+		'dashboard'        => array( 'title' => 'แดชบอร์ด FALCON PRO', 'template' => 'template-dashboard.php', 'content' => 'pages/dashboard', 'group' => 'guide', 'menu' => 'แดชบอร์ด FALCON PRO' ),
 		'pricing'          => array( 'title' => 'แพ็กเกจและราคา', 'template' => 'template-pricing.php', 'content' => 'pages/pricing', 'group' => 'pricing' ),
 		'risk-disclosure'  => array( 'title' => 'ประกาศความเสี่ยง', 'template' => 'template-risk.php', 'content' => 'pages/risk-disclosure', 'group' => 'doc' ),
 		'about'            => array( 'title' => 'เกี่ยวกับเรา', 'template' => '', 'content' => 'pages/about', 'group' => 'doc' ),
@@ -266,7 +296,7 @@ function fenix_unlink_slugs( $content, $slugs ) {
 }
 
 /**
- * ในเนื้อหา: ลิงก์ไปเพจที่ Setup สร้างเป็นฉบับร่าง (เพจกฎหมาย) หรือบทความเริ่มต้นที่ยังไม่เผยแพร่
+ * ในเนื้อหา: ลิงก์ไปเพจใน manifest ที่ยังไม่เผยแพร่ (ฉบับร่างของเพจกฎหมาย หรือเพจที่ยังไม่ได้สร้าง) หรือบทความเริ่มต้นที่ยังไม่เผยแพร่
  * จะไม่เป็นลิงก์จนกว่าปลายทางจะเผยแพร่ (กันลิงก์ 404 ระหว่างทยอยเผยแพร่บทความ) · กติกาอยู่ที่ fenix_unlink_slugs()
  * · priority 15: หลัง wpautop (10) และ shortcode (11) ก่อนสร้างสารบัญ (20) สารบัญจึงไม่มีหัวข้อที่ถูกลบ
  * · ทำเฉพาะตอนแสดงผลให้ผู้เข้าชม ไม่ทำในหลังบ้าน/REST/cron (ปลั๊กอิน SEO ที่นับลิงก์ภายในจะเห็นลิงก์ครบ)
@@ -282,13 +312,25 @@ function fenix_unlink_draft_pages( $content ) {
 }
 
 /**
- * slug ที่ผู้เข้าชมยังเปิดไม่ได้: เพจที่ Setup สร้างเป็นฉบับร่าง (เพจกฎหมาย) + บทความเริ่มต้นที่ยังไม่เผยแพร่
+ * slug ที่ผู้เข้าชมยังเปิดไม่ได้: เพจใน manifest ที่ยังไม่เผยแพร่ + บทความเริ่มต้นที่ยังไม่เผยแพร่
  * ใช้ทั้งกับเนื้อหาเพจ (fenix_unlink_draft_pages) และลิงก์ [ข้อความ](/slug/) ในข้อความ Customizer (fenix_rich_inline)
+ *
+ * เพจใน manifest ที่ยังไม่เผยแพร่มีสามแบบ: เพจที่ Setup สร้างเป็นฉบับร่าง (เพจกฎหมาย) · เพจที่ธีมรุ่นใหม่เพิ่มเข้ามา
+ * แต่เจ้าของยังไม่ได้กด FALCON Setup ให้สร้าง (เช่น /deposit/ ซึ่งข้อความเริ่มต้นของคู่มือเปิดบัญชีลิงก์ไปหาทันทีที่อัปเดตธีม)
+ * · และเพจที่เจ้าของถอดออกเอง · ทั้งสามแบบต้องไม่เป็นลิงก์ 404 เหมือนที่เมนู footer หน้าแรก และหน้า /go ตรวจอยู่แล้ว
+ * fenix_published_page_url() จำผลต่อ slug ไว้ตลอดคำขอ และส่วนใหญ่ถูกถามโดย footer อยู่แล้ว จึงเพิ่ม query ไม่กี่ครั้งต่อหน้า
  */
 function fenix_unreachable_slugs() {
 	$drafts = array();
 	foreach ( fenix_site_pages() as $slug => $page ) {
-		if ( isset( $page['status'] ) && 'draft' === $page['status'] && ! fenix_published_page_url( $slug ) ) {
+		if ( empty( $page['front'] ) && ! fenix_published_page_url( $slug ) ) {
+			$drafts[] = $slug;
+		}
+	}
+	/* แถวใน manifest ที่ยังรอไฟล์เนื้อหา: Setup ยังสร้างเพจนี้ไม่ได้ ลิงก์ไปหาจึงยังไม่มีปลายทาง (ปกติรายการนี้ว่าง ไม่มี query เพิ่ม)
+	 * เว้นแต่เจ้าของสร้างเพจ slug นั้นเองและเผยแพร่แล้ว */
+	foreach ( array_diff( array_keys( fenix_site_pages( true ) ), array_keys( fenix_site_pages() ) ) as $slug ) {
+		if ( ! fenix_published_page_url( $slug ) ) {
 			$drafts[] = $slug;
 		}
 	}
@@ -403,15 +445,54 @@ function fenix_banner_attachment( $file, $alt = '' ) {
 }
 
 /**
+ * ภาพเด่นของเพจนี้คือภาพปกที่ FALCON Setup นำเข้าจากธีมเอง (assets/img/covers/page-*.webp) หรือไม่
+ * ภาพปกแบบนี้เป็นการ์ดชื่อเพจสำหรับรูปแชร์/ schema เท่านั้น page.php จึงไม่พิมพ์ซ้ำในเนื้อหา · ภาพเด่นที่เจ้าของเลือกเอง = false
+ */
+function fenix_is_theme_page_cover( $post_id ) {
+	$thumb = (int) get_post_thumbnail_id( $post_id );
+	if ( ! $thumb ) {
+		return false;
+	}
+	foreach ( (array) get_option( 'fenix_banner_attachments', array() ) as $file => $id ) {
+		if ( (int) $id === $thumb && 0 === strpos( (string) $file, 'covers/page-' ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * เนื้อหาตั้งต้นของ "เพจ" ที่พร้อมบันทึกลงฐานข้อมูล: fenix_seed_content() แล้วตัดคอมเมนต์ HTML ที่เหลือในไฟล์ออก
+ * (โน้ตถึงผู้ดูแลในไฟล์ต้องไม่ไปโผล่ในซอร์สของหน้าเว็บ และ wpautop จะห่อคอมเมนต์เดี่ยวเป็น <p> ว่าง)
+ * คงคอมเมนต์ที่ WordPress ใช้งานจริงไว้: more / nextpage / noteaser และบล็อก wp:
+ * ใช้เฉพาะเส้นทางสร้าง/แทนเนื้อหาเพจ · บทความยังอ่านผ่าน fenix_seed_content() ตามเดิม (ลายนิ้วมือฉบับร่างจึงไม่เปลี่ยน)
+ */
+function fenix_setup_page_content( $rel ) {
+	$content = fenix_seed_content( $rel );
+	if ( false === strpos( $content, '<!--' ) ) {
+		return $content;
+	}
+	$note = '<!--(?!\s*(?:more|nextpage|noteaser|\/?wp:)).*?-->';
+	/* คอมเมนต์ที่ขึ้นต้นบรรทัด: ตัดพร้อมช่องว่างและการขึ้นบรรทัดของมัน · คอมเมนต์กลางประโยค: ตัดเฉพาะตัวคอมเมนต์ */
+	$clean = preg_replace( array( '/^[ \t]*' . $note . '[ \t]*\r?\n?/ms', '/' . $note . '/s' ), '', $content );
+	return is_string( $clean ) ? trim( $clean ) : $content;
+}
+
+/**
  * สร้างเพจที่ยังไม่มี · ไม่แตะเนื้อหาเพจที่มีอยู่แล้ว (เว้นแต่เลือก overwrite)
+ * ลำดับเพจ (menu_order) มาจากลำดับใน fenix_site_pages(): เพจใหม่ได้ลำดับตั้งแต่สร้าง · เพจเดิมที่ลำดับยังเป็น 0 ได้ลำดับนี้
+ * (เขียนคอลัมน์ตรง ๆ ไม่ผ่าน wp_update_post วันที่ "ปรับปรุงล่าสุด" ของเพจจึงไม่ขยับ) · ลำดับที่เจ้าของจัดเองไม่ถูกแตะ
  */
 function fenix_setup_create_pages( $overwrite = false ) {
-	$log = array();
+	global $wpdb;
+	$log     = array();
+	$ordered = 0;
 	foreach ( fenix_site_pages() as $slug => $page ) {
 		$meta    = ! empty( $page['content'] ) ? fenix_seed_meta( $page['content'] ) : ( isset( $page['seo'] ) ? $page['seo'] : array() );
 		$title   = ! empty( $meta['title'] ) ? $meta['title'] : $page['title'];
-		$content = ! empty( $page['content'] ) ? fenix_seed_content( $page['content'] ) : '';
+		$content = ! empty( $page['content'] ) ? fenix_setup_page_content( $page['content'] ) : '';
 		$status  = isset( $page['status'] ) ? $page['status'] : 'publish';
+		$order   = isset( $page['order'] ) ? (int) $page['order'] : 0;
 		$found   = fenix_find_page( $slug );
 
 		$seed_rev = ! empty( $meta['rev'] ) ? (int) $meta['rev'] : 1;
@@ -423,6 +504,7 @@ function fenix_setup_create_pages( $overwrite = false ) {
 					'post_title'   => wp_slash( $title ),
 					'post_name'    => $slug,
 					'post_content' => wp_slash( $content ),
+					'menu_order'   => $order,
 				),
 				true
 			);
@@ -437,6 +519,13 @@ function fenix_setup_create_pages( $overwrite = false ) {
 			}
 		} else {
 			$id = $found->ID;
+			if ( $order && 0 === (int) $found->menu_order ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- ตั้งใจไม่ผ่าน wp_update_post (จะขยับ post_modified ของทุกเพจ)
+				if ( false !== $wpdb->update( $wpdb->posts, array( 'menu_order' => $order ), array( 'ID' => $id ), array( '%d' ), array( '%d' ) ) ) {
+					clean_post_cache( $id );
+					$ordered++;
+				}
+			}
 			// เพจ Privacy Policy ฉบับร่างที่ WordPress สร้างให้ตอนติดตั้ง (ยังไม่เคยแก้) → แทนด้วยเนื้อหาของธีม
 			$core_privacy = 'privacy-policy' === $slug
 				&& (int) get_option( 'wp_page_for_privacy_policy' ) === (int) $id
@@ -457,14 +546,17 @@ function fenix_setup_create_pages( $overwrite = false ) {
 				continue;
 			}
 			if ( $overwrite && $content ) {
-				wp_update_post(
-					array(
-						'ID'           => $id,
-						'post_content' => wp_slash( $content ),
-					)
+				// ชื่อเพจคือ H1 ของหน้าคู่มือและเพจเอกสาร: เขียนทับเนื้อหาแล้วต้องได้ชื่อของรุ่นเดียวกันด้วย (เฉพาะเมื่อไฟล์ระบุ title)
+				$update = array(
+					'ID'           => $id,
+					'post_content' => wp_slash( $content ),
 				);
+				if ( ! empty( $meta['title'] ) ) {
+					$update['post_title'] = wp_slash( $meta['title'] );
+				}
+				wp_update_post( $update );
 				update_post_meta( $id, 'fenix_seed_rev', $seed_rev );
-				$log[] = '↻ เขียนทับเนื้อหา /' . $slug . '/';
+				$log[] = '↻ เขียนทับเนื้อหา' . ( ! empty( $meta['title'] ) ? 'และชื่อเพจ' : '' ) . ' /' . $slug . '/';
 			}
 		}
 
@@ -477,6 +569,13 @@ function fenix_setup_create_pages( $overwrite = false ) {
 		if ( $meta && ( ! $found || $overwrite ) ) {
 			fenix_apply_seo_meta( $id, $meta );
 		}
+	}
+	if ( $ordered ) {
+		$log[] = '✓ จัดลำดับเพจในหลังบ้านตามลำดับของธีม ' . $ordered . ' เพจ (เฉพาะเพจที่ยังไม่เคยจัดลำดับ)';
+	}
+	$pending = array_diff( array_keys( fenix_site_pages( true ) ), array_keys( fenix_site_pages() ) );
+	if ( $pending ) {
+		$log[] = '• ยังไม่สร้าง /' . implode( '/ /', $pending ) . '/ · ธีมรุ่นนี้ยังไม่มีไฟล์เนื้อหาของเพจนี้';
 	}
 	return $log;
 }
@@ -497,12 +596,51 @@ function fenix_setup_reading() {
 }
 
 /**
+ * เพจคู่มือ/ทดสอบใน manifest ที่เผยแพร่แล้วแต่ยังไม่อยู่ในเมนู $menu_id (เช่นเพจที่ธีมเพิ่มหลังสร้างเมนูไปแล้ว)
+ * อ่านอย่างเดียว: เมนูที่มีอยู่เป็นของเจ้าของเว็บ ธีมไม่เพิ่มหรือลบรายการเอง · คืน array( slug => ชื่อในเมนู )
+ */
+function fenix_setup_menu_missing( $menu_id ) {
+	$ids  = array();
+	$urls = array();
+	foreach ( (array) wp_get_nav_menu_items( $menu_id ) as $item ) {
+		if ( isset( $item->object, $item->object_id ) && 'page' === $item->object ) {
+			$ids[] = (int) $item->object_id;
+		}
+		if ( ! empty( $item->url ) ) {
+			$urls[] = untrailingslashit( (string) $item->url );
+		}
+	}
+	$missing = array();
+	foreach ( fenix_guide_links( array( 'test', 'guide' ) ) as $slug => $link ) {
+		$page = fenix_find_page( $slug );
+		if ( ! $page || 'publish' !== $page->post_status ) {
+			continue;
+		}
+		if ( in_array( (int) $page->ID, $ids, true ) || in_array( untrailingslashit( $link['url'] ), $urls, true ) ) {
+			continue;
+		}
+		$missing[ $slug ] = $link['label'];
+	}
+	return $missing;
+}
+
+/**
  * สร้างเมนูหลัก (ถ้ายังไม่มีเมนูที่ตำแหน่ง primary)
+ * มีเมนูอยู่แล้ว = ไม่แตะ แต่แจ้งเพจคู่มือที่ยังไม่อยู่ในเมนู ให้เจ้าของเพิ่มเองที่ รูปแบบ → เมนู
  */
 function fenix_setup_menu_build() {
 	$locations = get_theme_mod( 'nav_menu_locations', array() );
 	if ( ! empty( $locations['primary'] ) && wp_get_nav_menu_object( $locations['primary'] ) ) {
-		return array( '• มีเมนูหลักอยู่แล้ว (ไม่สร้างซ้ำ) · แก้ได้ที่ รูปแบบ → เมนู' );
+		$log     = array( '• มีเมนูหลักอยู่แล้ว (ไม่สร้างซ้ำ) · แก้ได้ที่ รูปแบบ → เมนู' );
+		$missing = fenix_setup_menu_missing( $locations['primary'] );
+		if ( $missing ) {
+			$names = array();
+			foreach ( $missing as $slug => $label ) {
+				$names[] = $label . ' (/' . $slug . '/)';
+			}
+			$log[] = '• เพจที่ยังไม่อยู่ในเมนูหลัก: ' . implode( ' · ', $names ) . ' · เพิ่มเองที่ รูปแบบ → เมนู (วางใต้หัวข้อคู่มือ ตามลำดับในตารางสถานะเพจด้านล่าง)';
+		}
+		return $log;
 	}
 	// มีเมนู FALCON อยู่แล้ว (เช่นกดซ้ำ หรือเคยถอดออกจากตำแหน่ง) → แค่ตั้งตำแหน่งให้ ไม่เพิ่มรายการซ้ำ
 	$existing = wp_get_nav_menu_object( 'FALCON · เมนูหลัก' );
@@ -892,7 +1030,232 @@ function fenix_publish_missed_schedule() {
 add_action( 'wp_loaded', 'fenix_publish_missed_schedule', 99 );
 
 /**
+ * ภาพปกของเพจ (assets/img/covers/page-<slug>.webp · เรนเดอร์ด้วย dev/make-covers.php) → ภาพเด่นของเพจ
+ * ปลั๊กอิน SEO ใช้ภาพเด่นเป็นรูปตอนแชร์ลิงก์ (og:image) และรูปหลักของหน้าใน schema · page.php ไม่พิมพ์ภาพนี้ซ้ำในเนื้อหา
+ * - ทำเฉพาะเพจที่ธีมมีไฟล์ภาพปก และเพจนั้นยังไม่มีภาพเด่น (ภาพที่เจ้าของเลือกเองไม่ถูกแทน)
+ * - ไม่ทำกับ home / go (ใช้รูปแชร์กลางของเว็บ) · articles (หน้ารวมบทความ เป็นงานของส่วนบทความ) · เพจกฎหมาย 3 หน้า
+ * - เพจที่เพิ่งได้ภาพเด่นถูกบันทึกซ้ำหนึ่งครั้งให้ Yoast อ่านรูปใหม่ วันที่ "ปรับปรุงล่าสุด" ของเพจนั้นจึงขยับเป็นวันที่กด
+ *   (เพจอื่นไม่ถูกบันทึกซ้ำ กดกี่ครั้งวันที่ก็ไม่ขยับ)
+ *
+ * @return string[] log
+ */
+function fenix_setup_page_covers() {
+	$skip  = array( 'home', 'go', 'articles', 'privacy-policy', 'terms-of-use', 'data-deletion' );
+	$files = 0;
+	$done  = array();
+	$fail  = array();
+	foreach ( fenix_site_pages() as $slug => $page ) {
+		$file = 'covers/page-' . $slug . '.webp';
+		if ( in_array( $slug, $skip, true ) || ! file_exists( get_template_directory() . '/assets/img/' . $file ) ) {
+			continue;
+		}
+		$files++;
+		$found = fenix_find_page( $slug );
+		if ( ! $found || has_post_thumbnail( $found->ID ) ) {
+			continue;
+		}
+		$thumb = fenix_banner_attachment( $file, wp_strip_all_tags( $found->post_title ) . ' · FALCON PRO EA' );
+		if ( ! $thumb || ! set_post_thumbnail( $found->ID, $thumb ) ) {
+			$fail[] = '/' . $slug . '/';
+			continue;
+		}
+		wp_update_post( array( 'ID' => $found->ID ) );
+		$done[] = '/' . $slug . '/';
+	}
+	if ( ! $files ) {
+		return array( '• ภาพปกของเพจ: ธีมรุ่นนี้ยังไม่มีไฟล์ภาพปก (assets/img/covers/page-<slug>.webp) · ข้ามขั้นนี้' );
+	}
+	$log = array( $done ? '✓ ภาพปกของเพจ: ตั้งเป็นภาพเด่นให้ ' . implode( ' ', $done ) : '• ภาพปกของเพจ: ไม่มีเพจที่ต้องใส่เพิ่ม (มีภาพเด่นอยู่แล้ว หรือยังไม่ได้สร้างเพจ)' );
+	if ( $fail ) {
+		$log[] = '✗ ภาพปกของเพจ: นำเข้าคลังสื่อไม่สำเร็จ ' . implode( ' ', $fail ) . ' · ตรวจสิทธิ์เขียนโฟลเดอร์ uploads แล้วกดอีกครั้ง';
+	}
+	return $log;
+}
+
+/**
+ * ค่าที่นับว่าเป็น "ค่าเริ่มต้นของ Yoast" ของช่องในกลุ่ม wpseo_titles (ช่องที่ยังไม่มีใครตั้งเอง)
+ * ชื่อหน้าค้นหาและหน้า 404 เป็นข้อความที่ Yoast แปลตามภาษาเว็บ จึงถาม Yoast เองก่อน (WPSEO_Options::get_default)
+ * แล้วเติมค่าภาษาอังกฤษที่รู้จักไว้เป็นทางสำรอง (เว็บที่บันทึกค่าไว้ตอนภาษายังเป็นอังกฤษ หรือ Yoast รุ่นที่ไม่มีเมธอดนี้)
+ *
+ * @return string[]
+ */
+function fenix_setup_yoast_defaults( $key ) {
+	$known = array(
+		'separator'          => array( 'sc-dash' ),
+		'title-search-wpseo' => array( 'You searched for %%searchphrase%% %%page%% %%sep%% %%sitename%%' ),
+		'title-404-wpseo'    => array( 'Page not found %%sep%% %%sitename%%' ),
+	);
+	$list  = isset( $known[ $key ] ) ? $known[ $key ] : array();
+	if ( class_exists( 'WPSEO_Options' ) && is_callable( array( 'WPSEO_Options', 'get_default' ) ) ) {
+		$default = WPSEO_Options::get_default( 'wpseo_titles', $key );
+		if ( is_string( $default ) && '' !== trim( $default ) ) {
+			$list[] = $default;
+		}
+	}
+	return $list;
+}
+
+/**
+ * ตั้งค่า SEO และระบบ (ปุ่มที่ 4 ของหน้า Setup) · กดซ้ำได้ ไม่แตะเนื้อหาเพจหรือบทความ · ต้องมีสิทธิ์ manage_options (ตรวจที่ fenix_setup_handle)
+ * 1) WordPress: โพสต์/เพจที่สร้างใหม่ปิดคอมเมนต์และ pingback (ธีมปิดในโค้ดอยู่แล้ว ตั้งซ้ำไว้เผื่อวันที่เปลี่ยนธีม)
+ * 2) คลังสื่อ: เติม alt ให้ไฟล์โลโก้ที่ alt ยังว่าง (ไอคอนเว็บ โลโก้ของเว็บ และไฟล์ที่ชื่อบอกว่าเป็นโลโก้ FALCON PRO)
+ * 3) ภาพปกของเพจ → ภาพเด่น (fenix_setup_page_covers)
+ * 4) Yoast SEO (เมื่อเปิดใช้): ชื่อเว็บ/ชื่อองค์กร ตัวคั่น ชื่อหน้าค้นหาและ 404 ปิด archive ที่เว็บไม่ใช้ ตัดฟีดคอมเมนต์และ shortlink
+ *    ทุกค่าถูกอ่านกลับมาตรวจ (ชื่อช่องของ Yoast เปลี่ยนตามรุ่นได้) ค่าที่ไม่ติดถูกแจ้งใน log
+ * สิ่งที่ตั้งใจไม่แตะ:
+ * - ประเภทผู้เผยแพร่ (องค์กร/บุคคล) ชื่อเว็บ ชื่อองค์กร ตัวคั่นชื่อหน้า ชื่อหน้าค้นหา และชื่อหน้า 404 ของ Yoast ที่เจ้าของตั้งเองแล้ว:
+ *   เขียนเฉพาะตอนที่ช่องยังว่าง ยังเป็นค่าเริ่มต้นของ Yoast (fenix_setup_yoast_defaults) หรือเป็นค่าของธีมอยู่แล้ว · ช่องที่ข้ามถูกแจ้งใน log
+ * - รูปแชร์เริ่มต้นของ Yoast (og_default_image): ถ้ามีค่า fenix_seo_yoast_share_fallback() จะถอยให้ทันที ช่อง "รูปแชร์เริ่มต้น" ใน Customizer จะหมดผลเงียบ ๆ
+ * - โลโก้องค์กรของ Yoast ที่มีค่าอยู่แล้ว (เติมเฉพาะตอนว่าง จากโลโก้ของเว็บก่อน แล้วจึงไอคอนเว็บ)
+ * - คำอธิบายหมวดบทความ และข้อความท้ายฟีดบทความ (งานของส่วนบทความ)
+ * - ชื่อหน้าหมวดบทความ: ตั้งเฉพาะเมื่อ $category_titles = true (ช่องติ๊กในฟอร์ม ค่าเริ่มต้นไม่ติ๊ก)
+ *
+ * @param bool $category_titles ตั้งรูปแบบชื่อและคำอธิบายของหน้าหมวดบทความใน Yoast ด้วย
+ * @return string[] log
+ */
+function fenix_setup_seo( $category_titles = false ) {
+	$log  = array();
+	$name = trim( wp_specialchars_decode( (string) get_option( 'blogname' ), ENT_QUOTES ) );
+	if ( '' === $name ) {
+		$name = 'FALCON PRO EA';
+	}
+
+	/* 1) ค่าเริ่มต้นของ WordPress */
+	update_option( 'default_comment_status', 'closed' );
+	update_option( 'default_ping_status', 'closed' );
+	update_option( 'default_pingback_flag', 0 );
+	$log[] = '✓ WordPress: โพสต์และเพจที่สร้างใหม่จะปิดคอมเมนต์และ pingback ตั้งแต่ต้น';
+
+	/* 2) alt ของไฟล์โลโก้ */
+	$logo_ids = array( (int) get_option( 'site_icon' ), (int) get_theme_mod( 'custom_logo' ) );
+	$by_name  = get_posts(
+		array(
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+			'post_mime_type' => 'image',
+			'posts_per_page' => 30,
+			's'              => 'logo',
+			'fields'         => 'ids',
+		)
+	);
+	foreach ( (array) $by_name as $att ) {
+		/* เฉพาะไฟล์ที่ชื่อมีทั้ง "falcon pro" และ "logo" · ภาพหน้าจอหรือแบนเนอร์ที่ชื่อขึ้นต้นเหมือนกันต้องไม่ได้ alt ของโลโก้ */
+		if ( preg_match( '/falcon[-_ ]?pro.*logo|logo.*falcon[-_ ]?pro/i', (string) get_post_meta( $att, '_wp_attached_file', true ) . ' ' . get_the_title( $att ) ) ) {
+			$logo_ids[] = (int) $att;
+		}
+	}
+	$alt_done = 0;
+	foreach ( array_filter( array_unique( $logo_ids ) ) as $att ) {
+		if ( 'attachment' === get_post_type( $att ) && '' === trim( (string) get_post_meta( $att, '_wp_attachment_image_alt', true ) ) ) {
+			update_post_meta( $att, '_wp_attachment_image_alt', wp_slash( 'โลโก้ ' . $name ) );
+			$alt_done++;
+		}
+	}
+	$log[] = $alt_done ? '✓ คลังสื่อ: เติมข้อความ alt ให้ไฟล์โลโก้ ' . $alt_done . ' ไฟล์' : '• คลังสื่อ: ไฟล์โลโก้มีข้อความ alt ครบแล้ว';
+
+	/* 3) ภาพปกของเพจ */
+	$log = array_merge( $log, fenix_setup_page_covers() );
+
+	/* 4) Yoast SEO */
+	if ( ! class_exists( 'WPSEO_Options' ) ) {
+		$log[] = '• Yoast SEO: ไม่ได้เปิดใช้ปลั๊กอิน · ข้ามการตั้งค่าส่วนนี้ (ธีมพิมพ์ meta และ schema พื้นฐานเองอยู่แล้ว)';
+		return $log;
+	}
+	$set = array(
+		'disable-author'              => true,
+		'disable-date'                => true,
+		'disable-post_format'         => true,
+		'remove_feed_global_comments' => true,
+		'remove_feed_post_comments'   => true,
+		'remove_shortlinks'           => true,
+	);
+	$notes = array();
+
+	/* ช่องที่เจ้าของอาจตั้งเองใน Yoast: เขียนเฉพาะตอนที่ช่องยังว่าง ยังเป็นค่าเริ่มต้นของ Yoast หรือเป็นค่าของธีมอยู่แล้ว
+	 * ช่องที่มีค่าอื่น = เจ้าของตั้งเอง ไม่แตะ และแจ้งชื่อช่องกับค่าปัจจุบันใน log */
+	$guarded = array(
+		'company_or_person'  => array( 'ผู้เผยแพร่แบบองค์กร', 'company' ), // ค่าเริ่มต้นของ Yoast คือ company อยู่แล้ว · เจ้าของที่เลือก person ไว้จะไม่ถูกสลับกลับ
+		'website_name'       => array( 'ชื่อเว็บ', $name ),
+		'company_name'       => array( 'ชื่อองค์กร', $name ),
+		'separator'          => array( 'ตัวคั่นชื่อหน้า', 'sc-middot' ),
+		'title-search-wpseo' => array( 'ชื่อหน้าค้นหา', 'ค้นหาคำว่า %%searchphrase%% %%page%% %%sep%% %%sitename%%' ),
+		'title-404-wpseo'    => array( 'ชื่อหน้า 404', 'ไม่มีหน้านี้ในเว็บ %%sep%% %%sitename%%' ),
+	);
+	$squash  = static function ( $value ) {
+		return trim( (string) preg_replace( '/\s+/u', ' ', (string) $value ) );
+	};
+	$applied = array();
+	$kept    = array();
+	foreach ( $guarded as $key => $row ) {
+		$current = $squash( WPSEO_Options::get( $key ) );
+		if ( '' === $current || $current === $squash( $row[1] ) || in_array( $current, array_map( $squash, fenix_setup_yoast_defaults( $key ) ), true ) ) {
+			$set[ $key ] = $row[1];
+			$applied[]   = $row[0];
+		} else {
+			$kept[] = $row[0] . ' (ค่าตอนนี้ "' . $current . '")';
+		}
+	}
+
+	/* โลโก้องค์กร: เติมเฉพาะตอน Yoast ยังว่าง · โลโก้ของเว็บ (custom_logo) มาก่อน เพราะเป็นรูปที่ Yoast พิมพ์ใน schema อยู่แล้ว */
+	if ( (int) WPSEO_Options::get( 'company_logo_id' ) || '' !== trim( (string) WPSEO_Options::get( 'company_logo' ) ) ) {
+		$notes[] = 'โลโก้องค์กรมีค่าอยู่แล้ว ไม่เปลี่ยน';
+	} else {
+		$logo = (int) get_theme_mod( 'custom_logo' );
+		if ( ! $logo ) {
+			$logo = (int) get_option( 'site_icon' );
+		}
+		$logo_url = $logo ? (string) wp_get_attachment_url( $logo ) : '';
+		if ( '' !== $logo_url ) {
+			$set['company_logo']    = $logo_url;
+			$set['company_logo_id'] = $logo;
+			$notes[]                = 'โลโก้องค์กร = โลโก้ของเว็บ';
+		} else {
+			$notes[] = 'ยังไม่มีโลโก้ของเว็บหรือไอคอนเว็บให้ใช้เป็นโลโก้องค์กร (ตั้งที่ ปรับแต่ง → Site Identity แล้วกดปุ่มนี้อีกครั้ง)';
+		}
+	}
+
+	/* Facebook: เฉพาะเมื่อกรอกลิงก์เพจของ FALCON ไว้ใน Customizer */
+	$facebook = trim( (string) fenix_mod( 'facebook_url' ) );
+	if ( '' !== $facebook && '#' !== $facebook ) {
+		$set['facebook_site'] = esc_url_raw( $facebook );
+	} else {
+		$notes[] = 'ยังไม่ได้กรอกลิงก์ Facebook ใน Customizer จึงไม่ตั้งช่อง Facebook';
+	}
+
+	/* หน้าหมวดบทความ (ตัวเลือก): แทนชื่อแบบ "… Archives" ด้วยชื่อหมวดภาษาไทย · ไม่แก้ชื่อหรือคำอธิบายของหมวดใด */
+	if ( $category_titles ) {
+		$set['title-tax-category']    = 'หมวดหมู่ %%term_title%% %%page%% %%sep%% %%sitename%%';
+		$set['metadesc-tax-category'] = '%%term_description%%';
+	} else {
+		$notes[] = 'ไม่ได้ติ๊กช่องหน้าหมวดบทความ จึงไม่แตะชื่อหน้าหมวด';
+	}
+
+	$failed = array();
+	foreach ( $set as $key => $value ) {
+		WPSEO_Options::set( $key, $value );
+		/* ตรวจด้วยการอ่านกลับ: ผลของ set() ใช้ไม่ได้ (เป็น false เมื่อค่าเดิมเท่ากัน) และ Yoast อาจปรับค่าหรือไม่รู้จักชื่อช่อง */
+		if ( (string) WPSEO_Options::get( $key ) !== (string) $value ) {
+			$failed[] = $key;
+		}
+	}
+	/* สรุปเฉพาะสิ่งที่เขียนจริงในรอบนี้ · ชื่อที่ใช้ถูกบอกเมื่อช่องชื่อเว็บหรือชื่อองค์กรถูกเขียนเท่านั้น */
+	$summary = $applied ? 'ค่าของธีมในช่อง ' . implode( ', ', $applied ) . ( array_intersect( array( 'ชื่อเว็บ', 'ชื่อองค์กร' ), $applied ) ? ' (ชื่อที่ใช้คือ "' . $name . '")' : '' ) . ' · ' : '';
+	$log[]   = ( $failed ? '• ' : '✓ ' ) . 'Yoast SEO: บันทึกและอ่านกลับตรงกัน ' . ( count( $set ) - count( $failed ) ) . ' จาก ' . count( $set ) . ' ช่อง (' . $summary . 'ปิดหน้ารวมตามผู้เขียน วันที่ และรูปแบบโพสต์ · ตัดฟีดคอมเมนต์และ shortlink)';
+	if ( $kept ) {
+		$log[] = '• Yoast SEO: ไม่เปลี่ยนช่องที่มีค่าที่ตั้งเองอยู่แล้ว ' . count( $kept ) . ' ช่อง: ' . implode( ' · ', $kept ) . ' · ถ้าต้องการค่าของธีมในช่องใด ให้ตั้งช่องนั้นเองที่หน้า Yoast SEO → Settings';
+	}
+	if ( $notes ) {
+		$log[] = '• Yoast SEO: ' . implode( ' · ', $notes );
+	}
+	if ( $failed ) {
+		$log[] = '✗ Yoast SEO ไม่รับค่าของช่อง: ' . implode( ', ', $failed ) . ' · รุ่นของปลั๊กอินอาจใช้ชื่อช่องต่างออกไป ให้ตั้งช่องนี้เองในหน้า Yoast SEO → Settings';
+	}
+	return $log;
+}
+
+/**
  * แทนเนื้อหาเพจเดียวด้วยเนื้อหาตั้งต้นรุ่นล่าสุด (เก็บรุ่นเก่าเป็น revision ของ WP)
+ * ชื่อเพจถูกแทนด้วยเมื่อไฟล์ระบุ title: ชื่อเพจคือ H1 ของหน้าคู่มือและเพจเอกสาร เนื้อหารุ่นใหม่จึงต้องมากับหัวเรื่องของรุ่นเดียวกัน
  */
 function fenix_setup_replace_page( $slug ) {
 	$pages = fenix_site_pages();
@@ -903,18 +1266,21 @@ function fenix_setup_replace_page( $slug ) {
 	if ( ! $found ) {
 		return array( '✗ ยังไม่มีเพจ /' . $slug . '/ · กด "สร้างเพจ" ก่อน' );
 	}
-	$meta = fenix_seed_meta( $pages[ $slug ]['content'] );
-	wp_update_post(
-		array(
-			'ID'           => $found->ID,
-			'post_content' => wp_slash( fenix_seed_content( $pages[ $slug ]['content'] ) ),
-		)
+	$meta   = fenix_seed_meta( $pages[ $slug ]['content'] );
+	$update = array(
+		'ID'           => $found->ID,
+		'post_content' => wp_slash( fenix_setup_page_content( $pages[ $slug ]['content'] ) ),
 	);
+	$retitled = ! empty( $meta['title'] ) && (string) $meta['title'] !== (string) $found->post_title;
+	if ( ! empty( $meta['title'] ) ) {
+		$update['post_title'] = wp_slash( $meta['title'] );
+	}
+	wp_update_post( $update );
 	update_post_meta( $found->ID, 'fenix_seed_rev', ! empty( $meta['rev'] ) ? (int) $meta['rev'] : 1 );
 	if ( $meta ) {
 		fenix_apply_seo_meta( $found->ID, $meta );
 	}
-	return array( '↻ แทนเนื้อหา /' . $slug . '/ ด้วยรุ่นล่าสุดแล้ว (รุ่นเดิมอยู่ใน Revisions ของเพจ)' );
+	return array( '↻ แทนเนื้อหา /' . $slug . '/ ด้วยรุ่นล่าสุดแล้ว' . ( $retitled ? ' และเปลี่ยนชื่อเพจเป็น "' . $meta['title'] . '"' : '' ) . ' (รุ่นเดิมอยู่ใน Revisions ของเพจ)' );
 }
 
 function fenix_setup_handle() {
@@ -961,6 +1327,16 @@ function fenix_setup_handle() {
 		$week = isset( $_POST['fenix_per_week'] ) ? absint( wp_unslash( $_POST['fenix_per_week'] ) ) : 2;
 		$log  = array_merge( $log, fenix_setup_release_to_total( $want, $week ) );
 	}
+	if ( 'seo' === $do ) {
+		// ปุ่มนี้เขียนค่าระบบของ WordPress และค่าของ Yoast SEO ซึ่ง WordPress สงวนให้ผู้ดูแลระบบ: ต้องมีสิทธิ์ manage_options
+		// (ผู้ที่มีแค่ edit_theme_options เข้าหน้านี้ได้ แต่ไม่เห็นฟอร์มนี้ และคำขอที่ส่งมาตรง ๆ ถูกปฏิเสธที่นี่)
+		if ( current_user_can( 'manage_options' ) ) {
+			// ช่องติ๊ก "หน้าหมวดบทความ" ไม่ติ๊กเป็นค่าเริ่มต้น: ไม่ติ๊ก = ไม่แตะรูปแบบชื่อหน้าหมวดใน Yoast
+			$log = array_merge( $log, fenix_setup_seo( ! empty( $_POST['fenix_seo_category'] ) ) );
+		} else {
+			$log[] = '✗ "ตั้งค่า SEO และระบบ" ทำได้เฉพาะผู้ดูแลระบบ (สิทธิ์ manage_options) · ไม่ได้เปลี่ยนค่าใด';
+		}
+	}
 	if ( 'all' === $do ) {
 		flush_rewrite_rules( false );
 	}
@@ -972,10 +1348,24 @@ function fenix_setup_handle() {
 }
 add_action( 'admin_post_fenix_setup', 'fenix_setup_handle' );
 
+/**
+ * บรรทัดวันที่มีผลและเลขรุ่นของเอกสาร (<p class="doc-meta"> บรรทัดบนสุดของเพจนโยบายและข้อกำหนด) เป็นข้อความล้วน
+ * ใช้ในตารางสถานะของหน้า Setup ให้เจ้าของเห็นว่าเพจที่กำลังจะเผยแพร่ระบุวันที่และรุ่นอะไร · ไม่มีบรรทัดนี้ = ''
+ */
+function fenix_setup_doc_meta_line( $content ) {
+	if ( ! preg_match( '#<p\b[^>]*\bclass="[^"]*\bdoc-meta\b[^"]*"[^>]*>(.*?)</p>#is', (string) $content, $m ) ) {
+		return '';
+	}
+	$text = (string) preg_replace( '#<br\s*/?>#i', ' · ', $m[1] );
+	return trim( (string) preg_replace( '/\s+/u', ' ', wp_strip_all_tags( $text ) ) );
+}
+
 function fenix_setup_screen() {
 	$log   = get_transient( 'fenix_setup_log' );
 	$pages = fenix_site_pages();
 	delete_transient( 'fenix_setup_log' );
+	/* ลิงก์สมัครบัญชีถูกบันทึกแล้ว แต่พาร์ตเนอร์ยังตั้งไม่ครบ (ยังไม่มีชื่อโบรกเกอร์จริง): ปุ่มสมัครและข้อความเปิดเผยถูกซ่อนอยู่ */
+	$fenix_partner_pending = function_exists( 'fenix_partner_pending' ) && fenix_partner_pending();
 	?>
 	<div class="wrap">
 		<h1>FALCON PRO EA · ตั้งค่าเว็บ</h1>
@@ -990,6 +1380,9 @@ function fenix_setup_screen() {
 		<?php if ( '#' === fenix_mod( 'line_url' ) || ! fenix_mod( 'line_url' ) ) : ?>
 			<div class="notice notice-warning"><p><strong>ยังไม่ได้ใส่ลิงก์ LINE OA</strong> · ปุ่มติดต่อทุกปุ่มจะพาไปหน้า /go/ แทน (ถ้าหน้า /go/ ยังไม่เผยแพร่ ปุ่มจะถูกซ่อน) · ตั้งค่าที่ <a href="<?php echo esc_url( admin_url( 'customize.php?autofocus[section]=fenix_general' ) ); ?>">ปรับแต่ง → ช่องทางติดต่อ</a></p></div>
 		<?php endif; ?>
+		<?php if ( $fenix_partner_pending ) : ?>
+			<div class="notice notice-warning"><p><strong>ใส่ลิงก์สมัครบัญชีของโบรกเกอร์แล้ว แต่ยังไม่ได้ตั้งชื่อโบรกเกอร์</strong> · ตอนนี้ปุ่มสมัคร ข้อความเปิดเผยความเป็นพาร์ตเนอร์ และย่อหน้าเรื่องพาร์ตเนอร์ในเพจเอกสารยังไม่แสดงบนเว็บ (ธีมไม่แสดงปุ่มลิงก์พาร์ตเนอร์โดยไม่มีชื่อโบรกเกอร์และข้อความเปิดเผย) · กรอกชื่อโบรกเกอร์จริงและชื่อเซิร์ฟเวอร์ที่ <a href="<?php echo esc_url( admin_url( 'customize.php?autofocus[section]=fenix_broker' ) ); ?>">ปรับแต่ง → 29) โบรกเกอร์</a> แล้วเปิดหน้าคู่มือเปิดบัญชีอ่านข้อความเปิดเผยอีกรอบ</p></div>
+		<?php endif; ?>
 
 		<?php if ( $log ) : ?>
 			<div class="notice notice-success"><p><?php echo implode( '<br>', array_map( 'esc_html', (array) $log ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?></p></div>
@@ -1000,7 +1393,7 @@ function fenix_setup_screen() {
 			<input type="hidden" name="action" value="fenix_setup">
 			<h2 style="margin-top:0">1) ตั้งค่าเว็บทั้งหมด</h2>
 			<p>สร้างเพจที่ยังไม่มี → ตั้งหน้าแรก/หน้าบทความ → สร้างเมนูหลัก</p>
-			<p><label><input type="checkbox" name="fenix_overwrite" value="1"> เขียนทับเนื้อหาเพจที่มีอยู่ด้วยเนื้อหาเริ่มต้นของธีม (ระวัง: ข้อความที่แก้ไว้จะหาย)</label></p>
+			<p><label><input type="checkbox" name="fenix_overwrite" value="1"> เขียนทับเนื้อหาและชื่อเพจที่มีอยู่ด้วยเนื้อหาเริ่มต้นของธีม (ระวัง: ข้อความและชื่อเพจที่แก้ไว้จะหาย)</label></p>
 			<p><button class="button button-primary" name="fenix_do" value="all">ตั้งค่าเว็บทั้งหมด</button>
 				<button class="button" name="fenix_do" value="pages">สร้างเพจอย่างเดียว</button>
 				<button class="button" name="fenix_do" value="menu">สร้างเมนูอย่างเดียว</button></p>
@@ -1044,11 +1437,35 @@ function fenix_setup_screen() {
 			<p><button class="button button-primary" name="fenix_do" value="release"<?php disabled( 0, (int) $fenix_counts['draft'] ); ?>>เผยแพร่และตั้งเวลา</button></p>
 		</form>
 
+		<?php if ( ! current_user_can( 'manage_options' ) ) : ?>
+			<div style="margin:0 0 26px;padding:18px 20px;background:#fff;border:1px solid #dcdcde;border-radius:8px;max-width:760px">
+				<h2 style="margin-top:0">4) SEO และระบบ</h2>
+				<p>ขั้นนี้เปลี่ยนค่าระบบของ WordPress และค่าของ Yoast SEO จึงทำได้เฉพาะบัญชีผู้ดูแลระบบ (สิทธิ์ manage_options) · บัญชีที่ใช้อยู่ตอนนี้ไม่มีสิทธิ์นั้น</p>
+			</div>
+		<?php else : ?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin:0 0 26px;padding:18px 20px;background:#fff;border:1px solid #dcdcde;border-radius:8px;max-width:760px">
+			<?php wp_nonce_field( 'fenix_setup' ); ?>
+			<input type="hidden" name="action" value="fenix_setup">
+			<h2 style="margin-top:0">4) SEO และระบบ</h2>
+			<p>งานตั้งค่าที่ทำครั้งเดียวหลังติดตั้งธีม · กดซ้ำได้ ไม่ทับค่าที่คุณตั้งเองใน Yoast และไม่แก้ข้อความในเพจหรือบทความ</p>
+			<ul style="list-style:disc;margin:0 0 12px 20px">
+				<li><strong>Yoast SEO</strong> (ถ้าเปิดใช้): ผู้เผยแพร่แบบองค์กร พร้อมชื่อเว็บและชื่อองค์กร · ตัวคั่นชื่อหน้าเป็นจุดกลาง · ชื่อหน้าค้นหาและหน้า 404 เป็นภาษาไทย (ช่องกลุ่มนี้ตั้งให้เฉพาะช่องที่ยังว่างหรือยังเป็นค่าเริ่มต้นของ Yoast ช่องที่คุณตั้งเองแล้วไม่ถูกแตะ และผลลัพธ์จะบอกว่าข้ามช่องไหน) · ปิดหน้ารวมตามผู้เขียน ตามวันที่ และตามรูปแบบโพสต์ · ตัดฟีดคอมเมนต์และ shortlink · ลิงก์ Facebook เมื่อกรอกไว้ใน Customizer · โลโก้องค์กรจะเติมให้เฉพาะตอนที่ Yoast ยังว่าง</li>
+				<li><strong>WordPress</strong>: โพสต์และเพจที่สร้างใหม่ปิดคอมเมนต์และ pingback ตั้งแต่ต้น</li>
+				<li><strong>คลังสื่อ</strong>: เติมข้อความ alt ให้ไฟล์โลโก้ที่ยังไม่มี</li>
+				<li><strong>ภาพปกของเพจ</strong>: ตั้งเป็นภาพเด่นให้เพจที่ยังไม่มีภาพเด่น เพื่อใช้เป็นรูปตอนแชร์ลิงก์ (เว้นหน้าแรก หน้า /go/ หน้ารวมบทความ และเพจกฎหมาย) · เพจที่เพิ่งได้ภาพจะมีวันที่ปรับปรุงล่าสุดเป็นวันนี้</li>
+			</ul>
+			<p style="color:#50575e">ปุ่มนี้ไม่ตั้ง "รูปแชร์เริ่มต้น" ใน Yoast · รูปแชร์กลางของเว็บยังมาจากช่อง "รูปสำหรับแชร์" ในหมวด SEO ของ Customizer ตามเดิม</p>
+			<p><label><input type="checkbox" name="fenix_seo_category" value="1"> ตั้งชื่อหน้าหมวดบทความใน Yoast เป็นรูปแบบภาษาไทยด้วย (แทนคำว่า Archives ต่อท้ายชื่อหมวด) · ไม่ติ๊ก = ไม่แตะหน้าหมวดบทความ</label></p>
+			<p><button class="button button-primary" name="fenix_do" value="seo">ตั้งค่า SEO และระบบ</button></p>
+		</form>
+		<?php endif; ?>
+
 		<h2>สถานะเพจ</h2>
 		<table class="widefat striped" style="max-width:980px">
 			<thead><tr><th>URL</th><th>ชื่อเพจ</th><th>สถานะ</th><th>เทมเพลต</th><th>เนื้อหาตั้งต้น</th><th></th></tr></thead>
 			<tbody>
 			<?php
+			$fenix_stale_drafts = array();
 			foreach ( $pages as $slug => $page ) :
 				$found = fenix_find_page( $slug );
 				$tpl   = $found ? get_post_meta( $found->ID, '_wp_page_template', true ) : '';
@@ -1057,20 +1474,45 @@ function fenix_setup_screen() {
 				$srev  = $smeta ? ( ! empty( $smeta['rev'] ) ? (int) $smeta['rev'] : 1 ) : 0;
 				$prev  = $found ? (int) get_post_meta( $found->ID, 'fenix_seed_rev', true ) : 0;
 				$stale = $found && $srev && $prev < $srev;
+				/* ฉบับร่างที่เนื้อหายังเป็นรุ่นเก่ากว่าไฟล์ของธีม: ถ้ากดเผยแพร่ทั้งอย่างนี้ ข้อความ วันที่ และโน้ตถึงผู้ดูแลของรุ่นก่อนจะขึ้นเว็บ */
+				$draft_stale = $stale && 'publish' !== $found->post_status;
+				if ( $draft_stale ) {
+					$fenix_stale_drafts[] = $slug;
+				}
+				/* เพจเอกสาร: บรรทัดวันที่มีผลและเลขรุ่นที่อยู่ในเพจตอนนี้ (สิ่งที่จะขึ้นเว็บเมื่อกดเผยแพร่) และของไฟล์รุ่นล่าสุดเมื่อเพจยังเป็นรุ่นเก่า */
+				$doc_now  = '';
+				$doc_seed = '';
+				if ( $found && $smeta && 'doc' === $page['group'] ) {
+					$doc_now  = fenix_setup_doc_meta_line( $found->post_content );
+					$doc_seed = fenix_setup_doc_meta_line( fenix_seed_content( $page['content'] ) );
+				}
 				?>
 				<tr>
 					<td><code>/<?php echo esc_html( $slug ); ?>/</code></td>
-					<td><?php echo esc_html( $found ? $found->post_title : $page['title'] ); ?></td>
+					<td>
+						<?php echo esc_html( $found ? $found->post_title : $page['title'] ); ?>
+						<?php if ( '' !== $doc_now ) : ?>
+							<br><span style="color:#50575e">ในเพจตอนนี้ · <?php echo esc_html( $doc_now ); ?></span>
+						<?php elseif ( '' !== $doc_seed ) : ?>
+							<br><span style="color:#b32d2e">ในเพจตอนนี้ไม่มีบรรทัดวันที่มีผลและเลขรุ่นของเอกสาร</span>
+						<?php endif; ?>
+						<?php if ( $stale && '' !== $doc_seed && $doc_seed !== $doc_now ) : ?>
+							<br><span style="color:#50575e">ในรุ่นล่าสุดของธีม · <?php echo esc_html( $doc_seed ); ?></span>
+						<?php endif; ?>
+					</td>
 					<td><?php echo $found ? esc_html( 'publish' === $found->post_status ? 'เผยแพร่' : 'ฉบับร่าง' ) : '<span style="color:#b32d2e">ยังไม่มี</span>'; ?></td>
 					<td><?php echo $page['template'] ? ( $ok ? '✓ ' : '<span style="color:#b32d2e">✗ </span>' ) . esc_html( $page['template'] ) : '—'; ?></td>
 					<td>
 						<?php if ( ! $srev ) : ?>—<?php elseif ( ! $found ) : ?>รุ่น <?php echo (int) $srev; ?><?php elseif ( $stale ) : ?>
+							<?php if ( $draft_stale ) : ?>
+								<strong style="display:block;margin-bottom:4px;color:#b32d2e">ฉบับร่างนี้เป็นรุ่นเก่า · แทนด้วยรุ่นล่าสุดก่อนเผยแพร่</strong>
+							<?php endif; ?>
 							<span style="color:#b26c09">มีรุ่นใหม่ (<?php echo (int) $prev; ?> → <?php echo (int) $srev; ?>)</span>
 							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;margin-left:6px">
 								<?php wp_nonce_field( 'fenix_setup' ); ?>
 								<input type="hidden" name="action" value="fenix_setup">
 								<input type="hidden" name="fenix_slug" value="<?php echo esc_attr( $slug ); ?>">
-								<label style="white-space:nowrap" title="ข้อความที่แก้เองในเพจนี้จะถูกแทน (รุ่นเดิมยังอยู่ใน Revisions ของเพจ)"><input type="checkbox" name="fenix_confirm" value="1" required> ยืนยัน</label>
+								<label style="white-space:nowrap" title="ข้อความและชื่อเพจที่แก้เองในเพจนี้จะถูกแทน (รุ่นเดิมยังอยู่ใน Revisions ของเพจ)"><input type="checkbox" name="fenix_confirm" value="1" required> ยืนยัน</label>
 								<button class="button button-small" name="fenix_do" value="replace">แทนด้วยรุ่นล่าสุด</button>
 							</form>
 						<?php else : ?>✓ รุ่น <?php echo (int) $srev; ?><?php endif; ?>
@@ -1080,7 +1522,17 @@ function fenix_setup_screen() {
 			<?php endforeach; ?>
 			</tbody>
 		</table>
-		<p style="max-width:980px;color:#50575e">เพจ <strong>นโยบายความเป็นส่วนตัว / เงื่อนไขการใช้บริการ / คำขอลบข้อมูล</strong> ถูกสร้างเป็นฉบับร่าง เพราะต้องใส่ชื่อผู้ให้บริการ ช่องทางติดต่อ และนโยบายคืนเงินจริงก่อน · ค้นหาคำว่า "เจ้าของเว็บ:" ในโหมดแก้ไขโค้ด เพื่อดูจุดที่ต้องกรอก</p>
+		<?php
+		$fenix_pending = array_diff( array_keys( fenix_site_pages( true ) ), array_keys( $pages ) );
+		if ( $fenix_pending ) :
+			?>
+			<p style="max-width:980px;color:#b26c09">เพจที่ธีมเตรียมไว้แต่ยังไม่มีไฟล์เนื้อหาในรุ่นนี้ (ยังไม่ถูกสร้างและยังไม่ขึ้นเมนู): <code>/<?php echo esc_html( implode( '/ /', $fenix_pending ) ); ?>/</code></p>
+		<?php endif; ?>
+		<?php if ( $fenix_stale_drafts ) : ?>
+			<div class="notice notice-error inline" style="max-width:980px;margin:12px 0"><p><strong>ฉบับร่างที่ยังเป็นรุ่นเก่า: <code>/<?php echo esc_html( implode( '/ /', $fenix_stale_drafts ) ); ?>/</code></strong> · อย่าเพิ่งกดเผยแพร่ ติ๊ก "ยืนยัน" แล้วกด "แทนด้วยรุ่นล่าสุด" ในแถวของเพจนั้นก่อน ฉบับร่างรุ่นเก่ายังมีข้อความ วันที่มีผล และโน้ตถึงผู้ดูแลของรุ่นก่อนอยู่ในเนื้อหา</p></div>
+		<?php endif; ?>
+		<p style="max-width:980px;color:#50575e">เพจ <strong>นโยบายความเป็นส่วนตัว / เงื่อนไขการใช้บริการ / คำขอลบข้อมูล</strong> ถูกสร้างเป็นฉบับร่าง เพื่อให้เจ้าของเว็บอ่านทวนก่อนเผยแพร่ ทำตามลำดับนี้: 1) กรอกหมวดช่องทางติดต่อและหมวดโบรกเกอร์ใน Customizer ให้ครบก่อน เพราะอีเมลติดต่อและข้อมูลพาร์ตเนอร์ในเอกสารดึงจากสองหมวดนั้น 2) ถ้าแถวของเพจในตารางขึ้นว่า "มีรุ่นใหม่" ให้ติ๊ก "ยืนยัน" แล้วกด "แทนด้วยรุ่นล่าสุด" ก่อนทุกครั้ง 3) เปิดเพจอ่านตรวจข้อความทั้งหน้า พร้อมวันที่มีผลและเลขรุ่นของเอกสาร (บรรทัดที่อยู่ในเพจตอนนี้แสดงใต้ชื่อเพจในตาราง) ถ้าจะเผยแพร่วันอื่น ให้แก้วันที่และส่วนวันที่ท้ายเลขรุ่นให้ตรงวันเผยแพร่จริง 4) กดเผยแพร่</p>
+		<p style="max-width:980px;color:#50575e">เพจคู่มือที่ธีมเพิ่มเข้ามาภายหลังจะไม่ถูกใส่ในเมนูหลักที่มีอยู่แล้ว · หลังสร้างเพจ ให้เพิ่มเองที่ <a href="<?php echo esc_url( admin_url( 'nav-menus.php' ) ); ?>">รูปแบบ → เมนู</a> (ปุ่ม "สร้างเมนูอย่างเดียว" จะบอกว่าเพจไหนยังไม่อยู่ในเมนู)</p>
 		<p style="max-width:980px;color:#50575e">อย่าเปิดเพจเหล่านี้ด้วย Elementor · จะทับการแสดงผลของเทมเพลต</p>
 	</div>
 	<?php

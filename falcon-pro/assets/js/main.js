@@ -474,6 +474,27 @@
 		}
 	});
 
+	/* นับคลิกปุ่มไปแดชบอร์ด (a[data-dash] จาก fenix_dashboard_button ใน inc/modules/dashboard.php) · event GA4: dashboard_click
+	   dash_mode = visit | signup | signin | open · dash_pos = ตำแหน่งปุ่ม (data-dash-pos ถ้าไม่มีใช้ id ของกล่องที่ใกล้ที่สุด)
+	   ส่งเฉพาะเมื่อ gtag ถูกโหลดแล้วและผู้ใช้ยินยอมหมวดวิเคราะห์ (เช็ก ณ ตอนคลิก แบบเดียวกับ line_click) · ไม่ส่งอะไรให้ Meta */
+	document.addEventListener('click', function (e) {
+		var link = e.target && e.target.closest ? e.target.closest('a[data-dash]') : null;
+		if (!link) {
+			return;
+		}
+		var consent = window.fenixConsent && typeof window.fenixConsent.has === 'function' ? window.fenixConsent : null;
+		if (typeof window.gtag !== 'function' || (consent && !consent.has('analytics'))) {
+			return;
+		}
+		var box = link.parentNode && link.parentNode.closest ? link.parentNode.closest('[id]') : null;
+		window.gtag('event', 'dashboard_click', {
+			dash_mode: link.getAttribute('data-dash') || '',
+			dash_pos: link.getAttribute('data-dash-pos') || (box ? box.id : ''),
+			link_url: link.href || '',
+			page_path: window.location.pathname
+		});
+	});
+
 	/* สารบัญ (หน้าคู่มือ) · ไฮไลต์หัวข้อที่กำลังอ่าน */
 	var tocLinks = document.querySelectorAll('.longform-toc a[href^="#"]');
 	if (tocLinks.length && 'IntersectionObserver' in window) {
@@ -582,9 +603,15 @@
 		var group = [];
 		var idx = 0;
 		var lastFocus = null;
+		/* จอมือถือ: กรอบ lightbox กว้างได้ไม่เกินจอ ภาพจึงไม่ใหญ่ขึ้นเลย → ปล่อยให้ลิงก์เปิดไฟล์ภาพในแท็บใหม่ตามปกติ (target="_blank") แล้วซูมด้วยนิ้วได้
+		   data-full เก็บลิงก์ไฟล์เต็มไว้ เผื่อหมุนจอ/ขยายหน้าต่างกลับมาใช้ lightbox */
+		var lbPhone = window.matchMedia ? window.matchMedia('(max-width: 760px)') : null;
+		var fullSrc = function (a) {
+			return a.getAttribute('data-full') || a.getAttribute('href');
+		};
 		var show = function () {
 			var a = group[idx];
-			lbImg.src = a.getAttribute('href');
+			lbImg.src = fullSrc(a);
 			var img = a.querySelector('img');
 			lbImg.alt = img ? img.alt : '';
 			lbCap.textContent = a.getAttribute('data-caption') || '';
@@ -599,6 +626,18 @@
 		};
 		lbLinks.forEach(function (a) {
 			a.addEventListener('click', function (e) {
+				var full = fullSrc(a);
+				if (lbPhone && lbPhone.matches) {
+					/* รูปที่เห็นอยู่เป็นไฟล์สำหรับจอแคบ (<source media> ของ <picture> ตรงกับจอนี้) → เปิดไฟล์นั้น ไม่ใช่ไฟล์แนวกว้างที่ตัวหนังสือเล็กกว่า
+					   ไม่มี source ที่ตรง = เปิดไฟล์เต็มตามลิงก์เดิม (ห้ามใช้ currentSrc ตรง ๆ เพราะ srcset ของ <img> อาจเลือกไฟล์ย่อ) */
+					var pic = a.querySelector('picture');
+					var narrow = pic ? pic.querySelector('source[media]') : null;
+					var shown = narrow && window.matchMedia(narrow.getAttribute('media')).matches ? pic.querySelector('img') : null;
+					a.setAttribute('data-full', full);
+					a.setAttribute('href', shown && shown.currentSrc ? shown.currentSrc : full);
+					return;
+				}
+				a.setAttribute('href', full);
 				e.preventDefault();
 				var g = a.getAttribute('data-group');
 				group = g ? Array.prototype.slice.call(document.querySelectorAll('a.lightbox[data-group="' + g + '"]')) : [a];

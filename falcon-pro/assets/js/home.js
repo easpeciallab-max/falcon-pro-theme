@@ -6,8 +6,10 @@
  *   จองความสูงของข้อความเต็มก่อนพิมพ์ (ไม่มี layout shift) · แท็บถูกซ่อน = หยุดและคืนข้อความเต็ม
  *   ตัดคำไทยเป็น grapheme (Intl.Segmenter) สระ/วรรณยุกต์จึงไม่โผล่ครึ่งตัว
  * - เส้นขีดฆ่าบท 02: ใส่ .is-on เมื่อรายการเลื่อนเข้ามาในจอ
- * - รางเลขบท / แถบความคืบหน้า: เลขบทปัจจุบัน + aria-current · ตั้ง --p เมื่อเบราว์เซอร์ไม่มี scroll timeline
+ * - รางเลขบท / แถบความคืบหน้า (ปิดเป็นค่าเริ่มต้น · ทำงานเฉพาะเมื่อหน้ามี .hm-rail): เลขบทปัจจุบัน + aria-current · ตั้ง --p เมื่อเบราว์เซอร์ไม่มี scroll timeline
  * - FAQ: เปิดได้ทีละข้อในเบราว์เซอร์ที่ยังไม่รองรับ <details name>
+ * - บทเช็กความพร้อม ([data-hm-ready]): ติ๊กแล้ววงความคืบหน้า (--p) และข้อความสถานะเปลี่ยน · ครบทุกข้อ = แสดงข้อความและปุ่มติดต่อ
+ *   สถานะอยู่ในหน้าเท่านั้น ไม่เขียน cookie / storage และไม่ส่งคำขอใด
  *
  * ลดการเคลื่อนไหว (prefers-reduced-motion) = ทุกอย่างอยู่สถานะจบทันที
  * ไม่มี JS / ไฟล์นี้โหลดไม่ขึ้น = CSS แสดงสถานะจบ (สถานะก่อนแอนิเมชันทั้งหมดอยู่ใต้ .hm-js ที่ไฟล์นี้ใส่ให้)
@@ -198,7 +200,9 @@
 		});
 	}
 
-	/* ---------- รางเลขบท · --p (ความคืบหน้าการเลื่อน) เมื่อไม่มี CSS scroll timeline หรือผู้ใช้ลดการเคลื่อนไหว ---------- */
+	/* ---------- รางเลขบท · --p (ความคืบหน้าการเลื่อน) เมื่อไม่มี CSS scroll timeline หรือผู้ใช้ลดการเคลื่อนไหว ----------
+	   รางปิดเป็นค่าเริ่มต้น (ตัวปรับแต่ง home_show_rail): หน้าไม่มี .hm-rail / .hm-progress / data-chapter
+	   → hasRail เป็น null สองบล็อกด้านล่างจึงไม่ผูก scroll, resize หรือ IntersectionObserver ใด ๆ และไม่แตะ --p */
 	var html = document.documentElement;
 	var hasRail = root.querySelector('.hm-rail, .hm-progress');
 	var hasTimeline = !!(window.CSS && CSS.supports && CSS.supports('animation-timeline: scroll()'));
@@ -222,9 +226,9 @@
 	}
 
 	/* ---------- รางเลขบท · เลขบทปัจจุบัน + aria-current ---------- */
-	var railN = root.querySelector('[data-rail-n]');
-	var railLinks = root.querySelectorAll('[data-rail-link]');
-	var chapters = root.querySelectorAll('section[data-chapter]');
+	var railN = hasRail ? root.querySelector('[data-rail-n]') : null;
+	var railLinks = railN ? root.querySelectorAll('[data-rail-link]') : [];
+	var chapters = railN ? root.querySelectorAll('section[data-chapter]') : [];
 	if (railN && chapters.length && hasIO) {
 		var current = railN.textContent;
 		var setCurrent = function (n) {
@@ -275,4 +279,67 @@
 			});
 		});
 	}
+
+	/* ---------- บทเช็กความพร้อม · นับข้อที่ติ๊ก → วงความคืบหน้า + ข้อความสถานะ (aria-live) + ปุ่มติดต่อเมื่อครบ ----------
+	   ไม่เก็บสถานะที่ใด: ไม่มี cookie / localStorage / คำขอไปเซิร์ฟเวอร์ · ปิดหน้าแล้วเริ่มใหม่ */
+	each(root.querySelectorAll('[data-hm-ready]'), function (box) {
+		var boxes = box.querySelectorAll('.hp-ready-box');
+		if (!boxes.length) {
+			return;
+		}
+		var ring = box.querySelector('.hp-ring');
+		var num = box.querySelector('[data-hm-ready-n]');
+		var status = box.querySelector('[data-hm-ready-status]');
+		var doneEls = box.querySelectorAll('[data-hm-ready-done]');
+		var total = boxes.length;
+		/* ข้อความสถานะของแต่ละจำนวน (0 … ทั้งหมด) เตรียมมาจาก PHP แล้ว */
+		var states = [];
+		try {
+			states = JSON.parse(box.getAttribute('data-states') || '[]');
+		} catch (e) {
+			states = [];
+		}
+		if (!Array.isArray(states)) {
+			states = [];
+		}
+		var update = function () {
+			var n = 0;
+			each(boxes, function (input) {
+				var row = input.parentNode ? input.parentNode.parentNode : null;
+				if (input.checked) {
+					n += 1;
+				}
+				if (row && row.classList) {
+					if (input.checked) {
+						row.classList.add('is-done');
+					} else {
+						row.classList.remove('is-done');
+					}
+				}
+			});
+			if (ring) {
+				ring.style.setProperty('--p', String(Math.round((n / total) * 100)));
+				if (n === total) {
+					ring.classList.add('is-full');
+				} else {
+					ring.classList.remove('is-full');
+				}
+			}
+			if (num) {
+				num.textContent = String(n);
+			}
+			if (status && typeof states[n] === 'string') {
+				status.textContent = states[n];
+			}
+			each(doneEls, function (el) {
+				el.hidden = n !== total;
+			});
+		};
+		each(boxes, function (input) {
+			input.addEventListener('change', update);
+		});
+		/* กลับมาจากปุ่มย้อนกลับ: เบราว์เซอร์อาจคืนช่องที่ติ๊กไว้ → นับใหม่ให้ตรง */
+		window.addEventListener('pageshow', update);
+		update();
+	});
 })();

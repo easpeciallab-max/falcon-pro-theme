@@ -4,7 +4,7 @@
  *
  * - โหลดหลัง style.css + components.css + chrome.css · ใช้ token ใน :root ของ style.css
  * - ทุกบล็อกรองรับทั้ง section พื้นขาว และ section พื้นเข้ม (.is-dark จาก fenix_section_tone)
- * - มุมโค้ง 14–20px · ปุ่มทรงแคปซูล · เส้นขอบบาง · สีเน้นเขียวแบบทึบ ไม่มี gradient / glow
+ * - มุมโค้ง 14–20px · ปุ่มสี่เหลี่ยมมุมมน (--btn-radius) · เส้นขอบบาง · สีเน้นเขียวแบบทึบ ไม่มี gradient / glow
  * - จุดตัดจอ: 1024 / 760 / 640
  */
 
@@ -192,6 +192,148 @@
 	box-shadow: none;
 }
 
+/* รายการหัวข้อสถิติใต้การ์ดสถานะ (หน้า Backtest) · มีแต่ชื่อหัวข้อกับป้ายสถานะ ไม่มีตัวเลข */
+.tests-pending--slots > div {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.results-pending .pending-slots-head {
+	margin: 20px 0 10px;
+	font-size: 0.82rem;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	color: var(--ash-2);
+}
+
+.pending-slots {
+	list-style: none;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px 12px;
+	margin: 0;
+	padding: 0;
+}
+
+.pending-slots li {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 9px 14px;
+	border: 1px dashed rgba(15, 18, 22, 0.22);
+	border-radius: 12px;
+	font-size: 0.9rem;
+	line-height: 1.45;
+}
+
+.pending-slot-name {
+	min-width: 0;
+	font-weight: 500;
+	color: var(--ink);
+}
+
+.pending-slot-wait {
+	flex: 0 0 auto;
+	padding: 2px 10px;
+	border-radius: var(--btn-radius-xs, 6px); /* ป้ายสถานะ: มุมมนเล็กน้อยแบบเดียวกับปุ่ม ไม่ใช้ทรงแคปซูล */
+	background: var(--coal);
+	font-size: 0.74rem;
+	white-space: nowrap;
+	color: var(--ash);
+}
+
+.is-dark .results-pending .pending-slots-head {
+	color: var(--on-black-2);
+}
+
+.is-dark .pending-slots li {
+	border-color: rgba(255, 255, 255, 0.2);
+}
+
+.is-dark .pending-slot-name {
+	color: #FFFFFF;
+}
+
+.is-dark .pending-slot-wait {
+	background: rgba(255, 255, 255, 0.08);
+	color: var(--on-black-2);
+}
+
+/* การ์ดสถานะ "ผลอยู่ในตารางด้านล่าง" (หน้า Backtest · fenix_pages_backtest_live_card)
+   ใช้โครงเดียวกับการ์ด "ยังไม่มีผล" แต่เส้นขอบทึบ (เส้นประ = ยังรอผล) · ไม่มีตัวเลขในการ์ดนี้ มีแต่ข้อความกับปุ่ม */
+.tests-live,
+.is-dark .tests-live {
+	border-style: solid;
+}
+
+.tests-live {
+	border-color: var(--border-fire, rgba(34, 197, 94, 0.45));
+}
+
+.is-dark .tests-live {
+	border-color: rgba(74, 242, 142, 0.32);
+}
+
+.tests-live > div {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.tests-live-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+	margin-top: 20px;
+}
+
+/* ลูกศรชี้ลง: ปุ่มนี้เลื่อนไปที่ตารางผลในหน้าเดียวกัน */
+.tests-live-jump .icon {
+	transform: rotate(90deg);
+}
+
+/* ตารางผล Backtest ในเนื้อหาเพจ (table.bt-table ใน inc/content/pages/backtest.html)
+   แถว = รายการ (เงื่อนไขการทดสอบอยู่แถวบน ผลอยู่แถวล่าง) · คอลัมน์ = ชุด EA · ตัวเลขใช้ความกว้างเท่ากันทุกหลัก
+   จอแคบใช้การ์ดเรียงตามแถวแบบเดียวกับตารางอื่นของหน้า (หัวข้อ 9) แต่ละการ์ด = หนึ่งรายการ มีค่าของทุกชุด */
+.bt-table th,
+.bt-table td {
+	font-variant-numeric: tabular-nums;
+}
+
+.bt-table td:first-child {
+	min-width: 190px;
+}
+
+.bt-table thead th + th,
+.bt-table td + td {
+	min-width: 132px;
+}
+
+/* เงื่อนไขการทดสอบที่เหมือนกันทุกชุดรวมเป็นช่องเดียว (colspan ในเนื้อหาเพจ) · จอกว้าง: จัดกลางคร่อมคอลัมน์ของทุกชุด
+   จอแคบ: ป้ายของช่องคือ data-label ที่เขียนไว้ในเนื้อหา ("ทั้ง 4 ชุด" / "ทั้ง 3 โหมด") */
+.bt-table td[colspan] {
+	text-align: center;
+}
+
+@media (max-width: 640px) {
+	.bt-table td:first-child,
+	.bt-table thead th + th,
+	.bt-table td + td {
+		min-width: 0;
+	}
+
+	.bt-table td[colspan] {
+		text-align: left;
+	}
+
+	.tests-live-actions .btn {
+		flex: 1 1 100%;
+		justify-content: center;
+		white-space: normal;
+	}
+}
+
 /* สถิติแบบเส้นบาง (แสดงเฉพาะค่าที่กรอกจริง) */
 .stats-line {
 	display: grid;
@@ -333,7 +475,7 @@
 	flex: 0 0 auto;
 	transform: none;
 	padding: 4px 12px;
-	border-radius: 999px;
+	border-radius: var(--btn-radius-xs, 6px); /* ป้ายสถานะ: มุมมนเล็กน้อยแบบเดียวกับปุ่ม ไม่ใช้ทรงแคปซูล */
 	font-size: 0.72rem;
 	letter-spacing: 0.06em;
 }
@@ -462,6 +604,56 @@
 .is-dark .compare-table tbody tr:hover td,
 .is-dark .compare-table tbody tr:hover th {
 	background: rgba(74, 242, 142, 0.05);
+}
+
+/* คอลัมน์ของแพ็กเกจที่ติ๊ก "แนะนำ" · พื้นเขียวจางทั้งคอลัมน์ + เส้นเขียวทึบบนหัวคอลัมน์ + ป้ายแนะนำ */
+.compare-table .is-featured {
+	background: rgba(34, 197, 94, 0.08);
+}
+
+.compare-table thead th.is-featured {
+	background: rgba(34, 197, 94, 0.14);
+	box-shadow: inset 0 3px 0 var(--ember);
+	color: var(--ink);
+}
+
+.compare-table tbody td.is-featured {
+	color: var(--ink);
+}
+
+.compare-table tbody tr:hover td.is-featured {
+	background: rgba(34, 197, 94, 0.13);
+}
+
+.compare-flag {
+	display: inline-block;
+	margin-left: 6px;
+	padding: 2px 9px;
+	border-radius: var(--btn-radius-xs, 6px); /* ป้ายสถานะ: มุมมนเล็กน้อยแบบเดียวกับปุ่ม ไม่ใช้ทรงแคปซูล */
+	background: var(--ember);
+	font-size: 0.68rem;
+	font-weight: 600;
+	line-height: 1.5;
+	letter-spacing: 0.04em;
+	vertical-align: middle;
+	color: var(--on-ember);
+}
+
+.is-dark .compare-table .is-featured {
+	background: rgba(74, 242, 142, 0.07);
+}
+
+.is-dark .compare-table thead th.is-featured {
+	background: rgba(74, 242, 142, 0.13);
+	color: #FFFFFF;
+}
+
+.is-dark .compare-table tbody td.is-featured {
+	color: #FFFFFF;
+}
+
+.is-dark .compare-table tbody tr:hover td.is-featured {
+	background: rgba(74, 242, 142, 0.11);
 }
 
 /* สิทธิ์ใช้งาน / VPS */
@@ -624,13 +816,25 @@
 	border-radius: 18px;
 }
 
+/* เลขลำดับอยู่นอก <h2> (template-risk.php): เลข + หัวข้ออยู่แถวเดียวกัน เนื้อหาเต็มความกว้างอยู่แถวล่าง */
 .riskdoc-block {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	column-gap: 14px;
+	row-gap: 10px;
+	align-items: center;
 	border-radius: 18px;
 }
 
 .riskdoc-block h2 {
+	display: block;
+	margin: 0;
 	font-size: 1.15rem;
 	line-height: 1.45;
+}
+
+.riskdoc-block > p {
+	grid-column: 1 / -1;
 }
 
 .riskdoc-num {
@@ -659,13 +863,22 @@
 	background: none;
 }
 
-/* วันที่ปรับปรุง · ต่อท้ายเนื้อหาทั้งหมด */
+/* วันที่ปรับปรุง · ต่อท้ายเนื้อหาทั้งหมด บนพื้นขาวเดียวกับส่วนอ่านยาว
+   position: relative ให้แถบนี้อยู่เหนือ section ก่อนหน้า (margin-top ติดลบดึงขึ้นไปทับช่องว่างท้ายเนื้อหา
+   ถ้าไม่ยกชั้น บรรทัดวันที่จะถูกพื้นของ section บังจนมองไม่เห็น) */
 .riskdoc-updated-wrap {
-	padding: 0 0 64px;
+	position: relative;
+	padding: 28px 0 64px;
+	background: var(--void);
 }
 
 .longform + .riskdoc-updated-wrap {
 	margin-top: -40px;
+	padding-top: 0;
+}
+
+.riskdoc-updated-wrap .riskdoc-updated .icon {
+	color: var(--flare);
 }
 
 .riskdoc-updated-wrap .riskdoc-updated {
@@ -731,9 +944,9 @@
 .doc-toc-count {
 	margin-left: auto;
 	padding: 1px 10px;
-	border-radius: 999px;
+	border-radius: var(--btn-radius-xs, 6px); /* ป้ายสถานะ: มุมมนเล็กน้อยแบบเดียวกับปุ่ม ไม่ใช้ทรงแคปซูล */
 	background: rgba(34, 197, 94, 0.12);
-	color: var(--flare);
+	color: var(--on-ember);
 	font-size: 0.78rem;
 	font-variant-numeric: tabular-nums;
 }
@@ -1180,7 +1393,7 @@
 .error-links a {
 	padding: 6px 14px;
 	border: 1px solid var(--border);
-	border-radius: 999px;
+	border-radius: var(--btn-radius-sm);
 }
 
 .error-links a:hover {
@@ -1334,6 +1547,24 @@
 	.is-dark .compare-wrap--cards tbody td::before {
 		color: var(--on-black-2);
 	}
+
+	/* แถวของแพ็กเกจแนะนำในการ์ดแต่ละหัวข้อ: แถบเขียวทึบด้านซ้าย */
+	.compare-wrap--cards tbody td.is-featured {
+		box-shadow: inset 3px 0 0 var(--ember);
+	}
+
+	.compare-wrap--cards tbody td.is-featured::before {
+		color: var(--ink);
+	}
+
+	.is-dark .compare-wrap--cards tbody td.is-featured::before {
+		color: #FFFFFF;
+	}
+
+	.compare-table tbody tr:hover td.is-featured,
+	.is-dark .compare-table tbody tr:hover td.is-featured {
+		background: rgba(34, 197, 94, 0.08);
+	}
 }
 
 /* ==========================================================
@@ -1445,8 +1676,12 @@
 		align-items: flex-start;
 	}
 
+	.riskdoc-block {
+		align-items: start;
+	}
+
 	.riskdoc-block h2 {
-		align-items: flex-start;
+		padding-top: 5px;
 	}
 
 	.pricing-page .price-card {
@@ -1477,4 +1712,125 @@
 	content: "✓";
 	background: var(--ember);
 	color: var(--on-ember);
+}
+
+/* ==========================================================
+   11) หัวเพจ · แถวปุ่ม (fenix_pages_hero · หน้า Pricing)
+   ========================================================== */
+.phero-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+	margin-top: 28px;
+}
+
+.phero-actions .admin-hint {
+	color: var(--on-black-2);
+}
+
+/* ลูกศรชี้ลง: ปุ่มนี้เลื่อนไปตารางเปรียบเทียบในหน้าเดียวกัน */
+.phero-jump .icon {
+	transform: rotate(90deg);
+}
+
+@media (max-width: 640px) {
+	.phero-actions {
+		margin-top: 22px;
+	}
+
+	.phero-actions .btn {
+		flex: 1 1 100%;
+		white-space: normal;
+	}
+
+	.pending-slots {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+/* ==========================================================
+   12) สารบัญของเนื้อหายาว (fenix_page_longform ใน functions.php · ใช้ทั้งหน้ากลุ่มนี้และหน้าคู่มือ)
+   - จอกว้าง: กล่องติดข้าง เปิดตลอด (.longform-toc-desk)
+   - จอ ≤ 1024px (สารบัญย้ายขึ้นเหนือเนื้อหา): แถบพับเก็บ กดเปิดได้ (details.longform-toc-mob)
+   รายการพิมพ์สองชุด สลับด้วย display · สีพื้นและสีลิงก์ใช้กฎ .longform-toc เดิมใน style.css
+   ========================================================== */
+.longform-toc-mob {
+	display: none;
+}
+
+.longform-toc-head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 10px;
+	font-size: 0.8rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	color: var(--ash-2);
+}
+
+.longform-toc-count {
+	margin-left: auto;
+	padding: 1px 9px;
+	border-radius: var(--btn-radius-xs, 6px); /* ป้ายสถานะ: มุมมนเล็กน้อยแบบเดียวกับปุ่ม ไม่ใช้ทรงแคปซูล */
+	background: rgba(34, 197, 94, 0.12);
+	font-size: 0.74rem;
+	font-weight: 600;
+	letter-spacing: 0;
+	font-variant-numeric: tabular-nums;
+	color: var(--on-ember);
+}
+
+.theme-dark .longform-toc-head {
+	color: rgba(255, 255, 255, 0.55);
+}
+
+.theme-dark .longform-toc-count {
+	background: rgba(74, 242, 142, 0.14);
+	color: var(--mint);
+}
+
+@media (max-width: 1024px) {
+	.longform-toc--dual {
+		padding: 0;
+		overflow: visible;
+	}
+
+	.longform-toc-desk {
+		display: none;
+	}
+
+	.longform-toc-mob {
+		display: block;
+	}
+
+	.longform-toc-mob summary {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin: 0;
+		padding: 14px 18px;
+		font-size: 0.92rem;
+	}
+
+	.longform-toc-mob summary::after {
+		content: "";
+		flex: 0 0 auto;
+		width: 8px;
+		height: 8px;
+		margin-left: 2px;
+		border-right: 2px solid currentColor;
+		border-bottom: 2px solid currentColor;
+		transform: rotate(45deg) translateY(-2px);
+		transition: transform 0.18s ease;
+	}
+
+	.longform-toc-mob[open] summary::after {
+		transform: rotate(-135deg) translateY(-2px);
+	}
+
+	.longform-toc-mob ol {
+		padding: 0 10px 12px;
+	}
 }

@@ -100,7 +100,7 @@
 	align-items: center;
 	gap: 6px;
 	padding: 6px 10px;
-	border-radius: 999px;
+	border-radius: var(--btn-radius-sm);
 	background: rgba(16, 24, 27, 0.82);
 	color: #FFFFFF;
 	font-size: 0.74rem;
@@ -109,16 +109,36 @@
 	transition: opacity 0.18s ease, transform 0.18s ease;
 }
 
+/* ป้ายที่เหลือเฉพาะไอคอน (ช่อง "ป้ายบนรูปที่กดเปิดขนาดเต็มได้" ใน Customizer ถูกเว้นว่าง · คลาสมาจาก fenix_media_open) = สี่เหลี่ยมมุมมนเล็ก */
+.media-open-hint--icon {
+	gap: 0;
+	padding: 7px;
+}
+
 .media-open:hover .media-open-hint,
 .media-open:focus-visible .media-open-hint {
 	opacity: 1;
 	transform: none;
 }
 
+/* จอสัมผัส (ไม่มี hover): ป้ายต้องเห็นตลอด แต่ห้ามลอยทับภาพ เพราะเคยบังข้อความที่อยู่ในตัวภาพ
+   (ประโยคเตือนความเสี่ยงของแผนภาพหน้าแรก · บรรทัด "ภาพจำลอง" ของภาพ iPhone) → เป็นแถบใต้ภาพ อยู่ในลิงก์เดียวกัน
+   แบบเหลือแต่ไอคอน (ช่องป้ายถูกเว้นว่าง) ไม่มีข้อความให้อ่าน จึงไม่แสดงบนจอสัมผัส · ภาพยังแตะเปิดได้เหมือนเดิม */
 @media (hover: none) {
 	.media-open-hint {
+		position: static;
+		display: flex;
+		justify-content: center;
+		padding: 9px 12px;
+		border-radius: 0;
+		background: var(--black-deep);
 		opacity: 1;
 		transform: none;
+		transition: none;
+	}
+
+	.media-open-hint--icon {
+		display: none;
 	}
 }
 

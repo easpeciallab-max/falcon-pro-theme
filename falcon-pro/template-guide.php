@@ -2,9 +2,9 @@
 /**
  * Template Name: FALCON · หน้าคู่มือ / เนื้อหายาว
  *
- * ใช้กับ: เปิดบัญชี MT5, ติดตั้งและล็อกอิน MT5, VPS (Windows / Android / iOS) และหน้าเครื่องมือคำนวณ
+ * ใช้กับ: เปิดบัญชี MT5, ฝากเงินเข้าบัญชีเทรด, ติดตั้งและล็อกอิน MT5, VPS (Windows / Android / iOS) และหน้าเครื่องมือคำนวณ
  * - หน้าคู่มือ (slug อยู่ใน fenix_guide_map() ของ inc/modules/guides.php):
- *   hero → เกริ่นนำ + ภาพรวมขั้นตอน + สิ่งที่ต้องเตรียม → ขั้นตอน (ข้อความ | ภาพ) + การ์ดดาวน์โหลดแอป
+ *   hero (ชื่อหน้า + ภาพรวมขั้นตอนแบบย่อ) → เกริ่นนำ + สิ่งที่ต้องเตรียม → ขั้นตอน (ข้อความ | ภาพ) + การ์ดดาวน์โหลดแอป
  *   → เช็กลิสต์ → เนื้อหายาวจากหน้าแก้ไขเพจ (สารบัญ + ตาราง + FAQ) → คู่มือที่ควรอ่านต่อ → ติดต่อทีมงาน
  *   ขั้นตอน / เช็กลิสต์ / การ์ดดาวน์โหลด / ข้อความติดต่อ แก้ที่ ปรับแต่ง → "คู่มือ · …"
  *   คำอธิบายยาว ตารางแก้ปัญหา และ FAQ แก้ในหน้าแก้ไขเพจ
@@ -32,12 +32,19 @@ $fenix_p     = function_exists( 'fenix_guide_prefix' ) ? fenix_guide_prefix() : 
 if ( $fenix_p ) {
 	$fenix_kicker = fenix_mod( $fenix_p . '_kicker' );
 	$fenix_sub    = fenix_mod( $fenix_p . '_sub' );
+	/* ตัวแทน {broker} {brand} ในคำโปรย → ค่าจริง (แทนค่าก่อน แล้ว hero เป็นผู้ escape) · ภาพรวมขั้นตอนแบบย่ออยู่ใน hero */
+	fenix_guide_hero(
+		$fenix_kicker,
+		get_the_title(),
+		fenix_is_placeholder( $fenix_sub ) ? '' : fenix_guide_tokens( $fenix_sub ),
+		fenix_mod( $fenix_p . '_quick_title' ),
+		fenix_mod( $fenix_p . '_quick' )
+	);
 } else {
 	$fenix_kicker = fenix_page_kicker( $fenix_slug );
 	$fenix_sub    = has_excerpt() ? get_the_excerpt() : (string) get_post_meta( get_the_ID(), 'fenix_meta_description', true );
+	fenix_page_hero( $fenix_kicker, get_the_title(), fenix_is_placeholder( $fenix_sub ) ? '' : $fenix_sub );
 }
-
-fenix_page_hero( $fenix_kicker, get_the_title(), fenix_is_placeholder( $fenix_sub ) ? '' : $fenix_sub );
 ?>
 
 <main id="main" class="guide-page gd-page<?php echo esc_attr( $fenix_p ? ' gd-page--' . $fenix_p : ' gd-page--' . sanitize_key( $fenix_slug ) ); ?>">
@@ -45,14 +52,13 @@ fenix_page_hero( $fenix_kicker, get_the_title(), fenix_is_placeholder( $fenix_su
 <?php if ( $fenix_p ) : ?>
 
 	<?php
+	/* ภาพรวมขั้นตอน (quick) อยู่ใน hero แล้ว จึงไม่ส่งให้ส่วนบนพิมพ์ซ้ำ */
 	fenix_guide_top(
 		array(
-			'intro'       => fenix_mod( $fenix_p . '_intro' ),
-			'quick_title' => fenix_mod( $fenix_p . '_quick_title' ),
-			'quick'       => fenix_mod( $fenix_p . '_quick' ),
-			'prep_title'  => fenix_mod( $fenix_p . '_prep_title' ),
-			'prep'        => fenix_mod( $fenix_p . '_prep' ),
-			'prep_note'   => fenix_mod( $fenix_p . '_prep_note' ),
+			'intro'      => fenix_mod( $fenix_p . '_intro' ),
+			'prep_title' => fenix_mod( $fenix_p . '_prep_title' ),
+			'prep'       => fenix_mod( $fenix_p . '_prep' ),
+			'prep_note'  => fenix_mod( $fenix_p . '_prep_note' ),
 		)
 	);
 
@@ -64,7 +70,7 @@ fenix_page_hero( $fenix_kicker, get_the_title(), fenix_is_placeholder( $fenix_su
 
 	fenix_guide_related( $fenix_slug );
 
-	fenix_line_cta( fenix_mod( $fenix_p . '_cta_title' ), fenix_mod( $fenix_p . '_cta_text' ) );
+	fenix_line_cta( fenix_guide_tokens( fenix_mod( $fenix_p . '_cta_title' ) ), fenix_guide_tokens( fenix_mod( $fenix_p . '_cta_text' ) ) );
 	?>
 
 <?php else : ?>
@@ -80,8 +86,8 @@ fenix_page_hero( $fenix_kicker, get_the_title(), fenix_is_placeholder( $fenix_su
 		fenix_guide_related( $fenix_slug );
 	}
 
-	if ( 'tools' === $fenix_slug ) {
-		fenix_line_cta( fenix_mod( 'gtools_cta_title' ), fenix_mod( 'gtools_cta_text' ) );
+	if ( 'tools' === $fenix_slug && function_exists( 'fenix_guide_tokens' ) ) {
+		fenix_line_cta( fenix_guide_tokens( fenix_mod( 'gtools_cta_title' ) ), fenix_guide_tokens( fenix_mod( 'gtools_cta_text' ) ) );
 	} else {
 		fenix_line_cta();
 	}

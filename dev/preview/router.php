@@ -32,6 +32,20 @@ do_action( 'init' );
 
 $slug = trim( $uri, '/' );
 
+// Keep-case wrapping (inc/modules/infra.php): on the live site the buffer starts at template_redirect, a hook the
+// preview never fires, so start the same buffer here. Not for the cover cards and diagrams (they are not theme pages on the live site).
+// Add ?nocaps=0 to see a page without the wrapping.
+if ( function_exists( 'fenix_nocaps_buffer' ) && 0 !== strpos( $slug, '__cover/' ) && 0 !== strpos( $slug . '/', '__art/' ) && ! ( isset( $_GET['nocaps'] ) && '0' === $_GET['nocaps'] ) ) {
+	ob_start( 'fenix_nocaps_buffer' );
+}
+
+// Search results: /?s=term or /search/ renders search.php (the WP_Query stub has no posts, so this is the "no results" state)
+if ( isset( $_GET['s'] ) || 'search' === $slug ) {
+	$GLOBALS['fx_post'] = array( 'title' => 'ค้นหา', 'content' => '', 'slug' => 'search', 'type' => 'search' );
+	$GLOBALS['fx_loop'] = 1; // have_posts() = false
+	require $root . '/search.php';
+	return true;
+}
 
 if ( '' === $slug ) {
 	$GLOBALS['fx_route']['front'] = true;
@@ -46,7 +60,8 @@ if ( isset( $pages[ $slug ] ) ) {
 	$p       = $pages[ $slug ];
 	$content = '';
 	if ( ! empty( $p['content'] ) && function_exists( 'fenix_seed_content' ) ) {
-		$content = fenix_seed_content( $p['content'] );
+		// same text FALCON Setup writes into the page (seed comments stripped) when that helper exists
+		$content = function_exists( 'fenix_setup_page_content' ) ? fenix_setup_page_content( $p['content'] ) : fenix_seed_content( $p['content'] );
 	}
 	$GLOBALS['fx_post'] = array( 'title' => $p['title'], 'content' => $content, 'slug' => $slug, 'type' => 'page' );
 	if ( 'articles' === $slug ) {
@@ -59,7 +74,14 @@ if ( isset( $pages[ $slug ] ) ) {
 	return true;
 }
 
-// Article cover card: /__cover/<article-slug>/ (source for dev/make-covers.php)
+// In-content diagram: /__art/<name>/?layout=wide|tall · /__art/ lists the names (source for dev/make-art.php)
+if ( 0 === strpos( $slug . '/', '__art/' ) ) {
+	$fx_art_name = trim( (string) substr( $slug, 6 ), '/' );
+	require __DIR__ . '/art.php';
+	return true;
+}
+
+// Cover card: /__cover/<article-slug>/ for an article, /__cover/page-<page-slug>/ for a page (source for dev/make-covers.php)
 if ( 0 === strpos( $slug, '__cover/' ) && function_exists( 'fenix_seed_articles' ) ) {
 	$fx_cover_slug = substr( $slug, 8 );
 	require __DIR__ . '/cover.php';
@@ -90,6 +112,8 @@ if ( isset( $legacy[ $slug ] ) ) {
 	return true;
 }
 
+// Anything else (and /404/): the theme's 404 template with a 404 status
 http_response_code( 404 );
-echo 'No preview route for /' . htmlspecialchars( $slug );
+$GLOBALS['fx_post'] = array( 'title' => 'ไม่พบหน้า', 'content' => '', 'slug' => '404', 'type' => '404' );
+require $root . '/404.php';
 return true;

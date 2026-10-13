@@ -2,7 +2,7 @@
  * FALCON PRO EA · หน้า /go (ลิงก์รวม) · template-go.php + inc/modules/go.php
  * หน้าเดี่ยว: พื้นเพจเข้ม #172125 + การ์ดกลางจอ (โหมดเข้ม = การ์ดเข้ม · โหมดขาว/ดำสลับ = การ์ดขาว)
  * ไม่พึ่ง CSS ของ header/footer · ทุกคลาสขึ้นต้นด้วย .link-hub / .lh-
- * สไตล์ FALCON: มุมโค้ง ปุ่มทรงแคปซูล ไอคอนในวงกลม เส้นขอบบาง เงานุ่มสีกลาง · ไม่มี gradient / แสงเรือง
+ * สไตล์ FALCON: มุมโค้ง ปุ่มสี่เหลี่ยมมุมมน (--btn-radius) ไอคอนในวงกลม เส้นขอบบาง เงานุ่มสีกลาง · ไม่มี gradient / แสงเรือง
  */
 
 /* ---------- พื้นเพจ ---------- */
@@ -120,7 +120,7 @@ body.link-hub-page {
 
 .lh-badges li {
 	padding: 4px 11px;
-	border-radius: 999px;
+	border-radius: var(--btn-radius-xs, 6px); /* ป้ายสถานะ: มุมมนเล็กน้อยแบบเดียวกับปุ่ม ไม่ใช้ทรงแคปซูล */
 	border: 1px solid var(--lh-accent-line);
 	background: var(--lh-accent-soft);
 	color: var(--lh-accent);
@@ -159,6 +159,12 @@ body.link-hub-page {
 	margin-bottom: 0;
 }
 
+/* กลุ่มการ์ดแดชบอร์ดแบบย่อ (fenix_dashboard_block( 'go' ) · ตัวการ์ดอยู่ใน assets/css/dashboard.css และอ่านโทเคน --lh-* ของการ์ดหน้านี้)
+   กลุ่มมีระยะห่างและเส้นคั่นของตัวเองแล้ว จึงไม่ต้องเว้นซ้ำเหนือการ์ด */
+.lh-group--dash .dash-promo--go {
+	margin-top: 0;
+}
+
 /* ---------- ปุ่ม ---------- */
 .lh-btn {
 	display: flex;
@@ -168,7 +174,7 @@ body.link-hub-page {
 	min-height: 56px;
 	margin: 0 0 10px;
 	padding: 9px 18px 9px 11px;
-	border-radius: 999px;
+	border-radius: var(--btn-radius);
 	border: 1px solid var(--lh-line);
 	background: var(--lh-surface);
 	color: var(--lh-text);
@@ -319,7 +325,7 @@ a.lh-btn:hover .lh-ar {
 	width: 100%;
 	min-height: 46px;
 	padding: 7px 16px;
-	border-radius: 999px;
+	border-radius: var(--btn-radius);
 	border: 1px solid var(--lh-line);
 	background: transparent;
 	color: var(--lh-body);
@@ -373,7 +379,7 @@ a.lh-mini-btn:hover {
 .lh-pending-tag {
 	flex: 0 0 auto;
 	padding: 2px 9px;
-	border-radius: 999px;
+	border-radius: var(--btn-radius-xs, 6px); /* ป้ายสถานะ: มุมมนเล็กน้อยแบบเดียวกับปุ่ม ไม่ใช้ทรงแคปซูล */
 	border: 1px solid var(--lh-line);
 	background: var(--lh-surface-2);
 	color: var(--lh-muted);
@@ -457,7 +463,7 @@ a.lh-mini-btn:hover {
 
 .lh-step-badge {
 	padding: 1px 9px;
-	border-radius: 999px;
+	border-radius: var(--btn-radius-xs, 6px); /* ป้ายสถานะ: มุมมนเล็กน้อยแบบเดียวกับปุ่ม ไม่ใช้ทรงแคปซูล */
 	border: 1px solid var(--lh-accent-line);
 	background: var(--lh-accent-soft);
 	color: var(--lh-accent);
@@ -474,7 +480,7 @@ a.lh-mini-btn:hover {
 	color: var(--lh-muted);
 }
 
-/* หมายเหตุ (เช่น เปิดเผยความเป็นพันธมิตร) · อยู่ก่อนปุ่มของขั้น */
+/* หมายเหตุของขั้น (ไม่บังคับ · ขั้นเปิดบัญชีเว้นว่างเป็นค่าเริ่มต้น) · อยู่เหนือปุ่มของขั้น */
 .lh-step-note {
 	margin: 10px 0 0;
 	padding: 8px 12px;
@@ -601,7 +607,7 @@ a.lh-tile:hover .lh-tile-lbl {
 	place-items: center;
 	width: 44px;
 	height: 44px;
-	border-radius: 50%;
+	border-radius: var(--btn-radius-sm);
 	border: 1px solid var(--lh-line-strong);
 	background: var(--lh-surface);
 	color: var(--lh-text);

@@ -3,7 +3,7 @@
  * FALCON PRO EA · PDPA consent card + GA4 / Meta Pixel IDs
  *
  * วิธีทำงาน
- * - fenix_consent_card() ต่อท้ายทุกหน้าทาง wp_footer (priority 5) หน้า /go/ แบบไม่มีกรอบธีมก็ได้การ์ดด้วย
+ * - fenix_consent_card() พิมพ์ครั้งเดียวต่อหน้า ที่ wp_body_open (priority 5 · wp_footer เป็นทางสำรอง) หน้า /go/ แบบไม่มีกรอบธีมก็ได้การ์ดด้วย
  * - ฝั่ง PHP ไม่แตะคุกกี้ของผู้เข้าชม เพื่อให้ปลั๊กอินแคชเก็บหน้าเดียวใช้ได้กับทุกคน · การแสดง/ซ่อนการ์ดเป็นงานของ assets/js/consent.js
  * - HTML ไม่มีสคริปต์ GA4 หรือ Pixel ติดมา · consent.js ค่อยใส่สคริปต์ของหมวดที่ผู้เข้าชมกดอนุญาต
  * - Consent Mode v2: <head> ประกาศทุกสัญญาณเป็น denied ไว้ก่อน แล้ว consent.js ส่ง update เมื่อได้รับอนุญาต
@@ -87,10 +87,10 @@ function fenix_consent_sections( $sections, $d ) {
 		'description' => 'การ์ดนี้แสดงเองทันทีที่มี GA4 Measurement ID หรือ Meta Pixel ID ถูกรูปแบบอย่างน้อยหนึ่งตัว (ติ๊กช่องด้านล่างถ้าอยากให้แสดงตั้งแต่ยังไม่มีรหัส) · สคริปต์ของแต่ละบริการเริ่มทำงานหลังผู้เข้าชมกดอนุญาตหมวดของบริการนั้นแล้วเท่านั้น · ห้ามให้ปลั๊กอินอื่นฝังแท็กซ้ำ (เช่น Site Kit หรือปลั๊กอิน Pixel) เพราะจะทำงานก่อนได้รับอนุญาต · เมื่อเพิ่มบริการหรือเปลี่ยนวัตถุประสงค์ของคุกกี้ ให้บวกเลขรุ่นขึ้น 1 ระบบจะขอความยินยอมจากทุกคนอีกรอบ · ลิงก์นโยบายโผล่เมื่อหน้า privacy-policy เผยแพร่แล้ว (ชี้ไปหัวข้อ #cookies) · ลิงก์ใด ๆ ที่ชี้ไป #cookie-settings จะเปิดการ์ดนี้',
 		'fields'      => array(
 			'ga_measurement_id'        => array( 'GA4 Measurement ID (รูปแบบ G-XXXXXXXXXX)', 'text', 'หาได้ใน GA4 → Admin → Data streams · ถ้ารูปแบบผิด ระบบจะไม่ยอมบันทึก' ),
-			'fb_pixel_id'              => array( 'Meta Pixel ID (ตัวเลข 10–20 หลัก)', 'text', 'หาได้ใน Meta Events Manager → Data sources · ถ้ารูปแบบผิด ระบบจะไม่ยอมบันทึก' ),
+			'fb_pixel_id'              => array( 'Meta Pixel ID (ตัวเลข 10–20 หลัก)', 'text', 'หาได้ใน Meta Events Manager → Data sources · ถ้ารูปแบบผิด ระบบจะไม่ยอมบันทึก · ธีมตั้ง Pixel เป็นโหมดกำหนดเอง จึงส่งเฉพาะการเปิดหน้าและการกดปุ่ม LINE ตามที่นโยบายความเป็นส่วนตัวระบุ ไม่เก็บการกดปุ่มอื่นเอง' ),
 			'show_cookie_consent'      => array( 'แสดงการ์ดคุกกี้แม้ยังไม่ได้ใส่รหัสติดตาม', 'checkbox' ),
 			'consent_version'          => array( 'เลขรุ่นของความยินยอม', 'text', 'บวกเลขขึ้นเมื่อเปลี่ยนวิธีใช้คุกกี้ ระบบจะขอความยินยอมใหม่จากทุกคน' ),
-			'consent_kicker'           => array( 'การ์ด · ข้อความเล็กเหนือหัวข้อ', 'text' ),
+			'consent_kicker'           => array( 'การ์ด · ข้อความเล็กเหนือหัวข้อ', 'text', 'แสดงเมื่อเปิด "แสดงคำเล็กเหนือหัวข้อ (ทั้งเว็บ)" ที่หมวด 1 เท่านั้น' ),
 			'consent_title'            => array( 'การ์ด · หัวข้อ', 'text' ),
 			'cookie_consent_text'      => array( 'การ์ด · ข้อความหลัก (ก่อนกดเลือกทีละหมวด)', 'textarea' ),
 			'consent_policy_label'     => array( 'การ์ด · คำบนลิงก์ไปนโยบายคุกกี้', 'text' ),
@@ -300,11 +300,16 @@ add_action( 'wp_head', 'fenix_consent_mode_default', 1 );
 
 /**
  * การ์ดออกมาพร้อม hidden ทุกครั้ง · เบราว์เซอร์ที่ปิด JS จะไม่เห็นการ์ด และไม่มีสคริปต์ติดตามตัวไหนทำงาน
+ * พิมพ์ครั้งเดียวต่อหน้า: ที่ wp_body_open (ต้น body · ผู้ใช้คีย์บอร์ดและโปรแกรมอ่านจอเจอการ์ดก่อนเนื้อหา)
+ * และ wp_footer เป็นทางสำรองของเทมเพลตที่ไม่เรียก wp_body_open() · การ์ดวางด้วย position: fixed ตำแหน่งบนจอจึงเท่าเดิม
+ * หัวการ์ดเป็น <p> ไม่ใช่หัวข้อ: การ์ดอยู่ก่อน H1 ของหน้า จึงไม่แทรกลำดับหัวข้อของเนื้อหา (section ยังมีชื่อจาก aria-labelledby)
  */
 function fenix_consent_card() {
-	if ( is_admin() ) {
+	static $printed = false;
+	if ( $printed || is_admin() ) {
 		return;
 	}
+	$printed = true;
 
 	$policy_url   = fenix_consent_policy_url();
 	$policy_label = trim( (string) fenix_mod( 'consent_policy_label' ) );
@@ -338,10 +343,14 @@ function fenix_consent_card() {
 	<div class="consent-head">
 		<span class="consent-badge" aria-hidden="true"><?php echo fenix_icon( 'shield' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
 		<div class="consent-head-text">
-			<?php if ( '' !== trim( (string) fenix_mod( 'consent_kicker' ) ) ) : ?>
-				<p class="consent-kicker"><?php echo esc_html( fenix_mod( 'consent_kicker' ) ); ?></p>
+			<?php
+			/* ข้อความเล็กเหนือหัวข้อของการ์ด: พิมพ์เฉพาะเมื่อเปิด "คำเล็กเหนือหัวข้อ" (show_kickers · หมวด 1 · fenix_kicker ใน inc/components.php) · ค่าเริ่มต้นปิด = หัวข้อการ์ดขึ้นเดี่ยว */
+			$fenix_consent_kicker = function_exists( 'fenix_kicker' ) ? fenix_kicker( fenix_mod( 'consent_kicker' ) ) : '';
+			?>
+			<?php if ( '' !== $fenix_consent_kicker ) : ?>
+				<p class="consent-kicker"><?php echo esc_html( $fenix_consent_kicker ); ?></p>
 			<?php endif; ?>
-			<h2 class="consent-title" id="consent-title" tabindex="-1"><?php echo fenix_text( fenix_mod( 'consent_title' ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in fenix_text ?></h2>
+			<p class="consent-title" id="consent-title" tabindex="-1"><?php echo fenix_text( fenix_mod( 'consent_title' ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in fenix_text ?></p>
 		</div>
 	</div>
 
@@ -398,4 +407,5 @@ function fenix_consent_card() {
 </section>
 	<?php
 }
+add_action( 'wp_body_open', 'fenix_consent_card', 5 );
 add_action( 'wp_footer', 'fenix_consent_card', 5 );

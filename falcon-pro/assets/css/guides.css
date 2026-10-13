@@ -1,20 +1,91 @@
 /*
  * FALCON PRO EA · หน้าคู่มือ (inc/modules/guides.php · template-guide.php · template-install.php)
- * หน้าตาแบบ FALCON: มุมโค้ง เส้นบาง เงานุ่ม ปุ่ม pill ไอคอนในวงกลม สีเขียวทึบ
+ * หน้าตาแบบ FALCON: มุมโค้ง เส้นบาง เงานุ่ม ปุ่มสี่เหลี่ยมมุมมน (--btn-radius) ไอคอนในวงกลม สีเขียวทึบ
  * ไม่มี gradient / glow · ใช้ token จาก :root ใน style.css เท่านั้น
  *
- * ลำดับบนหน้า: .gd-top (เกริ่นนำ + ภาพรวม + สิ่งที่ต้องเตรียม) → .gd-steps-section → .gd-check-section
- *              → .gd-longform (เนื้อหาเพจ) → .gd-more-section → แถบติดต่อ
+ * ลำดับบนหน้า: .phero.gd-hero (ชื่อหน้า + ภาพรวมขั้นตอนแบบย่อ) → .gd-top (เกริ่นนำ + สิ่งที่ต้องเตรียม)
+ *              → .gd-steps-section → .gd-check-section → .gd-longform (เนื้อหาเพจ) → .gd-more-section → แถบติดต่อ
  * ทุกกล่องรองรับทั้ง section พื้นขาวและ .is-dark
  * ข้อความเนื้อหา (คำอธิบายขั้นตอน รายการ หมายเหตุ) คงตัวพิมพ์เดิมเหมือน .entry-content
  * เพราะมีคำสั่ง ชื่อเมนู และ IP ที่ต้องอ่านตามจริง · หัวข้อยังเป็นตัวพิมพ์ใหญ่ตามกติกาของธีม
  */
 
 /* ==========================================================
-   1) ส่วนบน: เกริ่นนำ + ภาพรวมขั้นตอน + สิ่งที่ต้องเตรียม
+   0) ส่วนหัวของหน้าคู่มือ (fenix_guide_hero)
+   ชื่อหน้าทางซ้าย | ภาพรวมขั้นตอนแบบย่อทางขวา · จอแคบ: การ์ดอยู่ใต้คำโปรย
+   พื้นเข้มและบล็อกตัดทแยงมาจาก .phero ใน style.css · ที่นี่จัดคอลัมน์ กับการ์ดเข้มขอบซ้ายเขียว (สีทึบ ไม่มี gradient)
+   ========================================================== */
+.gd-hero-inner {
+	display: grid;
+	grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+	gap: 56px;
+	align-items: center;
+}
+
+.gd-hero-text {
+	min-width: 0;
+}
+
+.gd-hero .gd-quick--hero {
+	border-color: var(--border-dark);
+	border-left-color: var(--ember);
+	background: var(--black-deep);
+	box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+.gd-hero .gd-quick--hero .gd-box-title {
+	color: #FFFFFF;
+}
+
+.gd-hero .gd-quick--hero .gd-flow li {
+	color: var(--on-black);
+}
+
+.gd-hero .gd-quick--hero .gd-flow li::before {
+	background: var(--black);
+	border-color: var(--mint);
+	color: var(--mint);
+}
+
+.gd-hero .gd-quick--hero .gd-flow li:not(:last-child)::after {
+	background: rgba(74, 242, 142, 0.28);
+}
+
+.gd-hero .gd-quick--hero .gd-flow-note {
+	border-top-color: var(--border-dark);
+	color: var(--on-black-2);
+}
+
+.gd-hero .gd-quick--hero .gd-flow-note p {
+	color: var(--on-black-2);
+}
+
+.gd-hero .gd-quick--hero a {
+	color: var(--mint);
+}
+
+.gd-hero .gd-quick--hero a:hover {
+	color: #FFFFFF;
+}
+
+/* ==========================================================
+   1) ส่วนบน: เกริ่นนำ + สิ่งที่ต้องเตรียม (+ ภาพรวมขั้นตอน เมื่อไม่ได้อยู่ใน hero)
    ========================================================== */
 .gd-top {
 	padding: 64px 0 72px;
+}
+
+/* เกริ่นนำคู่กับกล่องเดียว: สองคอลัมน์บนจอกว้าง (เกริ่นนำซ้าย | กล่องขวา) */
+.gd-top-grid--split {
+	display: grid;
+	grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+	gap: 48px;
+	align-items: start;
+}
+
+.gd-top-grid--split .gd-brief,
+.gd-top-grid--split .gd-intro + .gd-brief {
+	margin-top: 0;
 }
 
 .gd-intro {
@@ -447,18 +518,25 @@
 	margin-left: 76px;
 }
 
-/* ภาพประกอบขั้นตอน · เต็มคอลัมน์ ภาพแนวตั้ง (มือถือ) สูงไม่เกิน 640px แล้ววางกลางกรอบ
-   ห้ามใช้ width:auto / fit-content กับรูป lazy: ก่อนโหลดรูปมีขนาด 0×0 เบราว์เซอร์จะไม่โหลดรูปเลย */
+/* ภาพประกอบขั้นตอน · กว้างเต็มคอลัมน์ แต่ไม่เกินความกว้างจริงของไฟล์ (--media-w พิมพ์บน <img> โดย fenix_media_picture)
+   ภาพหน้าจอเล็ก (เช่น หน้าต่างกว้าง 274px) จึงวางกลางกรอบตามขนาดจริง ไม่ถูกขยายจนแตก
+   ภาพแนวตั้ง (มือถือ) สูงไม่เกิน 640px แล้ววางกลางกรอบ · ไม่รู้ขนาดจริง (รูปจาก URL ภายนอก) = เต็มคอลัมน์เหมือนเดิม
+   ห้ามใช้ width:auto / fit-content กับรูป lazy: ก่อนโหลดรูปมีขนาด 0×0 เบราว์เซอร์จะไม่โหลดรูปเลย
+   width:100% + max-width + แอตทริบิวต์ width/height = จองกล่องเท่าขนาดจริงไว้ตั้งแต่ก่อนโหลด */
 .gd-step-media {
 	min-width: 0;
 }
 
 .gd-step-media .media-open img {
 	width: 100%;
+	max-width: var(--media-w, 100%);
 	height: auto;
 	max-height: 640px;
+	margin: 0 auto;
 	object-fit: contain;
 }
+
+/* จอสัมผัส: ป้ายเปิดภาพเป็นแถบใต้ภาพ (assets/css/components.css) จึงไม่บังมุมขวาล่างของภาพหน้าจออีก ไม่ต้องย่อเหลือไอคอนในหน้านี้แล้ว */
 
 .gd-step-media .media-slot-empty {
 	width: 100%;
@@ -487,7 +565,7 @@
 	margin: 0 0 14px;
 	font-size: 0.8rem;
 	font-weight: 700;
-	letter-spacing: 0.14em;
+	letter-spacing: 0.02em;
 	color: var(--ash-2);
 }
 
@@ -804,6 +882,16 @@
    6) Responsive · 1024 / 760 / 640
    ========================================================== */
 @media (max-width: 1024px) {
+	.gd-hero-inner {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 30px;
+	}
+
+	.gd-top-grid--split {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 36px;
+	}
+
 	.gd-step--media {
 		gap: 36px;
 	}
@@ -855,6 +943,15 @@
 }
 
 @media (max-width: 640px) {
+	.gd-hero-inner {
+		gap: 24px;
+	}
+
+	/* ภาพสำหรับมือถือ ({key}_img_mobile แสดงที่ ≤640px) ใช้ความกว้างจริงของไฟล์นั้น */
+	.gd-step-media .media-open img {
+		max-width: var(--media-w-s, var(--media-w, 100%));
+	}
+
 	.gd-intro {
 		font-size: 1.02rem;
 	}

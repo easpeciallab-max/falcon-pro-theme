@@ -30,14 +30,44 @@ if ( ! function_exists( 'is_email' ) ) {
 	}
 }
 
+/* fenix_chrome_dock() caches its result once WordPress has parsed the request (did_action( 'wp' )) · the preview is always past that point */
+if ( ! function_exists( 'did_action' ) ) {
+	function did_action( $hook = '' ) {
+		return 1;
+	}
+}
+
 /*
- * โหมดตัวอย่าง (เฉพาะ preview): ?fx_chrome_demo=1 → เติมช่องทางติดต่อตัวอย่าง (ลิงก์ example ไม่ใช่ของจริง)
- * ใช้ดูสถานะ "มี LINE แล้ว": QR, OpenChat, คอลัมน์ช่องทาง, ปุ่ม LINE กลางบาร์ล่าง, ปุ่ม LINE ลอย
+ * โหมดตัวอย่าง (เฉพาะ preview)
+ *   ?fx_chrome_demo=1     เติมช่องทางติดต่อตัวอย่างครบทุกช่อง (ลิงก์ example ไม่ใช่ของจริง · รูป QR เป็นรูปแทน)
+ *                         ใช้ดูสถานะ "มีครบ": ปุ่มติดต่อบนแถบหัว, QR, OpenChat, อีเมล, เวลาตอบแชท, คอลัมน์ช่องทาง, ปุ่ม LINE กลางบาร์ล่าง
+ *   ?fx_chrome_demo=live  ใส่เฉพาะลิงก์ LINE OA ของ FALCON (เท่ากับค่าบนเว็บจริงตอนนี้) → เห็นรูป QR ที่มากับธีม
+ *                         (รูปนั้นแสดงเฉพาะเมื่อลิงก์ LINE ตรงกับที่ QR เข้ารหัสไว้ · ดู fenix_chrome_qr_url)
+ *   &fx_chrome_nodock=1   ปิดบาร์ล่างมือถือ → ปุ่มติดต่อบนแถบหัวยังอยู่ในจอแคบ
+ *   ?fx_chrome_nodash=1   ลบชื่อเมนู "แดชบอร์ด" (nav_dashboard_label ว่าง) → หน้า /dashboard/ กลับไปอยู่ใต้ "คู่มือการใช้งาน"
+ *                         ทั้งในเมนูสำรองและในคอลัมน์คู่มือของ footer (ไม่มีรายการระดับบน)
+ * แถวสมาชิกใน footer (ลิงก์เข้าสู่ระบบแดชบอร์ด) ตามโมดูล dashboard: ?dash=0 หรือ ?dashhide=signin = แถวนี้หายไป
+ * (สวิตช์อยู่ใน dev/preview/stubs-dashboard.php) · พรีวิวไม่มีเมนูที่ตั้งเอง จึงเห็นเฉพาะเมนูสำรอง
  */
-if ( isset( $_GET['fx_chrome_demo'] ) ) {
+if ( isset( $_GET['fx_chrome_demo'] ) || isset( $_GET['fx_chrome_nodock'] ) || isset( $_GET['fx_chrome_nodash'] ) ) {
 	add_filter(
 		'fenix_defaults',
 		function ( $d ) {
+			// phpcs:disable WordPress.Security.NonceVerification -- local preview only
+			if ( isset( $_GET['fx_chrome_nodock'] ) ) {
+				$d['show_mobile_nav'] = false;
+			}
+			if ( isset( $_GET['fx_chrome_nodash'] ) ) {
+				$d['nav_dashboard_label'] = '';
+			}
+			if ( ! isset( $_GET['fx_chrome_demo'] ) ) {
+				return $d;
+			}
+			if ( 'live' === (string) $_GET['fx_chrome_demo'] ) {
+				$d['line_url'] = 'https://lin.ee/9Ct7DTS';
+				return $d;
+			}
+			// phpcs:enable
 			return array_merge(
 				$d,
 				array(

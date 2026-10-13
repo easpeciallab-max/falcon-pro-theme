@@ -9,6 +9,7 @@
  *    - POST /wp-json/falcon/v1/mods        {"key":"value"} บันทึก (null = กลับเป็นค่าเริ่มต้น)
  *      รับเฉพาะคีย์ใน fenix_defaults() · sanitize/validate ตามชนิดช่องที่ลงทะเบียนใน Customizer
  *      (รวมฟิลเตอร์ customize_sanitize_{key} / customize_validate_{key} ของโมดูล) · ตอบ saved / rejected / errors
+ *      และ warnings เมื่อลิงก์สมัครบัญชีถูกบันทึกไว้แต่ยังไม่มีชื่อโบรกเกอร์จริง (fenix_partner_pending)
  *    - ปิด /wp/v2/users และทางลัด ?author=N สำหรับผู้ที่ไม่ได้ล็อกอิน
  *    - รหัส Application Password เก็บนอก repo เสมอ (เช่น ~/.falcon-wp.env) · ใช้ผ่าน HTTPS เท่านั้น
  *    - เติมช่อง Customizer ให้คีย์กลางที่ยังไม่มีช่อง (contact_fallback_text)
@@ -18,6 +19,9 @@
  *    + ครอบตารางที่เจ้าของพิมพ์เองในเนื้อหาด้วย .table-wrap (เลื่อนซ้ายขวาได้บนมือถือ)
  * 4) ฟอนต์ Noto Sans Thai แบบ self-host (assets/fonts · SIL OFL 1.1) แทน Google Fonts
  *    ไม่มีการเรียก fonts.googleapis.com ก่อนผู้เข้าชมให้ความยินยอม · preload 2 ไฟล์ที่ใช้ในจอแรก
+ * 5) คงตัวพิมพ์ของคำที่ห้ามเป็นพิมพ์ใหญ่ (อีเมล โดเมน LINE ID ชื่อไฟล์ iPhone ...) ด้วยการห่อ span.keep-case.kc อัตโนมัติ
+ * 6) อายุแคชหน้าเว็บของโฮสต์: ไม่เกิน 5 นาที (X-Accel-Expires + Cache-Control s-maxage)
+ *    ไม่ส่งกับหน้า 404 คำตอบที่มี Set-Cookie หรือ no-store / private และยกเลิกเมื่อคำตอบกลายเป็นสถานะข้อผิดพลาด
  *
  * @package falcon-pro
  */
@@ -370,11 +374,19 @@ function fenix_infra_mods_update( $request ) {
 		$saved[ $key ] = get_theme_mod( $key, $defaults[ $key ] );
 	}
 
-	return array(
+	$out = array(
 		'saved'    => $saved,
 		'rejected' => $rejected,
 		'errors'   => $errors,
 	);
+	/* ลิงก์สมัครบัญชีอยู่ในค่าที่บันทึกไว้ แต่ยังไม่มีชื่อโบรกเกอร์จริง: ค่าถูกบันทึกตามปกติ แต่ปุ่มสมัครและข้อความเปิดเผยยังไม่แสดงบนเว็บ
+	 * (คีย์ warnings มีเฉพาะตอนที่มีเรื่องต้องเตือน สคริปต์เดิมที่อ่าน saved / rejected / errors ไม่กระทบ) */
+	if ( function_exists( 'fenix_partner_pending' ) && fenix_partner_pending() ) {
+		$out['warnings'] = array(
+			'broker_signup_url' => 'บันทึกลิงก์สมัครบัญชีแล้ว แต่ broker_name ยังว่างหรือยังเป็นคำกลางของธีม ปุ่มสมัครและข้อความเปิดเผยความเป็นพาร์ตเนอร์จะยังไม่แสดงจนกว่าจะตั้งชื่อโบรกเกอร์จริง',
+		);
+	}
+	return $out;
 }
 
 /**
@@ -759,3 +771,207 @@ function fenix_infra_preload_fonts() {
 	}
 }
 add_action( 'wp_head', 'fenix_infra_preload_fonts', 2 );
+
+/* ==============================================================
+ * 5) คงตัวพิมพ์อัตโนมัติ (keep-case)
+ * CSS ทำให้ตัวอังกฤษเป็นพิมพ์ใหญ่ (style.css หัวข้อ 27) · ข้อความจริงใน HTML ไม่เปลี่ยน
+ * คำที่พิมพ์ใหญ่แล้วอ่านผิดหรือพิมพ์ตามไม่ได้ ถูกห่อด้วย <span class="keep-case kc"> ก่อนส่งหน้าเว็บ:
+ * อีเมล · โดเมนและลิงก์ · LINE ID (@xxx) · ชื่อไฟล์และนามสกุล (.ex5 .set .zip ...) · สัญลักษณ์ที่มีตัวท้าย (XAUUSD.c) · iPhone iPad iOS macOS
+ * .kc = display: contents (ท้าย style.css) จึงไม่สร้างกล่องใหม่ในแถว flex/grid · ปิดทั้งชุดด้วย add_filter( 'fenix_nocaps_enabled', '__return_false' )
+ * ข้อจำกัด: ชิ้นส่วนที่โหลดทีหลังด้วย AJAX (ปุ่มโหลดบทความเพิ่ม) ไม่ผ่านบัฟเฟอร์นี้
+ * ============================================================== */
+
+/**
+ * รูปแบบคำที่ต้องคงตัวพิมพ์ (ฟิลเตอร์ fenix_nocaps_pattern เพิ่มหรือแทนได้)
+ * ขอบคำเขียนเป็นชุดอักขระ ASCII เอง: ในโหมด /u อักษรไทยนับเป็นตัวอักษร \b จึงพลาดคำที่พิมพ์ติดกับข้อความไทย
+ */
+function fenix_nocaps_pattern() {
+	$w     = 'A-Za-z0-9_';
+	$parts = array(
+		'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}',                                                                           // อีเมล
+		'(?<![' . $w . '@.-])(?:https?:\/\/)?(?:[a-z0-9-]+\.)+(?:co|com|me|ee|net|org|io|th|app)(?![' . $w . '-])(?:\/[^\s<]*)?', // โดเมน / ลิงก์
+		'(?<![' . $w . '@.])@(?=[a-z0-9._-]*[a-z])[a-z0-9][a-z0-9._-]*',                                                          // LINE ID (ขึ้นต้นด้วยตัวเลขได้)
+		'[' . $w . '.-]*\.(?:ex5|ex4|mq5|mq4|set|zip|pdf|txt|dll|exe)(?![' . $w . '])',                                           // ชื่อไฟล์และนามสกุล
+		'(?<![' . $w . '])[A-Z]{6}\.[a-z]{1,3}(?![' . $w . '])',                                                                  // สัญลักษณ์ที่มีตัวท้าย เช่น XAUUSD.c
+		'(?<=\s)\.[a-z]{1,3}(?=[\s,)])',                                                                                          // ตัวท้ายสัญลักษณ์ที่เขียนลำพัง เช่น .c .m
+		'(?<![' . $w . '])(?:iPhone|iPadOS|iPad|iOS|macOS)(?![' . $w . '])',                                                      // ชื่อที่ขึ้นต้นด้วยตัวเล็ก
+	);
+	return (string) apply_filters( 'fenix_nocaps_pattern', '/' . implode( '|', $parts ) . '/u' );
+}
+
+/**
+ * ห่อคำที่ต้องคงตัวพิมพ์ในส่วน body · แตะเฉพาะข้อความระหว่างแท็ก
+ * ไม่แตะ: แอตทริบิวต์ · คอมเมนต์ · script · style · textarea · select (span ใน option ผิดรูป) · svg (title/text ของไอคอน)
+ * ทุกขั้นที่ regex ทำงานไม่สำเร็จ (HTML ใหญ่เกิน backtrack limit, ข้อความไม่ใช่ UTF-8) คืนของเดิม หน้าเว็บจึงไม่มีวันหาย
+ */
+function fenix_nocaps_buffer( $html ) {
+	$html = (string) $html;
+	$at   = stripos( $html, '<body' );
+	if ( false === $at ) {
+		return $html;
+	}
+	$pattern = fenix_nocaps_pattern();
+	$skip    = '<!--.*?-->|<script\b.*?</script\s*>|<style\b.*?</style\s*>|<textarea\b.*?</textarea\s*>|<select\b.*?</select\s*>|<svg\b.*?</svg\s*>';
+	$parts   = preg_split( '#(' . $skip . '|<[^>]+>)#is', substr( $html, $at ), -1, PREG_SPLIT_DELIM_CAPTURE );
+	if ( ! is_array( $parts ) ) {
+		return $html;
+	}
+	foreach ( $parts as $i => $part ) {
+		/* ลำดับคี่ = แท็กหรือบล็อกที่ข้าม · ข้อความที่ไม่มีตัวอังกฤษพิมพ์เล็กไม่มีอะไรต้องคงไว้ */
+		if ( 1 === $i % 2 || '' === $part || ! preg_match( '/[a-z]/', $part ) ) {
+			continue;
+		}
+		$done = preg_replace_callback(
+			$pattern,
+			function ( $m ) {
+				return '<span class="keep-case kc">' . $m[0] . '</span>';
+			},
+			$part
+		);
+		if ( is_string( $done ) ) {
+			$parts[ $i ] = $done;
+		}
+	}
+	return substr( $html, 0, $at ) . implode( '', $parts );
+}
+
+/**
+ * เริ่มบัฟเฟอร์เฉพาะหน้าเว็บฝั่งผู้อ่าน (ไม่ใช่หลังบ้าน ฟีด robots REST AJAX)
+ * ไม่ทำในหน้าต่างแก้ไขของ Elementor: ตัวแก้ไขอ่าน HTML ของข้อความกลับไปบันทึก span จะติดเข้าไปในเนื้อหา
+ */
+function fenix_nocaps_start() {
+	if ( is_admin() || is_feed() || is_robots() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return;
+	}
+	if ( isset( $_GET['elementor-preview'] ) || ! apply_filters( 'fenix_nocaps_enabled', true ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- อ่านอย่างเดียว ไม่บันทึกอะไร
+		return;
+	}
+	ob_start( 'fenix_nocaps_buffer' );
+}
+add_action( 'template_redirect', 'fenix_nocaps_start', 99 );
+
+/* ==============================================================
+ * 6) อายุแคชหน้าเว็บของโฮสต์ (header x-cache-status) · ไม่เกิน 5 นาที
+ * โฮสต์เก็บ HTML ไว้นานกว่ารอบ deploy และไม่มีปุ่มล้างใน WordPress: หลังอัปเดตธีม หน้าที่แคชไว้ยังอ้างไฟล์รุ่นเก่า
+ * และบทความที่ถึงเวลาเผยแพร่ยังไม่ขึ้นหน้ารวมจนกว่าแคชหมดอายุ
+ * X-Accel-Expires + Cache-Control s-maxage บอกแคชระดับเซิร์ฟเวอร์ให้เก็บได้ไม่เกิน $ttl วินาที (เบราว์เซอร์ไม่เก็บ: max-age=0)
+ * เฉพาะผู้อ่านที่ไม่ได้ล็อกอิน คำขอแบบ GET / HEAD · ฟิลเตอร์ fenix_page_cache_ttl ปรับวินาทีได้ (0 = ไม่ส่ง header ปล่อยตามค่าของโฮสต์)
+ *
+ * คำตอบที่ต้องไม่ถูกเก็บ (ตัวจำกัดนี้ไม่ส่ง และถ้าส่งไปแล้วจะถูกยกเลิก):
+ * - หน้า 404: WordPress ตอบพร้อม no-store อยู่แล้ว ถ้าทับด้วยตัวจำกัด โฮสต์จะเก็บ 404 ไว้ 5 นาที
+ *   เพจที่เพิ่งเผยแพร่หรือบทความที่เพิ่งถึงเวลาจึงยังตอบ 404 ต่อ
+ * - คำตอบที่มี Set-Cookie หรือมี Cache-Control แบบ no-store / private เข้าคิวไว้ก่อนแล้ว (เป็นของผู้เปิดคนเดียว)
+ * - สถานะ 4xx / 5xx ที่ตั้งก่อนหรือหลังจุดนี้ และทุกครั้งที่ WordPress ประกาศว่าห้ามแคช (wp_die หน้า error ของ PHP fatal)
+ *   X-Accel-Expires ชนะ Cache-Control ที่ชั้นแคชของเซิร์ฟเวอร์ จึงต้องส่งค่า 0 ทับเอง WordPress ไม่รู้จัก header นี้
+ * ============================================================== */
+
+/**
+ * ตัวจำกัดอายุแคชถูกส่งในคำขอนี้แล้วหรือยัง (ส่งค่าเข้ามา = บันทึกสถานะ)
+ */
+function fenix_infra_page_cache_capped( $set = null ) {
+	static $capped = false;
+	if ( null !== $set ) {
+		$capped = (bool) $set;
+	}
+	return $capped;
+}
+
+/**
+ * header ที่เข้าคิวไว้แล้วบอกว่าคำตอบนี้เป็นของผู้เปิดคนเดียวหรือห้ามเก็บ: Set-Cookie · Cache-Control ที่มี no-store หรือ private
+ */
+function fenix_infra_response_is_private() {
+	foreach ( headers_list() as $line ) {
+		if ( 0 === stripos( $line, 'Set-Cookie:' ) ) {
+			return true;
+		}
+		if ( 0 === stripos( $line, 'Cache-Control:' ) && preg_match( '/\b(?:no-store|private)\b/i', $line ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function fenix_infra_page_cache_ttl() {
+	if ( is_404() || is_admin() || is_user_logged_in() || is_feed() || is_preview() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return;
+	}
+	/* HEAD ได้ header ชุดเดียวกับ GET (ตรวจหลัง deploy ด้วย curl -I ได้) · POST และวิธีอื่นไม่ถูกแคช */
+	$method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_key( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) : 'GET';
+	if ( ! in_array( $method, array( 'GET', 'HEAD' ), true ) || headers_sent() ) {
+		return;
+	}
+	/* สถานะข้อผิดพลาดที่ปลั๊กอินตั้งไว้ก่อนถึงจุดนี้ (เช่น 410 503) และคำตอบที่ประกาศว่าเป็นของผู้เปิดคนเดียว */
+	if ( (int) http_response_code() >= 400 || fenix_infra_response_is_private() ) {
+		return;
+	}
+	/* เพจที่ตั้งรหัสผ่าน: เนื้อหาต่างกันตามคุกกี้ของผู้เปิด ห้ามประกาศว่าเก็บร่วมกันได้ · DONOTCACHEPAGE: ปลั๊กอินขอไม่ให้แคชหน้านี้ */
+	if ( is_singular() && '' !== (string) get_post_field( 'post_password', get_queried_object_id() ) ) {
+		return;
+	}
+	if ( defined( 'DONOTCACHEPAGE' ) && DONOTCACHEPAGE ) {
+		return;
+	}
+	$ttl = (int) apply_filters( 'fenix_page_cache_ttl', 300 );
+	if ( $ttl < 1 ) {
+		return;
+	}
+	header( 'X-Accel-Expires: ' . $ttl );
+	header( 'Cache-Control: public, max-age=0, s-maxage=' . $ttl );
+	fenix_infra_page_cache_capped( true );
+}
+add_action( 'template_redirect', 'fenix_infra_page_cache_ttl', 98 );
+
+/**
+ * ยกเลิกตัวจำกัด: บอกชั้นแคชของเซิร์ฟเวอร์ว่าห้ามเก็บคำตอบนี้
+ * Cache-Control ถูกแทนเฉพาะเมื่อคำขอนี้ส่งตัวจำกัดไปแล้ว (ไม่ทับ header ของ WordPress หรือปลั๊กอินในคำขออื่น)
+ */
+function fenix_infra_page_cache_cancel() {
+	if ( headers_sent() ) {
+		return;
+	}
+	header( 'X-Accel-Expires: 0' );
+	if ( fenix_infra_page_cache_capped() ) {
+		header( 'Cache-Control: no-cache, must-revalidate, max-age=0, no-store, private' );
+		fenix_infra_page_cache_capped( false );
+	}
+}
+
+/**
+ * ทุกครั้งที่ WordPress ประกาศว่าคำตอบห้ามแคช (404 · wp_die · หน้า error ของ PHP fatal · ผู้ที่ล็อกอิน · หลังบ้าน)
+ * ให้ชุด header นั้นมี X-Accel-Expires: 0 ด้วย ค่า 300 ที่ส่งไปก่อนจึงถูกแทน
+ */
+function fenix_infra_nocache_headers( $headers ) {
+	if ( is_array( $headers ) ) {
+		$headers['X-Accel-Expires'] = '0';
+	}
+	return $headers;
+}
+add_filter( 'nocache_headers', 'fenix_infra_nocache_headers' );
+
+/**
+ * สถานะ 4xx / 5xx ที่ตั้งผ่าน status_header() หลังตัวจำกัดถูกส่งแล้ว (ปลั๊กอินที่ตอบ 410 / 503 โดยไม่เรียก nocache_headers)
+ */
+function fenix_infra_page_cache_on_status( $status_header, $code = 200 ) {
+	if ( (int) $code >= 400 ) {
+		fenix_infra_page_cache_cancel();
+	}
+	return $status_header;
+}
+add_filter( 'status_header', 'fenix_infra_page_cache_on_status', 10, 2 );
+
+/**
+ * ด่านสุดท้ายก่อน WordPress เทบัฟเฟอร์ออก (shutdown priority 1): คำตอบจบด้วยสถานะข้อผิดพลาดหรือ PHP fatal
+ * โดยไม่ผ่านสองทางข้างบน เช่น fatal ระหว่างที่ WP Pusher สลับไฟล์ธีม (โหมด maintenance ตัวจัดการ error ของ WordPress ไม่ทำงาน)
+ * ใช้ได้เพราะบัฟเฟอร์ทั้งหน้าของข้อ 5 ทำให้ header ยังไม่ถูกส่งจนถึงตรงนี้
+ */
+function fenix_infra_page_cache_shutdown() {
+	if ( ! fenix_infra_page_cache_capped() || headers_sent() ) {
+		return;
+	}
+	$error = error_get_last();
+	$fatal = is_array( $error ) && in_array( (int) $error['type'], array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR ), true );
+	if ( $fatal || (int) http_response_code() >= 400 ) {
+		fenix_infra_page_cache_cancel();
+	}
+}
+add_action( 'shutdown', 'fenix_infra_page_cache_shutdown', 0 );

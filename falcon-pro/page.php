@@ -43,12 +43,32 @@ $fenix_is_elementor = fenix_is_elementor_page();
 			$GLOBALS['fenix_toc'] = array();
 			$fenix_content        = apply_filters( 'the_content', get_the_content() );
 			$fenix_content        = str_replace( ']]>', ']]&gt;', $fenix_content );
-			$fenix_doc_toc = array();
+
+			/* สารบัญ: เฉพาะ H2 · ไม่นับหัวของกล่อง .related-links ท้ายหน้า (ไม่ใช่ข้อของเอกสาร)
+			 * id ของหัวกล่องนั้นถูกเติมโดย fenix_collect_toc() จึงต้องหาจากเนื้อหาที่ผ่านฟิลเตอร์แล้ว */
+			$fenix_toc_skip = array();
+			if ( preg_match_all( '#<div\b[^>]*\bclass="[^"]*\brelated-links\b[^"]*"[^>]*>\s*<h2\b[^>]*\bid="([^"]+)"#i', $fenix_content, $fenix_m ) ) {
+				$fenix_toc_skip = $fenix_m[1];
+			}
+			$fenix_doc_toc  = array();
+			$fenix_numbered = 0;
 			foreach ( (array) $GLOBALS['fenix_toc'] as $fenix_h ) {
-				if ( 2 === (int) $fenix_h['level'] && '' !== $fenix_h['text'] ) {
-					$fenix_doc_toc[] = $fenix_h;
+				if ( 2 !== (int) $fenix_h['level'] || '' === $fenix_h['text'] || in_array( $fenix_h['id'], $fenix_toc_skip, true ) ) {
+					continue;
+				}
+				$fenix_doc_toc[] = $fenix_h;
+				/* หัวข้อพิมพ์เลขข้อไว้เอง เช่น "1. ข้อมูลที่เราเก็บ" หรือ "๒) ..." */
+				if ( preg_match( '/^\s*[0-9\x{0E50}-\x{0E59}]+(?:\.[0-9]+)*[.)]?\s/u', $fenix_h['text'] ) ) {
+					$fenix_numbered++;
 				}
 			}
+			/* ครึ่งหนึ่งขึ้นไปมีเลขอยู่แล้ว (เพจกฎหมาย) → สารบัญไม่ใส่เลขลำดับซ้ำ (.doc-toc--plain ท้าย style.css) */
+			$fenix_toc_plain = $fenix_doc_toc && $fenix_numbered * 2 >= count( $fenix_doc_toc );
+
+			/* ภาพปกที่ FALCON Setup ใส่เป็นภาพเด่นของเพจ (covers/page-<slug>.webp) ใช้เป็นรูปแชร์และรูปหลักใน schema เท่านั้น
+			 * ไม่พิมพ์ในเนื้อหา (เป็นการ์ดชื่อเพจ ซ้ำกับ H1) · ภาพเด่นที่เจ้าของเลือกเองยังแสดงตามเดิม */
+			$fenix_show_thumb = has_post_thumbnail() && ! ( function_exists( 'fenix_is_theme_page_cover' ) && fenix_is_theme_page_cover( get_the_ID() ) );
+
 			$fenix_updated = fenix_pages_thai_date( get_the_modified_date( 'c' ) );
 			?>
 
@@ -56,12 +76,12 @@ $fenix_is_elementor = fenix_is_elementor_page();
 				<div class="container container-narrow doc-col">
 					<article <?php post_class( 'doc-article' ); ?>>
 
-						<?php if ( has_post_thumbnail() ) : ?>
+						<?php if ( $fenix_show_thumb ) : ?>
 							<figure class="article-thumb"><?php the_post_thumbnail( 'large', array( 'alt' => fenix_pages_featured_alt( get_the_ID() ) ) ); ?></figure>
 						<?php endif; ?>
 
 						<?php if ( count( $fenix_doc_toc ) >= 4 ) : ?>
-							<details class="doc-toc">
+							<details class="doc-toc<?php echo $fenix_toc_plain ? ' doc-toc--plain' : ''; ?>">
 								<summary><?php echo fenix_icon( 'layout', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo esc_html( fenix_mod( 'doc_toc_label' ) ); ?></span><span class="doc-toc-count"><?php echo esc_html( number_format_i18n( count( $fenix_doc_toc ) ) ); ?></span></summary>
 								<ol>
 									<?php foreach ( $fenix_doc_toc as $fenix_h ) : ?>

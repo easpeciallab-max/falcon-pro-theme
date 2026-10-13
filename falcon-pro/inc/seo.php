@@ -9,6 +9,9 @@
  * - robots              : noindex /go/, /articles/ ที่ยังไม่มีบทความ, ค้นหา/ผู้เขียน/วันที่ และหมวด/แท็กที่ว่าง
  *                         ผ่าน wp_robots (Yoast รวมค่าเข้าแท็กเดียว) + ฟิลเตอร์ของ Yoast/Rank Math · ไม่พิมพ์แท็กเอง
  * - sitemap             : ตัดหน้า noindex ออกจาก sitemap ของ Yoast และของคอร์ · ปิด sitemap รายชื่อผู้ใช้
+ *                         · เติมภาพขั้นตอนของหน้าคู่มือและแผนภาพ [falcon_figure] ลง image sitemap ของ Yoast
+ * - ข้อความล้วน         : fenix_seo_plain_text() แทน [falcon_brand] / [falcon_broker] ด้วยค่าจริงและทำตาม [falcon_if]
+ *                         ก่อนส่งคำตอบ FAQ เข้า schema และก่อนใช้เนื้อหาเป็น meta description สำรอง
  * - ยืนยันเจ้าของเว็บ    : meta ของ Google Search Console / Bing + ตอบไฟล์ googleXXXX.html ให้เอง
  * - REST                : meta SEO รายหน้าของ Yoast อ่าน/เขียนผ่าน /wp/v2/pages/<id> ได้ (ต้องมีสิทธิ์แก้หน้านั้น)
  * เฉพาะเมื่อ "ไม่มี" ปลั๊กอิน SEO:
@@ -92,7 +95,7 @@ function fenix_seo_customizer_sections( $sections, $d ) {
 				'seo_product_os'           => array( 'ระบบปฏิบัติการที่ใช้รัน EA', 'text', 'ใส่ชื่อระบบปฏิบัติการ ส่วน MT5 เป็นโปรแกรมเทรด ให้ใส่ในช่องถัดไป' ),
 				'seo_product_requirements' => array( 'โปรแกรมที่ต้องมีก่อนใช้งาน', 'text' ),
 				'seo_product_version'      => array( 'เวอร์ชันของ EA (เว้นว่าง = ไม่ระบุ)', 'text' ),
-				'seo_pricing_confirmed'    => array( 'ยืนยันแล้วว่าราคาแพ็กเกจถูกต้อง ส่งราคาให้ Google ได้', 'checkbox', 'เปิดเมื่อหน้าแพ็กเกจแสดงราคาจริงเป็นตัวเลขแล้วเท่านั้น · ปิดไว้ = ธีมไม่ประกาศราคาในข้อมูลโครงสร้าง แพ็กเกจที่ราคาไม่ใช่ตัวเลขจะถูกข้ามเสมอ' ),
+				'seo_pricing_confirmed'    => array( 'ยืนยันแล้วว่าราคาแพ็กเกจถูกต้อง ส่งราคาให้ Google ได้', 'checkbox', 'เปิดเมื่อหน้าแพ็กเกจแสดงราคาจริงเป็นตัวเลขแล้วเท่านั้น · ปิดไว้ หรืออยู่ในโหมดสอบถามราคา = ธีมไม่ประกาศราคาในข้อมูลโครงสร้าง · แพ็กเกจฟรีและแพ็กเกจที่ราคาไม่ใช่ตัวเลขจะถูกข้ามเสมอ' ),
 			),
 		),
 	);
@@ -119,17 +122,77 @@ add_filter( 'fenix_customizer_sections', 'fenix_seo_customizer_sections', 20, 2 
  * ============================================================== */
 
 /**
+ * ตัดบล็อก [falcon_if …]…[/falcon_if] ที่เงื่อนไขไม่ผ่านออก และถอดแท็กของบล็อกที่ผ่าน (คงเนื้อหาข้างในไว้)
+ * ใช้ก่อนอ่านเนื้อหาดิบของเพจไปทำ schema / meta description ให้ตรงกับสิ่งที่ผู้อ่านเห็นจริง
+ * ไม่มีตัวตรวจเงื่อนไข (inc/shortcodes.php ไม่ถูกโหลด) = ตัดทิ้งทั้งบล็อก
+ */
+function fenix_seo_resolve_conditionals( $html ) {
+	$html = (string) $html;
+	if ( false === strpos( $html, '[falcon_if' ) ) {
+		return $html;
+	}
+	$out = preg_replace_callback(
+		'/\[falcon_if\b([^\]]*)\](.*?)\[\/falcon_if\]/s',
+		function ( $m ) {
+			$atts = shortcode_parse_atts( $m[1] );
+			return ( function_exists( 'fenix_sc_if_test' ) && fenix_sc_if_test( is_array( $atts ) ? $atts : array() ) ) ? $m[2] : '';
+		},
+		$html
+	);
+	/* แท็กที่ไม่ครบคู่ (พิมพ์ตก) = ลบเฉพาะตัวแท็ก ไม่ให้โผล่ในข้อความ */
+	return (string) preg_replace( '/\[\/?falcon_if\b[^\]]*\]/', '', null === $out ? $html : $out );
+}
+
+/**
+ * ข้อความล้วนจากเนื้อหาเพจ สำหรับ schema และ meta description
+ * - [falcon_if]: ตามเงื่อนไขจริง · [falcon_brand] และ [falcon_broker] (ชื่อ / เซิร์ฟเวอร์): แทนด้วยค่าจาก Customizer
+ * - shortcode อื่น (ปุ่ม LINE และปุ่มไปแดชบอร์ดพร้อมข้อความบนปุ่ม ปุ่มสมัคร ข้อความเปิดเผย อีเมล แผนภาพ เครื่องคิด): ตัดทิ้ง
+ * อีเมลไม่ถูกแทน เพราะข้อความล้วนเข้ารหัสกันบอตไม่ได้
+ * ผลลัพธ์เป็นข้อความล้วนจริง: HTML entity ถูกถอดครั้งเดียวหลังตัดแท็ก ทั้ง entity ที่พิมพ์ไว้ในเนื้อหา (เช่น &amp; &quot;)
+ * และชื่อแบรนด์/โบรกเกอร์ที่ shortcode คืนมาแบบ escape แล้ว ชื่อที่มี & หรือเครื่องหมายคำพูดจึงไม่ไปโผล่เป็น entity ใน JSON-LD
+ * ผู้เรียกต้อง escape เองตามที่ที่พิมพ์ (fenix_jsonld ใช้ JSON_HEX_TAG | JSON_HEX_AMP · meta ใช้ esc_attr)
+ */
+function fenix_seo_plain_text( $html ) {
+	$html = fenix_seo_resolve_conditionals( $html );
+	if ( false !== strpos( $html, '[falcon_' ) ) {
+		$html = preg_replace_callback(
+			'/\[falcon_(brand|broker)\b([^\]]*)\]/',
+			function ( $m ) {
+				if ( 'brand' === $m[1] ) {
+					return function_exists( 'fenix_sc_brand' ) ? fenix_sc_brand() : 'FALCON PRO EA';
+				}
+				$atts  = shortcode_parse_atts( $m[2] );
+				$field = ( is_array( $atts ) && isset( $atts['field'] ) ) ? strtolower( trim( (string) $atts['field'] ) ) : 'name';
+				if ( in_array( $field, array( 'url', 'disclosure' ), true ) || ! function_exists( 'fenix_sc_broker' ) ) {
+					return '';
+				}
+				return fenix_sc_broker( array( 'field' => $field ) );
+			},
+			(string) $html
+		);
+		/* ปุ่ม LINE และปุ่มไปแดชบอร์ด: ตัดทั้งแท็กและข้อความบนปุ่ม (ข้อความปุ่มไม่ใช่เนื้อหาของคำตอบหรือคำอธิบายหน้า) */
+		$html = preg_replace( '/\[falcon_(line|dashboard)\b[^\]]*\].*?\[\/falcon_\1\]/s', '', (string) $html );
+		$html = preg_replace( '/\[\/?falcon_[a-z_]+\b[^\]]*\]/', '', (string) $html );
+	}
+	$text = html_entity_decode( wp_strip_all_tags( strip_shortcodes( (string) $html ) ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+	/* ช่องว่างทุกแบบรวม &nbsp; ที่เพิ่งถอด (U+00A0) ยุบเป็นช่องว่างเดียว */
+	return trim( (string) preg_replace( '/[\s\x{00A0}]+/u', ' ', $text ) );
+}
+
+/**
  * ดึงคำถาม/คำตอบจากเนื้อหา HTML (details.faq-item)
+ * ข้อที่อยู่ใน [falcon_if] ซึ่งเงื่อนไขไม่ผ่านจะไม่ถูกนับ (ไม่แสดงบนหน้า = ไม่อยู่ใน schema)
  */
 function fenix_faq_from_html( $html ) {
 	$faqs = array();
 	if ( false === strpos( (string) $html, 'faq-item' ) ) {
 		return $faqs;
 	}
+	$html = fenix_seo_resolve_conditionals( $html );
 	if ( preg_match_all( '#<details[^>]*class="[^"]*faq-item[^"]*"[^>]*>\s*<summary[^>]*>(.*?)</summary>(.*?)</details>#is', $html, $m, PREG_SET_ORDER ) ) {
 		foreach ( $m as $row ) {
-			$q = trim( preg_replace( '/\s+/u', ' ', wp_strip_all_tags( $row[1] ) ) );
-			$a = trim( preg_replace( '/\s+/u', ' ', wp_strip_all_tags( strip_shortcodes( $row[2] ) ) ) );
+			$q = fenix_seo_plain_text( $row[1] );
+			$a = fenix_seo_plain_text( $row[2] );
 			if ( $q && $a ) {
 				$faqs[] = array(
 					'@type'          => 'Question',
@@ -150,6 +213,10 @@ function fenix_faq_from_html( $html ) {
  * รับได้ทั้ง 1,990 · 1990 บาท · ฿1,990 · THB 1990
  */
 function fenix_seo_numeric_price( $raw ) {
+	/* แพ็กเกจฟรี (ฟรี / free / 0) แสดงบนการ์ดได้ แต่ไม่ประกาศเป็น Offer · ประกาศเฉพาะแพ็กเกจที่ราคาเป็นตัวเลขมากกว่า 0 */
+	if ( function_exists( 'fenix_is_free_price' ) && fenix_is_free_price( $raw ) ) {
+		return null;
+	}
 	$clean = str_replace( array( ',', ' ', "\xc2\xa0" ), '', trim( (string) $raw ) );
 	if ( '' === $clean ) {
 		return null;
@@ -380,11 +447,12 @@ function fenix_seo_product_schema() {
 function fenix_schema_extra() {
 	$faqs = array();
 
-	/* FAQ หน้าแรก (Customizer) */
+	/* FAQ หน้าแรก (Customizer) · จำนวนข้อตามโมดูลหน้าแรก (ไม่มีตัวนับ = 10 ข้อ) · ตัวแทน {brand} {broker} {disclosure} แทนค่าเหมือนบนหน้า */
 	if ( is_front_page() && fenix_mod( 'show_faq' ) ) {
-		for ( $i = 1; $i <= 10; $i++ ) {
-			$q = trim( wp_strip_all_tags( (string) fenix_mod( 'faq' . $i . '_q' ) ) );
-			$a = trim( wp_strip_all_tags( (string) fenix_mod( 'faq' . $i . '_a' ) ) );
+		$faq_max = function_exists( 'fenix_home_faq_count' ) ? max( 1, (int) fenix_home_faq_count() ) : 10;
+		for ( $i = 1; $i <= $faq_max; $i++ ) {
+			$q = trim( wp_strip_all_tags( fenix_tokens( (string) fenix_mod( 'faq' . $i . '_q' ) ) ) );
+			$a = trim( wp_strip_all_tags( fenix_tokens( (string) fenix_mod( 'faq' . $i . '_a' ) ) ) );
 			if ( '' !== $q && '' !== $a ) {
 				$faqs[] = array(
 					'@type'          => 'Question',
@@ -675,7 +743,7 @@ function fenix_meta_description() {
 			return wp_strip_all_tags( $post->post_excerpt );
 		}
 		if ( $post && ! is_front_page() ) {
-			$text = trim( preg_replace( '/\s+/u', ' ', wp_strip_all_tags( strip_shortcodes( $post->post_content ) ) ) );
+			$text = fenix_seo_plain_text( $post->post_content );
 			if ( $text ) {
 				return mb_substr( $text, 0, 155 ) . ( mb_strlen( $text ) > 155 ? '…' : '' );
 			}
@@ -1238,3 +1306,88 @@ function fenix_seo_oembed_hide_author( $data ) {
 	return $data;
 }
 add_filter( 'oembed_response_data', 'fenix_seo_oembed_hide_author', 20 );
+
+/* ==============================================================
+ * 8) ภาพที่ธีมแสดงเอง ใน image sitemap ของ Yoast
+ * ============================================================== */
+
+/**
+ * URL ของภาพที่ธีมแสดงบนเพจนั้นโดยไม่ได้อยู่ใน post_content:
+ * - ภาพขั้นตอนของหน้าคู่มือ ({prefix}_step{N}_img ตาม fenix_guide_map) และหน้าวิธีติดตั้ง (inst_step{N}_img)
+ *   ทั้งภาพตั้งต้นที่มากับธีม (assets/img/guides/) และภาพที่เจ้าของอัปโหลดลงช่องรูป · นับเฉพาะขั้นที่แสดงจริง
+ * - แผนภาพจาก [falcon_figure] ในเนื้อหาเพจ (เฉพาะรายการที่มีไฟล์จริง และไม่อยู่ใน [falcon_if] ที่เงื่อนไขไม่ผ่าน)
+ *
+ * @return string[]
+ */
+function fenix_seo_theme_image_urls( $post ) {
+	$urls = array();
+	if ( ! is_object( $post ) || empty( $post->post_name ) ) {
+		return $urls;
+	}
+	$slug   = (string) $post->post_name;
+	$prefix = '';
+	if ( 'how-to-install' === $slug ) {
+		$prefix = 'inst_step';
+	} elseif ( function_exists( 'fenix_guide_map' ) ) {
+		$map    = (array) fenix_guide_map();
+		$prefix = isset( $map[ $slug ] ) ? $map[ $slug ] . '_step' : '';
+	}
+	if ( '' !== $prefix ) {
+		$steps = function_exists( 'fenix_guide_step_count' ) ? (int) fenix_guide_step_count() : 6;
+		for ( $i = 1; $i <= $steps; $i++ ) {
+			$key = $prefix . $i;
+			/* เงื่อนไขเดียวกับ fenix_guide_steps(): ขั้นที่ไม่มีทั้งหัวข้อและคำอธิบายไม่ถูกแสดง */
+			if ( '' === trim( (string) fenix_mod( $key . '_title' ) ) && '' === trim( (string) fenix_mod( $key . '_desc' ) ) ) {
+				continue;
+			}
+			$urls[] = trim( (string) fenix_mod( $key . '_img' ) );
+		}
+	}
+
+	$content = isset( $post->post_content ) ? (string) $post->post_content : '';
+	if ( function_exists( 'fenix_figure' ) && false !== strpos( $content, '[falcon_figure' ) ) {
+		$content = fenix_seo_resolve_conditionals( $content );
+		if ( preg_match_all( '/\[falcon_figure\b[^\]]*\bname\s*=\s*["\']?([a-z0-9_-]+)/i', $content, $m ) ) {
+			foreach ( array_unique( $m[1] ) as $name ) {
+				$fig = fenix_figure( $name );
+				if ( is_array( $fig ) ) {
+					$urls[] = $fig['src'];
+				}
+			}
+		}
+	}
+
+	$out = array();
+	foreach ( $urls as $url ) {
+		if ( '' !== $url && preg_match( '#^https?://#i', $url ) ) {
+			$out[] = $url;
+		}
+	}
+	return array_values( array_unique( $out ) );
+}
+
+/**
+ * Yoast ใส่เฉพาะ <img> ใน post_content และภาพเด่นลง image sitemap จึงมองไม่เห็นภาพที่ธีมแสดงจากช่องรูปใน Customizer
+ * → เติมภาพเหล่านั้นต่อท้ายรายการของเพจ (ไม่ซ้ำกับที่ Yoast มีอยู่แล้ว) · เพจที่ตั้งรหัสผ่านไม่เติม
+ */
+function fenix_seo_sitemap_theme_images( $images, $post_id ) {
+	$images = is_array( $images ) ? $images : array();
+	$post   = get_post( $post_id );
+	if ( ! is_object( $post ) || ! isset( $post->post_type ) || 'page' !== $post->post_type || ! empty( $post->post_password ) ) {
+		return $images;
+	}
+	$have = array();
+	foreach ( $images as $image ) {
+		if ( is_array( $image ) && ! empty( $image['src'] ) ) {
+			$have[] = (string) $image['src'];
+		}
+	}
+	foreach ( fenix_seo_theme_image_urls( $post ) as $url ) {
+		if ( ! in_array( $url, $have, true ) ) {
+			$images[] = array( 'src' => esc_url_raw( $url ) );
+			$have[]   = $url;
+		}
+	}
+	return $images;
+}
+add_filter( 'wpseo_sitemap_urlimages', 'fenix_seo_sitemap_theme_images', 10, 2 );

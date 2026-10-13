@@ -1,0 +1,464 @@
+/*
+ * FALCON PRO EA · หน้า /dashboard/ (template-dashboard.php + inc/modules/dashboard.php)
+ * โหลดเฉพาะเพจที่ใช้เทมเพลต "FALCON · หน้าแดชบอร์ด" (fenix_dashboard_asset_needed) หลัง dashboard.css
+ *
+ * - ใช้ token ใน :root ของ style.css · หัว section ใช้ .pg-head และการ์ดขั้นตอนใช้ .order-flow ของ pages.css
+ * - ทุกบล็อกรองรับ section พื้นขาว / เทาอ่อน (โหมดขาว/ดำสลับ) และพื้นเข้ม (.is-dark)
+ * - มุมโค้ง 16 ถึง 22px · เส้นขอบบาง · เขียวทึบ ไม่มี gradient / glow · จุดตัดจอ: 1024 / 760 / 640
+ */
+
+/* ==========================================================
+   1) ส่วนร่วม
+   ========================================================== */
+.dash-page > .section {
+	padding: 80px 0;
+}
+
+/* หมายเหตุใต้ปุ่มในหัวเพจ: ขึ้นบรรทัดของตัวเองในแถวปุ่ม (.phero-actions เป็น flex) */
+.dash-notes--hero {
+	flex: 1 1 100%;
+	max-width: 640px;
+	margin-top: 6px;
+}
+
+/* หมายเหตุท้าย section (ไอคอน + ข้อความ) */
+.dash-sec-note {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	max-width: 860px;
+	margin: 28px 0 0;
+	font-size: 0.9rem;
+	line-height: 1.7;
+	color: var(--ash);
+}
+
+.dash-sec-note .icon {
+	flex: 0 0 auto;
+	margin-top: 0.3em;
+	color: var(--flare);
+}
+
+.dash-sec-note a {
+	color: var(--flare);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+.is-dark .dash-sec-note {
+	color: var(--on-black-2);
+}
+
+.is-dark .dash-sec-note .icon,
+.is-dark .dash-sec-note a {
+	color: var(--mint);
+}
+
+/* ==========================================================
+   2) สองทางในการใช้ FALCON · การ์ดเทียบสองใบ
+   แถวของสองใบอยู่บนเส้นเดียวกันด้วย subgrid (จำนวนแถว = --dash-rows จาก PHP) · เบราว์เซอร์ที่ไม่มี subgrid ได้การ์ดสองใบปกติ
+   ========================================================== */
+.dash-ways-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0 22px;
+}
+
+.dash-way {
+	display: grid;
+	grid-template-rows: subgrid;
+	grid-row: span var(--dash-rows, 9);
+	align-content: start;
+	padding: 30px 30px 28px;
+	border: 1px solid var(--border);
+	border-radius: 20px;
+	background: #FFFFFF;
+	box-shadow: var(--shadow-soft);
+}
+
+.dash-way--dash {
+	position: relative;
+	border-color: var(--border-fire);
+	overflow: hidden;
+}
+
+.dash-way--dash::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 4px;
+	background: var(--ember);
+}
+
+.dash-way-head {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	padding-bottom: 20px;
+}
+
+.dash-way-name {
+	margin: 0;
+	font-size: 1.2rem;
+	line-height: 1.35;
+}
+
+.dash-way-flag {
+	display: inline-block;
+	margin-bottom: 6px;
+	padding: 2px 10px;
+	border-radius: var(--btn-radius-xs, 6px); /* ป้ายสถานะ: มุมมนเล็กน้อยแบบเดียวกับปุ่ม ไม่ใช้ทรงแคปซูล */
+	background: var(--ember);
+	font-size: 0.72rem;
+	font-weight: 600;
+	line-height: 1.6;
+	color: var(--on-ember);
+}
+
+.dash-way-list {
+	display: contents;
+}
+
+.dash-way-row {
+	display: grid;
+	grid-template-columns: minmax(0, 36%) minmax(0, 1fr);
+	align-content: start;
+	gap: 4px 18px;
+	padding: 13px 0;
+	border-top: 1px solid var(--border);
+}
+
+.dash-way-row dt {
+	font-size: 0.86rem;
+	font-weight: 600;
+	line-height: 1.6;
+	color: var(--ash-2);
+}
+
+.dash-way-row dd {
+	margin: 0;
+	font-size: 0.95rem;
+	line-height: 1.65;
+	color: var(--ink);
+}
+
+.dash-way-foot {
+	align-self: end;
+	padding-top: 22px;
+	border-top: 1px solid var(--border);
+}
+
+.dash-way-foot:empty {
+	padding-top: 0;
+	border-top: 0;
+}
+
+.is-dark .dash-way {
+	border-color: var(--border-dark);
+	background: var(--black-2);
+	box-shadow: none;
+}
+
+.is-dark .dash-way--dash {
+	border-color: rgba(74, 242, 142, 0.34);
+}
+
+.is-dark .dash-way-row,
+.is-dark .dash-way-foot {
+	border-top-color: var(--border-dark);
+}
+
+.is-dark .dash-way-row dt {
+	color: var(--on-black-2);
+}
+
+.is-dark .dash-way-row dd {
+	color: var(--on-black);
+}
+
+/* ==========================================================
+   3) ภาพหน้าจอ · จอคอม (กว้าง) + มือถือ (แนวตั้ง)
+   ========================================================== */
+.dash-shots-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 250px);
+	align-items: end;
+	gap: 28px 44px;
+}
+
+.dash-shots-grid--one {
+	grid-template-columns: minmax(0, 1fr);
+	max-width: 900px;
+}
+
+.dash-shot {
+	margin: 0;
+}
+
+/* ภาพหน้าจอไม่ถูกขยายเกินขนาดจริงของไฟล์ (--media-w มาจาก fenix_media_picture) */
+.dash-shot .media-open {
+	max-width: var(--media-w, 100%);
+}
+
+.dash-shot--phone .media-open {
+	border-radius: 26px;
+}
+
+.dash-shots-grid--one .dash-shot--phone {
+	max-width: 280px;
+}
+
+/* ==========================================================
+   4) สิ่งที่ทำได้ · การ์ด ไอคอน + หัวข้อ + รายละเอียด (ข้อแรกกว้างสองช่อง)
+   ========================================================== */
+.dash-feats {
+	list-style: none;
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 16px;
+	margin: 0;
+	padding: 0;
+}
+
+.dash-feat {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 24px 22px;
+	border: 1px solid var(--border);
+	border-radius: 18px;
+	background: #FFFFFF;
+}
+
+/* การ์ดแรก (หัวใจของแดชบอร์ด): กว้างสองช่อง ไอคอนอยู่ข้างข้อความ ตัวอักษรใหญ่ขึ้น และจัดกลางแนวตั้งให้พอดีกับความสูงของแถว */
+.dash-feat--lead {
+	grid-column: span 2;
+	flex-direction: row;
+	align-items: center;
+	gap: 22px;
+	padding: 28px 28px;
+	border-color: var(--border-fire);
+}
+
+.dash-feat--lead .ic-badge {
+	width: 64px;
+	height: 64px;
+}
+
+.dash-feat--lead .ic-badge .icon {
+	width: 30px;
+	height: 30px;
+}
+
+.dash-feat h3 {
+	margin: 0 0 8px;
+	font-size: 1.05rem;
+	line-height: 1.4;
+}
+
+.dash-feat--lead h3 {
+	margin-bottom: 10px;
+	font-size: 1.35rem;
+}
+
+.dash-feat p {
+	margin: 0;
+	font-size: 0.92rem;
+	line-height: 1.7;
+	color: var(--ash);
+}
+
+.dash-feat--lead p {
+	font-size: 1rem;
+	line-height: 1.75;
+}
+
+.is-dark .dash-feat {
+	border-color: var(--border-dark);
+	background: var(--black-2);
+}
+
+.is-dark .dash-feat--lead {
+	border-color: rgba(74, 242, 142, 0.34);
+}
+
+.is-dark .dash-feat p {
+	color: var(--on-black-2);
+}
+
+/* วงไอคอนเขียวของการ์ดแรกคงสีเขียวทึบบนพื้นเข้ม (กฎ .is-dark .ic-badge ทำให้วงเป็นสีเข้ม) */
+.is-dark .dash-feat--lead .ic-badge--green,
+.is-dark .dash-way--dash .ic-badge--green {
+	background: var(--ember);
+	color: var(--on-ember);
+	box-shadow: none;
+}
+
+/* ==========================================================
+   5) ขั้นตอนเริ่มใช้ + แผงปุ่ม
+   ========================================================== */
+.dash-steps {
+	margin-bottom: 22px;
+}
+
+.dash-steps a {
+	color: var(--flare);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+.is-dark .dash-steps a {
+	color: var(--mint);
+}
+
+.dash-start {
+	display: grid;
+	gap: 16px;
+	padding: 26px 28px;
+	border: 1px solid var(--border);
+	border-radius: 18px;
+	background: var(--coal);
+}
+
+.dash-start .dash-notes {
+	margin-top: 0;
+}
+
+.dash-start-note {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin: 0;
+	padding-top: 16px;
+	border-top: 1px solid var(--border);
+	font-size: 0.84rem;
+	line-height: 1.65;
+	color: var(--ash);
+}
+
+.dash-start-note .icon {
+	flex: 0 0 auto;
+	margin-top: 0.3em;
+	color: var(--flare);
+}
+
+.is-dark .dash-start {
+	border-color: var(--border-dark);
+	background: var(--black-2);
+}
+
+.is-dark .dash-start-note {
+	border-top-color: var(--border-dark);
+	color: var(--on-black-2);
+}
+
+.is-dark .dash-start-note .icon {
+	color: var(--mint);
+}
+
+/* ==========================================================
+   6) เนื้อหายาว (พื้นขาว) · หัวข้อ H2: แถบเขียวสั้น + เส้นคั่นบาง แบบเดียวกับหน้าทดสอบและหน้าแพ็กเกจ
+   ========================================================== */
+.dash-page .longform .guide-content > h2 {
+	padding-top: 30px;
+	border-top: 1px solid rgba(20, 24, 30, 0.07);
+}
+
+.dash-page .longform .guide-content > h2::before {
+	content: "";
+	display: block;
+	width: 28px;
+	height: 3px;
+	margin-bottom: 14px;
+	border-radius: 3px;
+	background: var(--ember);
+}
+
+.dash-page .longform .guide-content > h2:first-child {
+	padding-top: 0;
+	border-top: 0;
+}
+
+/* ==========================================================
+   7) จอแคบ
+   ========================================================== */
+@media (max-width: 1024px) {
+	.dash-feats {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.dash-shots-grid {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 210px);
+		gap: 24px 28px;
+	}
+}
+
+@media (max-width: 760px) {
+	.dash-page > .section {
+		padding: 60px 0;
+	}
+
+	/* การ์ดเทียบเรียงซ้อน: แต่ละใบอ่านครบในตัวเอง */
+	.dash-ways-grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.dash-way {
+		grid-template-rows: none;
+		grid-row: auto;
+		padding: 24px 20px 22px;
+	}
+
+	.dash-way + .dash-way {
+		margin-top: 18px;
+	}
+
+	.dash-shots-grid {
+		grid-template-columns: minmax(0, 1fr);
+		justify-items: center;
+	}
+
+	.dash-shot--desk {
+		width: 100%;
+	}
+
+	.dash-shot--phone {
+		width: min(260px, 100%);
+	}
+
+	.dash-start {
+		padding: 22px 18px;
+	}
+}
+
+@media (max-width: 640px) {
+	.dash-feats {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.dash-feat--lead {
+		grid-column: auto;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 16px;
+		padding: 24px 22px;
+	}
+
+	.dash-feat--lead h3 {
+		font-size: 1.15rem;
+	}
+
+	.dash-feat--lead p {
+		font-size: 0.95rem;
+	}
+
+	.dash-way-row {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.dash-notes--hero {
+		margin-top: 2px;
+	}
+}

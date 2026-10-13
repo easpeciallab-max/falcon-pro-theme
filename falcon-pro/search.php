@@ -2,7 +2,7 @@
 /**
  * หน้าผลการค้นหา
  *
- * โครง: หัวเพจ (คำค้น) → แถบจำนวนผล + ค้นหาอีกครั้ง → การ์ดบทความ + โหลดเพิ่ม
+ * โครง (ทั้งหมดอยู่ใน <main>): หัวเพจ (คำค้น) → แถบจำนวนผล + ค้นหาอีกครั้ง → การ์ดบทความ + โหลดเพิ่ม
  *       ไม่พบผล: ข้อความแนะนำ + รายการคู่มือพร้อมคำอธิบาย (เฉพาะเพจที่เผยแพร่แล้ว)
  *
  * @package falcon-pro
@@ -17,11 +17,14 @@ get_header();
 $fenix_found = (int) $GLOBALS['wp_query']->found_posts;
 $fenix_has   = have_posts();
 $fenix_query = get_search_query();
-
-fenix_page_hero( '', fenix_mod( 'search_title' ) . ( '' !== $fenix_query ? ': “' . $fenix_query . '”' : '' ) );
 ?>
 
 <main id="main" class="search-page">
+
+	<?php
+	/* หัวเพจ (เส้นทางนำทาง + H1) อยู่ใน <main> · ลิงก์ "ข้ามไปที่เนื้อหาหลัก" จึงพาไปถึงชื่อหน้า ไม่ข้ามเลยไป */
+	fenix_page_hero( '', fenix_mod( 'search_title' ) . ( '' !== $fenix_query ? ': “' . $fenix_query . '”' : '' ) );
+	?>
 
 	<div class="search-bar">
 		<div class="container">

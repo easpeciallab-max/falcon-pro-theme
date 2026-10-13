@@ -92,7 +92,7 @@ add_action( 'wp_enqueue_scripts', 'fenix_assets' );
  * ลำดับโมดูล CSS/JS (โหลดหลัง style.css ตามลำดับนี้)
  */
 function fenix_asset_modules() {
-	return apply_filters( 'fenix_asset_modules', array( 'components', 'chrome', 'home', 'guides', 'pages', 'go', 'consent' ) );
+	return apply_filters( 'fenix_asset_modules', array( 'components', 'chrome', 'home', 'guides', 'pages', 'go', 'dashboard', 'consent' ) );
 }
 
 /**
@@ -248,11 +248,16 @@ function fenix_defaults() {
 		'line_url'        => '',
 		'contact_fallback_text' => 'ดูช่องทางติดต่อทั้งหมด',
 		'color_mode'      => 'dark',
+		/* คำเล็กเหนือหัวข้อทั้งเว็บ (kicker ของหัวเพจและหัว section · เลขบท "01 / 09" และป้ายบทของหน้าแรก · ป้ายเล็กของบล็อกติดต่อและบล็อกแดชบอร์ด)
+		 * เจ้าของสั่ง 12 ต.ค. 2026 ให้หัวข้อยืนเดี่ยว = ปิดเป็นค่าเริ่มต้น · ข้อความของแต่ละจุดยังเก็บอยู่ในช่องเดิม เปิดสวิตช์นี้ = กลับมาแสดง (fenix_show_kickers ใน inc/components.php) */
+		'show_kickers'    => false,
 		'wordmark_dark'   => '',
 		'wordmark_light'  => '',
 		'line_openchat_url'  => '',
 		'line_openchat_text' => 'เข้ากลุ่ม LINE OpenChat',
 		'line_qr_image'      => '',
+		/* ป้ายบนรูปที่กดเปิดขนาดเต็มได้ (fenix_media_open · ใช้ทุกหน้าที่มีช่องรูป) · เว้นว่าง = แสดงเฉพาะไอคอน */
+		'media_open_label'   => 'เปิดภาพขนาดเต็ม',
 		'contact_title'      => 'พร้อมคุยเรื่อง FALCON PRO EA กับทีมงานแล้วหรือยัง?',
 		'contact_text'       => 'ทักมาทาง LINE ทีมงานช่วยประเมินทุน ความเสี่ยง และแนะนำการติดตั้งให้เหมาะกับบัญชีของคุณ ไม่มีข้อผูกมัด',
 
@@ -273,11 +278,14 @@ function fenix_defaults() {
 		'mt5_dl_android' => 'https://play.google.com/store/apps/details?id=net.metaquotes.metatrader5',
 		'mt5_dl_ios'     => 'https://apps.apple.com/app/metatrader-5/id413251709',
 
-		/* โบรกเกอร์ (ใช้ในคู่มือเปิดบัญชี / ล็อกอิน ผ่าน shortcode [falcon_broker]) */
+		/* โบรกเกอร์ (ใช้ในคู่มือเปิดบัญชี / ล็อกอิน ผ่าน shortcode [falcon_broker] และตัวแทน {broker} {server} {disclosure})
+		 * ค่าเริ่มต้นไม่ระบุชื่อโบรกเกอร์ใด · ชื่อ เซิร์ฟเวอร์ และลิงก์สมัครจริงตั้งที่ Customizer บนเว็บเท่านั้น
+		 * broker_disclosure แสดงเฉพาะเมื่อพาร์ตเนอร์ตั้งครบ = มี broker_signup_url และ broker_name เป็นชื่อจริง (fenix_partner_ready · fenix_broker_disclosure) */
 		'broker_name'        => 'โบรกเกอร์ที่คุณเลือก',
 		'broker_server'      => 'ชื่อเซิร์ฟเวอร์ที่ได้รับทางอีเมลหลังเปิดบัญชี',
 		'broker_signup_url'  => '',
 		'broker_signup_text' => 'เปิดบัญชีกับโบรกเกอร์',
+		'broker_disclosure'  => 'ข้อมูลที่ควรทราบก่อนกดสมัคร: ทีมงาน {brand} เป็นพาร์ตเนอร์ของ {broker} ปุ่มและลิงก์สมัครบัญชีในเว็บนี้เป็นลิงก์พาร์ตเนอร์ ทุกบัญชีที่เปิดผ่านลิงก์นี้ทำให้ทีมงานได้รับเงินตอบแทนจาก {broker} เราจึงมีส่วนได้เสียกับการแนะนำนี้ ผลประโยชน์ดังกล่าวไม่ใช่ข้อยืนยันว่า {broker} ตอบโจทย์ผู้ใช้ทุกราย และไม่ทำให้ความเสี่ยงของการเทรดน้อยลง ก่อนโอนเงินเข้าบัญชี กรุณาตรวจใบอนุญาต หน่วยงานที่กำกับดูแล และเงื่อนไขของประเภทบัญชีจากช่องทางทางการของ {broker} แล้วตัดสินใจตามวิจารณญาณของคุณเอง',
 		'facebook_url'    => '',
 		'contact_email'   => '',
 		'show_float_line' => false,
@@ -299,7 +307,9 @@ function fenix_defaults() {
 
 		/* SEO / แชร์ลิงก์ (Open Graph) */
 		'og_default_image'       => '',
-		'og_default_description' => 'FALCON PRO EA · ระบบช่วยเทรดอัตโนมัติบน MetaTrader 5 เน้นวินัยและการบริหารความเสี่ยง',
+		/* ต้องตรงกับตัวระบบ: เทรดทองคำ XAUUSD อย่างเดียว บน MT5 · ใช้ได้สองทาง · ห้ามเขียนว่าระบบคุมหรือบริหารความเสี่ยงให้ และห้ามใส่ตัวเลขผลทดสอบ
+		 * (ใช้เป็น meta description สำรอง และ description ของ SoftwareApplication schema) */
+		'og_default_description' => 'FALCON PRO EA · EA เทรดทองคำ XAUUSD บน MetaTrader 5 ติดตั้งเองหรือรันผ่านแดชบอร์ด การเทรดมีความเสี่ยงและขาดทุนได้',
 
 		/* คุกกี้ / Consent + Tracking (โหลด tracking เฉพาะหลังกดยอมรับ) */
 		'show_cookie_consent' => false,
@@ -309,11 +319,12 @@ function fenix_defaults() {
 
 		/* Hero */
 		'show_hero'      => true,
-		'hero_badge'     => 'Expert Advisor for MetaTrader 5',
+		/* ป้ายเล็กเหนือ H1 ของหน้าแรก: ว่างเป็นค่าเริ่มต้น (หัวข้อยืนเดี่ยว) · ว่าง = ไม่พิมพ์ป้าย */
+		'hero_badge'     => '',
 		'hero_title'     => 'FALCON PRO EA',
 		'hero_subtitle'  => 'ผู้ช่วยเทรดอัตโนมัติสำหรับ',
 		'hero_subtitle_em' => 'MT5',
-		'hero_desc'      => 'EA MT5 ที่ทำงานตามกฎที่ตั้งไว้ล่วงหน้า ใช้ได้กับ Forex ทองคำ และสินทรัพย์อื่นบน MetaTrader 5 ไม่ตัดสินใจตามอารมณ์ ทุนและระดับความเสี่ยงคุณเป็นคนกำหนดเอง',
+		'hero_desc'      => 'EA MT5 ที่เทรดทองคำ XAUUSD ตามกลยุทธ์ของชุด EA ที่คุณเลือก ไม่ตัดสินใจตามอารมณ์ ทุนและชุด EA ที่ใช้คุณเป็นคนกำหนดเอง',
 		'hero_point1_title' => 'เทรดอัตโนมัติตามกฎ',
 		'hero_point1_desc'  => 'เปิดและปิดออเดอร์เมื่อเงื่อนไขครบ ไม่เดา ไม่ไล่ราคา',
 		'hero_point2_title' => 'ติดตั้งง่าย ตั้งค่าไม่ซับซ้อน',
@@ -354,7 +365,8 @@ function fenix_defaults() {
 		'about_title' => 'FALCON PRO EA คืออะไร · EA เทรดอัตโนมัติบน MT5',
 		'about_text'  => "FALCON PRO EA คือ Expert Advisor หรือที่หลายคนเรียกว่าบอทเทรด โรบอทเทรด สำหรับแพลตฟอร์ม MetaTrader 5 ติดตั้งบนกราฟ MT5 แล้วเฝ้าดูราคาแทนคุณตลอดเวลาที่ตลาดเปิด เมื่อราคาเข้าเงื่อนไขที่ตั้งไว้ ระบบจะเปิดออเดอร์ คุมขนาดออเดอร์และเงื่อนไขปิดตามค่าที่กำหนด แล้วปิดเมื่อครบเงื่อนไข โดยไม่ต้องนั่งเฝ้าจอ\n\nสิ่งที่ระบบให้คือความสม่ำเสมอ ทำตามกฎเดิมทุกครั้ง ไม่รีบเข้า ไม่ลังเลตอนควรออก แต่ EA ไม่ใช่เครื่องมือการันตีกำไร ผลลัพธ์ขึ้นกับสภาวะตลาด โบรกเกอร์ และการตั้งค่าของคุณ",
 		'about_points' => "แพลตฟอร์ม|ทำงานบน MetaTrader 5 โดยตรง ติดตั้งครั้งเดียวแล้วรันต่อเนื่องบนคอมพิวเตอร์หรือ VPS\nวินัย|ทำตามกฎเดิมทุกครั้ง ไม่ให้ความกลัวหรือความโลภมาแทรกการตัดสินใจ\nการควบคุม|คุณกำหนดทุน ขนาดออเดอร์ และระดับความเสี่ยงเอง หยุดระบบได้ทุกเมื่อ",
-		'about_image'         => $banner_assets . 'falcon-pro-ea-mt5-laptop-overview.webp',
+		/* คีย์เดิม (ไม่มีเทมเพลตใดพิมพ์แล้ว · หน้าแรกใช้ home_what_img) · ไม่มีรูปเริ่มต้น: แบนเนอร์เดิมมีคอลัมน์ Profit ในภาพ (กติกาข้อ 3) */
+		'about_image'         => '',
 		'about_image_caption' => 'ภาพประกอบ ตัวเลขในภาพเป็นตัวอย่างหน้าตาโปรแกรม ไม่ใช่ผลการเทรดจริง',
 
 		/* จุดเด่น */
@@ -441,25 +453,30 @@ function fenix_defaults() {
 		'show_pricing'     => true,
 		'pricing_title'    => 'แพ็กเกจการใช้งาน',
 		'pricing_subtitle' => 'เลือกแพ็กเกจที่เหมาะกับการใช้งานของคุณ หรือทักมาปรึกษาก่อนตัดสินใจได้',
-		'pricing_mode'     => 'contact',
+		/* ราคากลุ่ม (เจ้าของยืนยัน ต.ค. 2026): Starter ปรึกษาฟรี · Pro 6,990 · VIP 9,990 บาท ชำระครั้งเดียว ไม่มีรายเดือนหรือรายปี
+		 * การคืนเงิน: เปิดสิทธิ์ใช้งานให้บัญชีแล้วไม่คืน เว้นแต่ยังไม่ได้เปิดสิทธิ์หรือให้บริการตามที่ตกลงไม่ได้ ขอคืนได้ภายใน 7 วันนับจากวันชำระ
+		 * ข้อความของการ์ด (pkgN_tag / pkgN_features / pricing_note ฯลฯ) ที่ใช้จริงอยู่ใน inc/modules/pages.php ซึ่งทับค่าด้านล่างนี้ */
+		'pricing_mode'     => 'price',
 		'pricing_btn_text' => 'สอบถามแพ็กเกจนี้',
 		'pricing_note'     => 'ราคาและเงื่อนไขอาจมีการเปลี่ยนแปลง สอบถามรายละเอียดล่าสุดได้ทาง LINE',
+		/* ราคา: ตัวเลข หรือคำว่า "ฟรี" (fenix_is_free_price) · ค่าอื่นเช่น X,XXX = ยังไม่มีราคา การ์ดแสดงข้อความสอบถามแทน
+		 * หน่วย: แพ็กเกจฟรีไม่มีหน่วย · แพ็กเกจเสียเงินชำระครั้งเดียว (เว้นว่าง = ไม่แสดงบรรทัดหน่วย) */
 		'pkg1_name'        => 'Starter',
-		'pkg1_tag'         => 'สำหรับเริ่มต้นทดลองใช้งาน',
-		'pkg1_price'       => 'X,XXX',
-		'pkg1_period'      => 'บาท / ปี',
-		'pkg1_features'    => "ใช้งานได้ 1 บัญชีเทรด\nคู่มือการติดตั้งและตั้งค่า\nอัปเดตระบบตามรอบเวอร์ชัน\nSupport เบื้องต้นผ่าน LINE",
+		'pkg1_tag'         => 'ปรึกษาทีมงานก่อนตัดสินใจ ไม่มีค่าใช้จ่าย',
+		'pkg1_price'       => 'ฟรี',
+		'pkg1_period'      => '',
+		'pkg1_features'    => "คุยกับทีมงานทาง LINE ได้โดยไม่เสียเงิน\nถามเรื่องบัญชี โบรกเกอร์ และทุนที่ควรเตรียม\nยังไม่มีสิทธิ์ใช้งาน EA ในระดับนี้",
 		'pkg1_featured'    => false,
 		'pkg2_name'        => 'Pro',
 		'pkg2_tag'         => 'สำหรับใช้งานจริงต่อเนื่อง',
-		'pkg2_price'       => 'X,XXX',
-		'pkg2_period'      => 'บาท / ปี',
+		'pkg2_price'       => '6,990',
+		'pkg2_period'      => 'บาท · ชำระครั้งเดียว',
 		'pkg2_features'    => "ใช้งานได้ 1 ถึง 2 บัญชีเทรด\nไฟล์ Preset ตั้งค่าพร้อมใช้\nอัปเดตระบบต่อเนื่อง\nSupport ส่วนตัวผ่าน LINE",
 		'pkg2_featured'    => true,
 		'pkg3_name'        => 'VIP',
 		'pkg3_tag'         => 'สำหรับคนที่อยากให้ทีมดูแลใกล้ชิด',
-		'pkg3_price'       => 'X,XXX',
-		'pkg3_period'      => 'บาท / ปี',
+		'pkg3_price'       => '9,990',
+		'pkg3_period'      => 'บาท · ชำระครั้งเดียว',
 		'pkg3_features'    => "ทีมงานช่วยติดตั้งบนเครื่อง / VPS\nสอนตั้งค่าและแนวคิดบริหารความเสี่ยง\nติดตามผลในช่วงเริ่มต้นใช้งาน\nSupport ส่วนตัวแบบใกล้ชิด",
 		'pkg3_featured'    => false,
 
@@ -486,8 +503,8 @@ function fenix_defaults() {
 		'faq3_a'       => 'ไม่การันตี ผลการเทรดขึ้นอยู่กับสภาวะตลาด การตั้งค่า ทุน ระดับความเสี่ยง และเงื่อนไขของโบรกเกอร์ ผลในอดีตไม่รับประกันผลในอนาคต ใครที่การันตีกำไรจาก EA ควรระวังเป็นพิเศษ',
 		'faq4_q'       => 'ใช้กับโบรกเกอร์ไหนได้บ้าง?',
 		'faq4_a'       => 'ใช้ได้กับโบรกเกอร์ที่ให้บริการ MetaTrader 5 และอนุญาตให้ใช้ EA ก่อนเริ่มใช้จริงควรสอบถามทีมงานเรื่องประเภทบัญชี Spread และเงื่อนไขของโบรกเกอร์ที่คุณใช้',
-		'faq5_q'       => 'เทรดทอง XAUUSD ได้ไหม ใช้กับคู่เงินอะไรบ้าง?',
-		'faq5_a'       => 'ใช้ได้กับคู่เงิน ทองคำ และสินทรัพย์อื่นที่มีบนบัญชี MT5 ของโบรกเกอร์ที่คุณเลือก ค่าที่เหมาะสมของแต่ละสินทรัพย์ต่างกัน ทีมงานจะแนะนำ Preset ให้ตรงกับสินทรัพย์และทุนของคุณ',
+		'faq5_q'       => 'เทรดทอง XAUUSD อย่างเดียว หรือใช้กับคู่เงินอื่นได้ด้วย?',
+		'faq5_a'       => 'เทรดทองคำ XAUUSD อย่างเดียว ใช้กับคู่เงินหรือสินทรัพย์อื่นไม่ได้ ทีมงานจะช่วยดูชุด EA ให้เข้ากับทุนของคุณ',
 		'faq6_q'       => 'ต้องเปิดคอมตลอดไหม ใช้ EA บนมือถือได้ไหม?',
 		'faq6_a'       => 'EA ต้องรันบน MT5 เวอร์ชันคอมพิวเตอร์ที่เปิดอยู่ตลอด หรือบน VPS ที่ทำงาน 24 ชั่วโมง แอป MT5 บนมือถือใช้ดูยอดเงินและออเดอร์ได้ แต่รัน EA ไม่ได้',
 		'faq7_q'       => 'ใช้ทุนเริ่มต้นเท่าไร?',
@@ -533,7 +550,7 @@ function fenix_defaults() {
 			/* หน้าแรก · แถบไฮไลต์ */
 			'show_highlight' => true,
 			'highlight1'     => 'แพลตฟอร์ม|MetaTrader 5',
-			'highlight2'     => 'สินทรัพย์|Forex ทองคำ และสินทรัพย์บน MT5',
+			'highlight2'     => 'สินทรัพย์|ทองคำ XAUUSD อย่างเดียว',
 			'highlight3'     => 'รูปแบบ|เทรดอัตโนมัติตามกฎที่ตั้งไว้',
 			'highlight4'     => 'การส่งมอบ|ไฟล์ EA + คู่มือภาษาไทย',
 			'highlight_note' => 'ป้ายข้อมูลระบบ ไม่ใช่ผลการเทรด',
@@ -549,10 +566,12 @@ function fenix_defaults() {
 			'tests_subtitle'  => 'การทดสอบ EA MT5 มี 2 แบบ ควรดูทั้งคู่ก่อนใช้เงินจริง และอ่านเงื่อนไขการทดสอบทุกครั้ง',
 			'tests_bt_title'  => 'Backtest · ทดสอบย้อนหลัง',
 			'tests_bt_text'   => 'รัน EA ใน Strategy Tester ของ MT5 กับข้อมูลราคาในอดีต เพื่อดูพฤติกรรมของระบบภายใต้เงื่อนไขที่กำหนด ค่าที่ควรอ่านคือ Profit Factor, Max Drawdown และจำนวนเทรด ข้อจำกัดคือผลขึ้นกับคุณภาพข้อมูล Spread และ Slippage จึงมักดูดีกว่าของจริง',
-			'tests_bt_img'    => $banner_assets . 'falcon-pro-ea-mt5-laptop-falcon.webp',
+			/* ไม่มีรูปเริ่มต้น: แบนเนอร์เดิมเป็นภาพ MT5 ที่เปิดกราฟ EURUSD ซึ่งขัดกับข้อเท็จจริงว่าระบบเทรดทองคำ XAUUSD อย่างเดียว · ใส่รูปจริงได้ที่ Customizer */
+			'tests_bt_img'    => '',
 			'tests_fw_title'  => 'Forward Test · ทดสอบเดินหน้า',
 			'tests_fw_text'   => 'รัน EA กับตลาดจริงแบบเรียลไทม์บนบัญชีเดโม บัญชีเซ็นต์ หรือบัญชีจริง เห็นผลของ Spread, Slippage และความเร็วส่งคำสั่งจริง ใช้เวลานานกว่า แต่สะท้อนการใช้งานจริงได้ใกล้กว่า Backtest',
-			'tests_fw_img'    => $banner_assets . 'falcon-pro-ea-mt5-desk-setup.webp',
+			/* ไม่มีรูปเริ่มต้น: แบนเนอร์เดิมมีตัวเลขกำไรและ Win Rate ในภาพ ซึ่งอ่านแล้วเหมือนผลทดสอบ (กติกาข้อ 3) · ใส่รูปจริงได้ที่ Customizer */
+			'tests_fw_img'    => '',
 			'tests_note'      => 'ผลทดสอบที่เผยแพร่จะแสดงพร้อมเงื่อนไขครบถ้วนที่หน้า Backtest และ Forward Test ผลในอดีตไม่รับประกันผลในอนาคต',
 
 			/* หน้าแรก · ติดตั้งย่อ 3 ขั้น */
@@ -680,10 +699,10 @@ function fenix_defaults() {
 			'inst_step6_img'    => '',
 			'install_note'      => 'ต้องการให้ทีมงานช่วยติดตั้งให้? ทักมาทาง LINE ได้เลย',
 
-			/* หน้า Pricing (เพิ่มเติม) */
+			/* หน้า Pricing (เพิ่มเติม) · ค่าที่ใช้จริงอยู่ใน inc/modules/pages.php (ทับสามบรรทัดนี้) · คงโมเดลเดียวกันไว้: Starter = ปรึกษาฟรี ยังไม่มีสิทธิ์ใช้งาน */
 			'pricing_sub'   => 'เลือกแพ็กเกจที่เหมาะกับการใช้งานของคุณ',
 			'compare_title' => 'ตารางเปรียบเทียบแพ็กเกจ',
-			'compare_rows'  => "รายการ | Starter | Pro | VIP\nจำนวนบัญชีที่ใช้ได้ | 1 | 1-2 | ตามตกลง\nไฟล์ Preset ตั้งค่าพร้อมใช้ | ✗ | ✓ | ✓\nทีมช่วยติดตั้ง / VPS | ✗ | ✗ | ✓\nอัปเดตระบบ | ✓ | ✓ | ✓\nระดับการ Support | พื้นฐาน | ส่วนตัว | ใกล้ชิด",
+			'compare_rows'  => "รายการ | Starter | Pro | VIP\nบัญชีเทรดที่ใช้สิทธิ์ได้ | ✗ | 1 ถึง 2 บัญชี | ตามที่ตกลง\nไฟล์ Preset ตั้งค่าพร้อมใช้ | ✗ | ✓ | ✓\nทีมงานลงระบบให้บนเครื่องหรือ VPS | ✗ | ✗ | ✓\nอัปเดตระบบ | ✗ | ✓ | ✓\nระดับการ Support | ปรึกษาก่อนเริ่ม | ส่วนตัว | ใกล้ชิด",
 
 			/* หน้า Risk Disclosure */
 			'riskpage_sub'     => 'ข้อมูลความเสี่ยงที่ควรอ่านก่อนเริ่มใช้งาน',
@@ -774,6 +793,15 @@ function fenix_lines( $text ) {
 }
 
 /**
+ * จำนวนช่องถาม-ตอบของหน้าแรก (faq1 … faqN)
+ * ใช้เลขเดียวกันทั้งการแสดงผล (front-page.php) · ช่องใน Customizer (inc/modules/home.php) · FAQ schema (inc/seo.php)
+ * ข้อที่คำถามหรือคำตอบว่างจะไม่แสดง จึงเพิ่มจำนวนช่องได้โดยไม่กระทบหน้าเว็บ
+ */
+function fenix_home_faq_count() {
+	return max( 1, (int) apply_filters( 'fenix_home_faq_count', 14 ) );
+}
+
+/**
  * ตรวจว่าค่ายังเป็น placeholder (ยังไม่กรอกจริง) หรือไม่
  * ใช้ซ่อนสถิติที่ยังขึ้นต้นด้วย "ระบุ" / "เช่น" ไม่ให้หน้าแรกดูเหมือนยังทำไม่เสร็จ
  */
@@ -788,6 +816,120 @@ function fenix_is_placeholder( $value ) {
 		}
 	}
 	return false;
+}
+
+/**
+ * ราคาแบบไม่มีค่าใช้จ่าย (ฟรี / free / 0) · แสดงบนการ์ดแพ็กเกจในโหมดแสดงราคาได้ แม้ไม่ใช่ตัวเลข
+ * ใช้คู่กับตัวตรวจ "ราคาพร้อมแสดง" ของหน้าแรกและหน้าแพ็กเกจ · schema Offer ข้ามแพ็กเกจฟรีเสมอ (inc/seo.php)
+ */
+function fenix_is_free_price( $price ) {
+	$price = trim( (string) $price );
+	$price = function_exists( 'mb_strtolower' ) ? mb_strtolower( $price, 'UTF-8' ) : strtolower( $price );
+	return in_array( $price, (array) apply_filters( 'fenix_free_price_words', array( 'ฟรี', 'free', '0' ) ), true );
+}
+
+/**
+ * แทนตัวแทนในข้อความที่ตั้งค่าได้ด้วยค่าจาก Customizer (ต้องทำก่อน escape เสมอ)
+ *   {brand}      ชื่อแบรนด์ (hero_title)
+ *   {broker}     ชื่อโบรกเกอร์ (broker_name)
+ *   {server}     ชื่อเซิร์ฟเวอร์ MT5 (broker_server)
+ *   {disclosure} ข้อความเปิดเผยความเป็นพาร์ตเนอร์ (fenix_broker_disclosure · ว่างเมื่อพาร์ตเนอร์ยังตั้งไม่ครบ: fenix_partner_ready)
+ * ข้อความล้วนเข้า ข้อความล้วนออก: ไม่ escape และไม่สร้าง HTML ผู้เรียกต้อง escape ผลลัพธ์เอง
+ * ช่องชื่อ/เซิร์ฟเวอร์ที่ถูกลบจนว่าง ใช้ค่าเริ่มต้นแบบกลางแทน ประโยคจึงไม่ขาดคำ
+ */
+function fenix_tokens( $text ) {
+	$text = (string) $text;
+	if ( false === strpos( $text, '{' ) ) {
+		return $text;
+	}
+	$defaults = fenix_defaults();
+	$values   = array(
+		'{brand}'  => 'hero_title',
+		'{broker}' => 'broker_name',
+		'{server}' => 'broker_server',
+	);
+	foreach ( $values as $token => $key ) {
+		$value = trim( (string) fenix_mod( $key ) );
+		if ( '' === $value ) {
+			$value = isset( $defaults[ $key ] ) ? trim( (string) $defaults[ $key ] ) : '';
+		}
+		$values[ $token ] = $value;
+	}
+	if ( '' === $values['{brand}'] ) {
+		$values['{brand}'] = 'FALCON PRO EA';
+	}
+	if ( false !== strpos( $text, '{disclosure}' ) ) {
+		$values['{disclosure}'] = fenix_broker_disclosure();
+	}
+	return strtr( $text, $values );
+}
+
+/**
+ * คำกลางที่ธีมใช้เรียกโบรกเกอร์เมื่อยังไม่ได้ตั้งชื่อ = ค่าเริ่มต้นของ broker_name ตามที่ธีมเขียนไว้
+ * จับค่าไว้ตอน fenix_defaults() เริ่มกรอง (priority ต่ำสุด) ก่อนฟิลเตอร์ fenix_defaults ตัวอื่นแตะ:
+ * ชื่อที่โค้ดอื่นใส่ให้ค่าเริ่มต้นภายหลัง (ธีมลูก สวิตช์ ?broker ของพรีวิว) จึงนับเป็นชื่อจริง ไม่ใช่คำกลาง
+ * ส่ง array ค่าเริ่มต้นเข้ามา = ทำงานเป็นฟิลเตอร์ (คืน array เดิม) · ไม่ส่งอะไร = คืนคำกลาง
+ */
+function fenix_partner_neutral_name( $defaults = null ) {
+	static $name = null;
+	if ( is_array( $defaults ) ) {
+		if ( null === $name ) {
+			$name = isset( $defaults['broker_name'] ) ? trim( (string) $defaults['broker_name'] ) : '';
+		}
+		return $defaults;
+	}
+	if ( null === $name ) {
+		$all = fenix_defaults(); // เรียกครั้งแรก = ฟิลเตอร์ด้านล่างจับค่าให้
+		if ( null === $name ) {
+			$name = isset( $all['broker_name'] ) ? trim( (string) $all['broker_name'] ) : '';
+		}
+	}
+	return $name;
+}
+add_filter( 'fenix_defaults', 'fenix_partner_neutral_name', -9999 );
+
+/**
+ * พาร์ตเนอร์โบรกเกอร์ตั้งครบหรือยัง · ตัวตรวจเดียวของทั้งธีม:
+ * มีลิงก์สมัครบัญชี (broker_signup_url) และมีชื่อโบรกเกอร์จริง (broker_name ไม่ว่าง และไม่ใช่คำกลางของธีม)
+ * ใช้ร่วมกันโดย: ข้อความเปิดเผย (fenix_broker_disclosure) · [falcon_if has="partner"] · ปุ่มสมัครของ [falcon_broker field="url"] · ปุ่มสมัครในหน้า /go
+ * ปุ่มลิงก์พาร์ตเนอร์ (rel="sponsored") จึงไม่มีทางแสดงโดยไม่มีชื่อโบรกเกอร์และข้อความเปิดเผย
+ */
+function fenix_partner_ready() {
+	$url = trim( (string) fenix_mod( 'broker_signup_url' ) );
+	if ( '' === $url || '#' === $url ) {
+		return false;
+	}
+	$name = trim( (string) fenix_mod( 'broker_name' ) );
+	return '' !== $name && fenix_partner_neutral_name() !== $name;
+}
+
+/**
+ * ลิงก์สมัครบัญชีถูกบันทึกแล้ว แต่พาร์ตเนอร์ยังตั้งไม่ครบ (ยังไม่มีชื่อโบรกเกอร์จริง) · ปุ่มสมัครและข้อความเปิดเผยจึงยังถูกซ่อน
+ * ใช้เตือนผู้ดูแล: หน้า FALCON Setup (inc/setup.php) และคำตอบของ POST falcon/v1/mods (inc/modules/infra.php)
+ */
+function fenix_partner_pending() {
+	$url = trim( (string) fenix_mod( 'broker_signup_url' ) );
+	return '' !== $url && '#' !== $url && ! fenix_partner_ready();
+}
+
+/**
+ * ข้อความเปิดเผยความเป็นพาร์ตเนอร์กับโบรกเกอร์ (ข้อความล้วน แทนตัวแทนแล้ว ยังไม่ escape)
+ * คืน '' เมื่อพาร์ตเนอร์ยังตั้งไม่ครบ (fenix_partner_ready: ต้องมีทั้งลิงก์สมัครบัญชีและชื่อโบรกเกอร์จริง)
+ * ช่องข้อความ (broker_disclosure) ที่ถูกลบจนว่างขณะพาร์ตเนอร์ตั้งครบ = ใช้ข้อความเริ่มต้นของธีมแทน
+ * ข้อความเปิดเผยจึงปิดไม่ได้ตราบที่ยังมีปุ่มลิงก์พาร์ตเนอร์บนเว็บ
+ * จุดที่แสดง: [falcon_broker field="disclosure"] ในเนื้อหาเพจ และตัวแทน {disclosure} ในข้อความจาก Customizer
+ */
+function fenix_broker_disclosure() {
+	if ( ! fenix_partner_ready() ) {
+		return '';
+	}
+	/* ตัด {disclosure} ในตัวข้อความเองทิ้ง กันเรียกวนไม่รู้จบ */
+	$text = trim( str_replace( '{disclosure}', '', (string) fenix_mod( 'broker_disclosure' ) ) );
+	if ( '' === $text ) {
+		$defaults = fenix_defaults();
+		$text     = isset( $defaults['broker_disclosure'] ) ? trim( str_replace( '{disclosure}', '', (string) $defaults['broker_disclosure'] ) ) : '';
+	}
+	return '' === $text ? '' : trim( fenix_tokens( $text ) );
 }
 
 /**
@@ -984,9 +1126,12 @@ function fenix_language_switcher() {
 
 /**
  * หัวหน้าเพจ (page hero) ใช้ร่วมกันทุกหน้าย่อย · มี breadcrumb (+ BreadcrumbList schema ใน inc/seo.php)
+ * $kicker (คำเล็กเหนือ H1) พิมพ์เฉพาะเมื่อเปิด "คำเล็กเหนือหัวข้อ" (show_kickers · fenix_kicker ใน inc/components.php)
+ * ค่าเริ่มต้นปิด = H1 ยืนเดี่ยวต่อจาก breadcrumb · ผู้เรียกยังส่งค่ามาได้ตามเดิม (บางเทมเพลตใช้เป็นชื่อหน้าสำรอง)
  */
 function fenix_page_hero( $kicker, $title, $subtitle = '' ) {
 	$crumbs = fenix_breadcrumbs( $title );
+	$kicker = function_exists( 'fenix_kicker' ) ? fenix_kicker( $kicker ) : '';
 	?>
 	<section class="phero">
 		<div class="container phero-inner reveal">
@@ -1005,7 +1150,7 @@ function fenix_page_hero( $kicker, $title, $subtitle = '' ) {
 					</ol>
 				</nav>
 			<?php endif; ?>
-			<?php if ( $kicker ) : ?>
+			<?php if ( '' !== $kicker ) : ?>
 				<span class="kicker"><?php echo esc_html( $kicker ); ?></span>
 			<?php endif; ?>
 			<h1 class="phero-title"><?php echo esc_html( $title ); ?></h1>
@@ -1019,13 +1164,20 @@ function fenix_page_hero( $kicker, $title, $subtitle = '' ) {
 
 /**
  * การ์ดสถานะ "ยังไม่มีผลทดสอบที่เผยแพร่" (หน้า Backtest / Forward) · ไม่แสดงตัวเลขสมมติ
+ * รุ่นเดิม เก็บไว้เผื่อโค้ดภายนอกเรียก: เทมเพลตของธีมใช้ fenix_pages_pending( $type, $labels ) ใน inc/modules/pages.php
+ * (ผ่าน fenix_pages_stats()) ซึ่งมีรายการชื่อหัวข้อสถิติใต้การ์ดด้วย · แก้การ์ดให้แก้ที่ฟังก์ชันนั้น
  */
 function fenix_results_pending( $type = 'backtest' ) {
+	/* ป้ายเล็กเหนือหัวข้อของการ์ด: พิมพ์เฉพาะเมื่อเปิด "คำเล็กเหนือหัวข้อ" (show_kickers · หมวด 1) เหมือน fenix_pages_pending() */
+	$label = fenix_mod( 'results_pending_label' ) ? fenix_mod( 'results_pending_label' ) : ( 'backtest' === $type ? 'Backtest' : 'Forward Test' );
+	$label = function_exists( 'fenix_kicker' ) ? fenix_kicker( $label ) : '';
 	?>
 	<div class="results-pending reveal">
 		<?php echo fenix_icon_badge( 'backtest' === $type ? 'candles' : 'pulse' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 		<div>
-			<span class="card-label"><?php echo esc_html( fenix_mod( 'results_pending_label' ) ? fenix_mod( 'results_pending_label' ) : ( 'backtest' === $type ? 'Backtest' : 'Forward Test' ) ); ?></span>
+			<?php if ( '' !== $label ) : ?>
+				<span class="card-label"><?php echo esc_html( $label ); ?></span>
+			<?php endif; ?>
 			<h2><?php echo esc_html( fenix_mod( 'results_pending_title' ) ); ?></h2>
 			<p><?php echo esc_html( fenix_mod( 'results_pending_text' ) ); ?></p>
 		</div>
@@ -1085,35 +1237,54 @@ function fenix_breadcrumbs( $title = '' ) {
 
 /**
  * เนื้อหาแบบยาวของเพจ (จาก editor) + สารบัญอัตโนมัติ · ใช้ต่อท้ายเทมเพลตเพจที่มีส่วนออกแบบไว้ด้านบน
+ *
+ * สารบัญ: เฉพาะ H2 · ไม่นับหัวของกล่อง .related-links ท้ายหน้า (fenix_pages_toc_items) · มีจำนวนหัวข้อกำกับ
+ * พิมพ์รายการสองชุดแล้วสลับด้วย CSS (ท้าย assets/css/pages.css):
+ *   - details.longform-toc-mob  จอ ≤ 1024px ที่สารบัญอยู่เหนือเนื้อหา · ปิดไว้ก่อน กดเปิดได้
+ *   - div.longform-toc-desk     จอกว้าง · กล่องติดข้าง เปิดตลอด
+ * ชุดจอกว้างอยู่หลังสุดใน DOM เพื่อให้ main.js ไฮไลต์หัวข้อที่กำลังอ่าน (.longform-toc a) ที่ชุดนี้
  */
 function fenix_page_longform( $section_class = 'section' ) {
 	$content = apply_filters( 'the_content', get_the_content() );
 	if ( '' === trim( wp_strip_all_tags( $content ) ) ) {
 		return;
 	}
-	$toc = isset( $GLOBALS['fenix_toc'] ) ? $GLOBALS['fenix_toc'] : array();
-	$toc = array_values(
-		array_filter(
-			$toc,
-			function ( $item ) {
-				return 2 === $item['level'];
-			}
-		)
-	);
+	$toc = isset( $GLOBALS['fenix_toc'] ) ? (array) $GLOBALS['fenix_toc'] : array();
+	if ( function_exists( 'fenix_pages_toc_items' ) ) {
+		$toc = fenix_pages_toc_items( $toc, $content );
+	} else {
+		$toc = array_values(
+			array_filter(
+				$toc,
+				function ( $item ) {
+					return 2 === (int) $item['level'];
+				}
+			)
+		);
+	}
+	$toc_label = fenix_mod( 'doc_toc_label' ) ? fenix_mod( 'doc_toc_label' ) : 'สารบัญ';
+	$toc_list  = '';
+	if ( count( $toc ) > 2 ) {
+		foreach ( $toc as $fenix_item ) {
+			$toc_list .= '<li><a href="#' . esc_attr( $fenix_item['id'] ) . '">' . esc_html( $fenix_item['text'] ) . '</a></li>';
+		}
+		$toc_list = '<ol>' . $toc_list . '</ol>';
+	}
+	$toc_head = '<span class="longform-toc-label">' . esc_html( $toc_label ) . '</span><span class="longform-toc-count">' . esc_html( number_format_i18n( count( $toc ) ) ) . '</span>';
 	?>
 	<section class="<?php echo esc_attr( $section_class ); ?> longform">
 		<div class="container">
-			<div class="longform-layout<?php echo count( $toc ) > 2 ? '' : ' longform-layout--solo'; ?>">
-				<?php if ( count( $toc ) > 2 ) : ?>
-					<aside class="longform-toc" aria-label="<?php echo esc_attr( fenix_mod( 'doc_toc_label' ) ? fenix_mod( 'doc_toc_label' ) : 'สารบัญ' ); ?>">
-						<details open>
-							<summary><?php echo esc_html( fenix_mod( 'doc_toc_label' ) ? fenix_mod( 'doc_toc_label' ) : 'สารบัญ' ); ?></summary>
-							<ol>
-								<?php foreach ( $toc as $fenix_item ) : ?>
-									<li><a href="#<?php echo esc_attr( $fenix_item['id'] ); ?>"><?php echo esc_html( $fenix_item['text'] ); ?></a></li>
-								<?php endforeach; ?>
-							</ol>
+			<div class="longform-layout<?php echo '' !== $toc_list ? '' : ' longform-layout--solo'; ?>">
+				<?php if ( '' !== $toc_list ) : ?>
+					<aside class="longform-toc longform-toc--dual" aria-label="<?php echo esc_attr( $toc_label ); ?>">
+						<details class="longform-toc-mob">
+							<summary><?php echo $toc_head; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above ?></summary>
+							<?php echo $toc_list; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above ?>
 						</details>
+						<div class="longform-toc-desk">
+							<p class="longform-toc-head"><?php echo $toc_head; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above ?></p>
+							<?php echo $toc_list; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above ?>
+						</div>
 					</aside>
 				<?php endif; ?>
 				<div class="entry-content guide-content">

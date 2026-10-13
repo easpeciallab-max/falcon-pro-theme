@@ -5,7 +5,9 @@
  * - ช่องทางติดต่อ: fenix_has_line_url(), fenix_contact_href(), fenix_contact_button()
  * - ข้อความ: fenix_text(), fenix_rich_inline(), fenix_rich_text(), fenix_keep_words()
  * - หัวข้อเนื้อหาจาก Customizer: fenix_page_sections(), fenix_page_section_fields()
- * - รูป: fenix_media_slot(), fenix_media_picture(), fenix_media_open(), fenix_media_info()
+ * - รูป: fenix_media_slot(), fenix_media_picture(), fenix_media_open(), fenix_media_info(), fenix_media_theme_file(), fenix_media_text()
+ *   ขนาดจริงของรูปอ่านได้ทั้งไฟล์ที่มากับธีมและรูปในคลังสื่อ · <img> พิมพ์ --media-w (ความกว้างจริง) ให้ CSS กันภาพเล็กถูกขยาย
+ *   alt / คำบรรยายรูปใช้ตัวแทน {brand} {broker} {server} ได้ (แทนค่าก่อน escape)
  * - หัวบท: fenix_chapter_head()
  * - โมดูลเพิ่ม default / section ของ Customizer ผ่านฟิลเตอร์ 'fenix_defaults' และ 'fenix_customizer_sections'
  *
@@ -144,7 +146,10 @@ function fenix_keep_words( $html, $thai = true ) {
 		if ( $from ) {
 			$part = str_replace( $from, $to, $part );
 		}
-		$wrapped       = preg_replace( '/(?<![A-Za-z0-9&#-])[A-Za-z0-9]+(?:-[A-Za-z0-9]+)+(?![A-Za-z0-9-])/', '<span class="nobr">$0</span>', $part );
+		/* ไม่ห่อชิ้นส่วนของอีเมล โดเมน LINE ID หรือชื่อไฟล์ (นำหน้าด้วย @ · ตามด้วย @ หรือจุด+ตัวอักษร เช่น my-site.com, my-file.set)
+		 * ถ้าห่อ span จะคั่นกลางคำ ตัวคงตัวพิมพ์อัตโนมัติ (fenix_nocaps_buffer ใน inc/modules/infra.php) จะมองไม่เห็นทั้งคำ
+		 * ช่วงตัวเลขทศนิยม (0.01-0.05) ยังถูกห่อตามเดิม เพราะหลังจุดเป็นตัวเลข */
+		$wrapped       = preg_replace( '/(?<![A-Za-z0-9&#@-])[A-Za-z0-9]+(?:-[A-Za-z0-9]+)+(?![A-Za-z0-9-]|\.[A-Za-z]|@)/', '<span class="nobr">$0</span>', $part );
 		$parts[ $idx ] = null === $wrapped ? $part : $wrapped;
 	}
 	return implode( '', $parts );
@@ -320,53 +325,120 @@ function fenix_page_section_fields( $prefix, $max = 10 ) {
  * ============================================================== */
 
 /**
- * ขนาดจริง + srcset ของรูปในคลังสื่อ (รูปนอกคลังสื่อใช้ขนาดที่ส่งมา)
+ * ตัวแทน {brand} {broker} {server} ในข้อความของช่องรูป (alt / คำบรรยาย / โน้ต) → ค่าจริง · ทำก่อน escape เสมอ
+ * ชื่อโบรกเกอร์จึงอยู่ใน alt ได้โดยไม่ต้องพิมพ์ชื่อลงในไฟล์ธีม
+ */
+function fenix_media_text( $text ) {
+	$text = (string) $text;
+	if ( false === strpos( $text, '{' ) ) {
+		return $text;
+	}
+	if ( function_exists( 'fenix_guide_tokens' ) ) {
+		return fenix_guide_tokens( $text );
+	}
+	return function_exists( 'fenix_tokens' ) ? (string) fenix_tokens( $text ) : $text;
+}
+
+/**
+ * path ของไฟล์ที่มากับธีมจาก URL · คืน '' เมื่อ URL ไม่ได้อยู่ใต้โฟลเดอร์ธีม หรือไม่มีไฟล์นั้นจริง
+ * เทียบโดยไม่สน http/https (ค่าที่บันทึกไว้ก่อนเว็บเปลี่ยนเป็น https ยังหาไฟล์เจอ) · ไม่รับ path ที่มี ".."
+ */
+function fenix_media_theme_file( $url ) {
+	$url  = (string) preg_replace( '/[?#].*$/', '', (string) $url );
+	$base = trailingslashit( get_template_directory_uri() );
+	$url  = (string) preg_replace( '#^https?:#i', '', $url );
+	$base = (string) preg_replace( '#^https?:#i', '', $base );
+	if ( '' === $url || 0 !== strpos( $url, $base ) ) {
+		return '';
+	}
+	$file = get_template_directory() . '/' . ltrim( substr( $url, strlen( $base ) ), '/' );
+	return ( false === strpos( $file, '..' ) && is_file( $file ) ) ? $file : '';
+}
+
+/**
+ * ขนาดจริง + srcset ของรูป
+ * - ไฟล์ที่มากับธีม (เช่น แบนเนอร์ ภาพขั้นตอนใน assets/img/guides/): อ่านขนาดจากไฟล์จริง
+ * - รูปในคลังสื่อ: ขนาด + srcset จาก metadata
+ * - รูปอื่น (URL ภายนอก): ใช้ขนาดที่ส่งมา · 'real' = false
+ *
+ * @return array { width, height, srcset, real (true = ขนาดมาจากไฟล์หรือ metadata จริง) }
  */
 function fenix_media_info( $url, $width, $height ) {
 	static $cache = array();
-	$url = (string) $url;
-	if ( isset( $cache[ $url ] ) ) {
-		return $cache[ $url ];
-	}
+	$url  = (string) $url;
 	$info = array(
 		'width'  => (int) $width,
 		'height' => (int) $height,
 		'srcset' => '',
+		'real'   => false,
 	);
-	$id = function_exists( 'attachment_url_to_postid' ) ? (int) attachment_url_to_postid( $url ) : 0;
-	if ( $id ) {
-		$meta = wp_get_attachment_metadata( $id );
-		if ( is_array( $meta ) && ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
-			$info['width']  = (int) $meta['width'];
-			$info['height'] = (int) $meta['height'];
-			$srcset         = wp_get_attachment_image_srcset( $id, 'full', $meta );
-			$info['srcset'] = is_string( $srcset ) ? $srcset : '';
-		}
+	if ( '' === $url ) {
+		return $info;
 	}
-	$cache[ $url ] = $info;
-	return $info;
+	if ( ! array_key_exists( $url, $cache ) ) {
+		$found = null;
+		$file  = fenix_media_theme_file( $url );
+		if ( '' !== $file ) {
+			$size = @getimagesize( $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+			if ( is_array( $size ) && ! empty( $size[0] ) && ! empty( $size[1] ) ) {
+				$found = array(
+					'width'  => (int) $size[0],
+					'height' => (int) $size[1],
+					'srcset' => '',
+					'real'   => true,
+				);
+			}
+		} else {
+			$id = function_exists( 'attachment_url_to_postid' ) ? (int) attachment_url_to_postid( $url ) : 0;
+			if ( $id ) {
+				$meta = wp_get_attachment_metadata( $id );
+				if ( is_array( $meta ) && ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
+					$srcset = wp_get_attachment_image_srcset( $id, 'full', $meta );
+					$found  = array(
+						'width'  => (int) $meta['width'],
+						'height' => (int) $meta['height'],
+						'srcset' => is_string( $srcset ) ? $srcset : '',
+						'real'   => true,
+					);
+				}
+			}
+		}
+		/* null = ไม่รู้ขนาดจริง → ใช้ขนาดที่ผู้เรียกส่งมา (ไม่จำค่านั้นไว้ เพราะแต่ละจุดส่งขนาดสำรองต่างกัน) */
+		$cache[ $url ] = $found;
+	}
+	return is_array( $cache[ $url ] ) ? $cache[ $url ] : $info;
 }
 
 /**
  * <img> (หรือ <picture> ถ้ามีภาพมือถือ {key}_img_mobile)
+ * รู้ความกว้างจริงของไฟล์ = พิมพ์ style="--media-w:{w}px" (ภาพมือถือ: --media-w-s) ให้ CSS ใช้เป็น max-width
+ * ภาพหน้าจอเล็กจึงไม่ถูกขยายจนแตก และรูป lazy ยังจองพื้นที่ตามสัดส่วนจริง (ห้ามแก้ด้วย width:auto)
  */
 function fenix_media_picture( $key, $src, $alt, $width, $height, $eager = false ) {
 	$main   = fenix_media_info( $src, $width, $height );
+	$mobile = $key ? trim( (string) fenix_mod( $key . '_img_mobile' ) ) : '';
+	$small  = '' !== $mobile ? fenix_media_info( $mobile, 1080, 1350 ) : null;
+	$vars   = array();
+	if ( $main['real'] ) {
+		$vars[] = '--media-w:' . (int) $main['width'] . 'px';
+	}
+	if ( is_array( $small ) && $small['real'] ) {
+		$vars[] = '--media-w-s:' . (int) $small['width'] . 'px';
+	}
 	$srcset = '' !== $main['srcset'] ? sprintf( ' srcset="%s" sizes="(max-width: 760px) 100vw, 1120px"', esc_attr( $main['srcset'] ) ) : '';
 	$img    = sprintf(
-		'<img src="%s"%s alt="%s" loading="%s" decoding="async" width="%s" height="%s">',
+		'<img src="%s"%s alt="%s" loading="%s" decoding="async" width="%s" height="%s"%s>',
 		esc_url( $src ),
 		$srcset,
 		esc_attr( $alt ),
 		$eager ? 'eager' : 'lazy',
 		esc_attr( (string) $main['width'] ),
-		esc_attr( (string) $main['height'] )
+		esc_attr( (string) $main['height'] ),
+		$vars ? ' style="' . esc_attr( implode( ';', $vars ) ) . '"' : ''
 	);
-	$mobile = $key ? trim( (string) fenix_mod( $key . '_img_mobile' ) ) : '';
-	if ( '' === $mobile ) {
+	if ( ! is_array( $small ) ) {
 		return $img;
 	}
-	$small = fenix_media_info( $mobile, 1080, 1350 );
 	return sprintf(
 		'<picture><source media="(max-width: 640px)" srcset="%s" width="%s" height="%s">%s</picture>',
 		esc_url( $mobile ),
@@ -377,17 +449,22 @@ function fenix_media_picture( $key, $src, $alt, $width, $height, $eager = false 
 }
 
 /**
- * ห่อรูปด้วยลิงก์ "เปิดภาพขนาดเต็ม" (ภาพหน้าจอมีตัวหนังสือเล็ก ต้องกดดูเต็มได้เสมอ)
+ * ห่อรูปด้วยลิงก์เปิดภาพขนาดเต็ม (ภาพหน้าจอมีตัวหนังสือเล็ก ต้องกดดูเต็มได้เสมอ)
  * ใช้ lightbox ของธีมเมื่อ JS ทำงาน · ไม่มี JS = เปิดไฟล์ในแท็บใหม่
+ * ข้อความบนป้ายมาจาก setting media_open_label (ค่าเริ่มต้นและ control อยู่ที่ functions.php / inc/customizer.php)
+ * เว้นว่าง = ป้ายเหลือเฉพาะไอคอน (.media-open-hint--icon)
  */
 function fenix_media_open( $src, $html, $caption = '', $group = '' ) {
+	$hint = trim( (string) fenix_mod( 'media_open_label' ) );
 	return sprintf(
-		'<a class="media-open lightbox" href="%1$s" target="_blank" rel="noopener"%2$s%3$s>%4$s<span class="media-open-hint">%5$s เปิดภาพขนาดเต็ม</span></a>',
+		'<a class="media-open lightbox" href="%1$s" target="_blank" rel="noopener"%2$s%3$s>%4$s<span class="media-open-hint%5$s">%6$s%7$s</span></a>',
 		esc_url( $src ),
 		'' !== $caption ? ' data-caption="' . esc_attr( $caption ) . '"' : '',
 		'' !== $group ? ' data-group="' . esc_attr( $group ) . '"' : '',
 		$html,
-		fenix_icon( 'external', 'icon icon-sm' )
+		'' === $hint ? ' media-open-hint--icon' : '',
+		fenix_icon( 'external', 'icon icon-sm' ),
+		'' !== $hint ? '<span class="media-open-text">' . esc_html( $hint ) . '</span>' : ''
 	);
 }
 
@@ -396,9 +473,10 @@ function fenix_media_open( $src, $html, $caption = '', $group = '' ) {
  * อ่าน {key}_img, {key}_img_alt, {key}_img_note, {key}_img_caption, {key}_img_mobile
  * - มีรูป: รูปในกรอบ + คำบรรยาย "ภาพ NN · ..." + ลิงก์เปิดภาพเต็ม
  * - ไม่มีรูป: คนทั่วไปไม่เห็นอะไร · แอดมินเห็นกรอบเส้นประบอกว่าต้องใส่รูปอะไร
+ * - alt / คำบรรยาย / โน้ต ใช้ตัวแทน {brand} {broker} {server} ได้ (fenix_media_text แทนค่าก่อน escape)
  *
  * @param string $key     prefix ของคีย์
- * @param array  $args    { width, height, label (เช่น 'ภาพ 01'), caption, eager, group, class }
+ * @param array  $args    { width, height, label (เช่น 'ภาพ 01'), caption, alt (ใช้แทน {key}_img_alt), eager, group, class }
  */
 function fenix_media_slot( $key, $args = array() ) {
 	$args = wp_parse_args(
@@ -408,15 +486,16 @@ function fenix_media_slot( $key, $args = array() ) {
 			'height'  => 800,
 			'label'   => '',
 			'caption' => '',
+			'alt'     => '',
 			'eager'   => false,
 			'group'   => '',
 			'class'   => '',
 		)
 	);
 	$src     = trim( (string) fenix_mod( $key . '_img' ) );
-	$alt     = (string) fenix_mod( $key . '_img_alt' );
-	$note    = trim( (string) fenix_mod( $key . '_img_note' ) );
-	$caption = '' !== $args['caption'] ? $args['caption'] : trim( (string) fenix_mod( $key . '_img_caption' ) );
+	$alt     = trim( fenix_media_text( '' !== trim( (string) $args['alt'] ) ? $args['alt'] : fenix_mod( $key . '_img_alt' ) ) );
+	$note    = trim( fenix_media_text( fenix_mod( $key . '_img_note' ) ) );
+	$caption = trim( fenix_media_text( '' !== trim( (string) $args['caption'] ) ? $args['caption'] : fenix_mod( $key . '_img_caption' ) ) );
 	$label   = $args['label'];
 	$figcap  = '';
 	if ( '' !== $label || '' !== $caption ) {
@@ -453,22 +532,47 @@ function fenix_media_fields( $key, $label ) {
 	return array(
 		$key . '_img'         => array( $label . ' · รูป', 'image' ),
 		$key . '_img_mobile'  => array( $label . ' · รูปสำหรับมือถือ (ไม่บังคับ)', 'image', 'ใส่เมื่อรูปหลักมีตัวหนังสือเล็กจนอ่านไม่ออกบนมือถือ' ),
-		$key . '_img_alt'     => array( $label . ' · คำอธิบายรูป (alt)', 'text' ),
-		$key . '_img_caption' => array( $label . ' · คำบรรยายใต้รูป', 'text', 'ถ้ารูปมีตัวเลข ให้บอกว่าเป็นภาพประกอบ ไม่ใช่ผลการเทรดจริง' ),
+		$key . '_img_alt'     => array( $label . ' · คำอธิบายรูป (alt)', 'text', 'บอกสิ่งที่เห็นในรูปตามจริง · ใช้ {broker} {server} {brand} แทนชื่อโบรกเกอร์ ชื่อเซิร์ฟเวอร์ และชื่อแบรนด์ได้' ),
+		$key . '_img_caption' => array( $label . ' · คำบรรยายใต้รูป', 'text', 'ถ้ารูปมีตัวเลข ให้บอกว่าเป็นภาพประกอบ ไม่ใช่ผลการเทรดจริง · {broker} {server} {brand} ใช้ได้' ),
 		$key . '_img_note'    => array( $label . ' · โน้ตสำหรับแอดมินเมื่อยังไม่มีรูป', 'text' ),
 	);
 }
 
 /* ==============================================================
- * หัวบท (chapter head) · "01 / 09 · KICKER" + H2 + คำอธิบาย
+ * คำเล็กเหนือหัวข้อ (kicker / eyebrow / ป้ายบท / เลขบท "01 / 09") · สวิตช์เดียวทั้งเว็บ
+ * เจ้าของสั่ง 12 ต.ค. 2026: หัวข้อยืนเดี่ยว ไม่มีคำนำหน้า · ค่าเริ่มต้นจึงปิด (setting show_kickers · หมวด 1 ของตัวปรับแต่ง)
+ * ทุกจุดที่พิมพ์คำเล็กเหนือหัวข้อต้องถามฟังก์ชันสองตัวนี้ และเมื่อปิดต้องไม่พิมพ์อะไรเลย (ไม่มีกล่องเปล่า ไม่มีเส้นคั่นค้าง)
+ * เลขที่มีหน้าที่ในเนื้อหา (เลขขั้นของคู่มือ ลำดับถาม-ตอบ เลขภาพ ป้ายแนะนำของแพ็กเกจ ป้ายสถานะ) ไม่เกี่ยวกับสวิตช์นี้
+ * ============================================================== */
+
+/**
+ * เปิดให้แสดงคำเล็กเหนือหัวข้ออยู่ไหม
+ */
+function fenix_show_kickers() {
+	return (bool) apply_filters( 'fenix_show_kickers', (bool) fenix_mod( 'show_kickers' ) );
+}
+
+/**
+ * ข้อความของคำเล็กเหนือหัวข้อที่พิมพ์ได้ · ปิดสวิตช์ หรือข้อความว่าง = '' (ผู้เรียกจึงไม่พิมพ์แท็กใด) · คืนข้อความล้วน ยังไม่ escape
+ */
+function fenix_kicker( $text ) {
+	$text = trim( (string) $text );
+	return ( '' !== $text && fenix_show_kickers() ) ? $text : '';
+}
+
+/* ==============================================================
+ * หัวบท (chapter head) · H2 + คำอธิบาย
+ * เปิด "คำเล็กเหนือหัวข้อ" (show_kickers) = มีบรรทัด "01 / 09 · KICKER" เหนือ H2 ด้วย · ปิด (ค่าเริ่มต้น) = หัวข้อยืนเดี่ยว
  * ============================================================== */
 
 function fenix_chapter_head( $num, $total, $kicker, $title, $sub = '', $align = 'center' ) {
+	$labels = fenix_show_kickers();
+	$kicker = $labels ? trim( (string) $kicker ) : '';
 	?>
 	<header class="ch-head ch-head--<?php echo esc_attr( $align ); ?> reveal">
-		<?php if ( $num ) : ?>
-			<span class="ch-index"><span class="ch-num"><?php echo esc_html( sprintf( '%02d', (int) $num ) ); ?></span><?php if ( $total ) : ?><span class="ch-total"> / <?php echo esc_html( sprintf( '%02d', (int) $total ) ); ?></span><?php endif; ?><?php if ( $kicker ) : ?><span class="ch-kicker"><?php echo esc_html( $kicker ); ?></span><?php endif; ?></span>
-		<?php elseif ( $kicker ) : ?>
+		<?php if ( $labels && $num ) : ?>
+			<span class="ch-index"><span class="ch-num"><?php echo esc_html( sprintf( '%02d', (int) $num ) ); ?></span><?php if ( $total ) : ?><span class="ch-total"> / <?php echo esc_html( sprintf( '%02d', (int) $total ) ); ?></span><?php endif; ?><?php if ( '' !== $kicker ) : ?><span class="ch-kicker"><?php echo esc_html( $kicker ); ?></span><?php endif; ?></span>
+		<?php elseif ( '' !== $kicker ) : ?>
 			<span class="kicker"><?php echo esc_html( $kicker ); ?></span>
 		<?php endif; ?>
 		<h2><?php echo fenix_text( $title ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?></h2>

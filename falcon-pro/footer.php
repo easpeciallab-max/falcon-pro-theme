@@ -1,10 +1,12 @@
 <?php
 /**
  * Footer · "Console" ของ FALCON (พื้น --black-deep)
- * 1) ช่องทางติดต่อ (ปุ่มติดต่อ + QR + OpenChat + กล่องเตรียมข้อความแรก + เวลาตอบแชท)
- * 2) ดัชนี: หน้าในเว็บ · ช่องทาง · เอกสาร · ข้อมูลระบบ
- * 3) คำเตือนความเสี่ยงฉบับเต็ม (ห้ามลบ/ย่อ)
- * 4) ชื่อแบรนด์ตัวใหญ่แบบเส้นขอบ (ไม่บังคับ)
+ * 1) บล็อกติดต่อ (ปุ่มติดต่อ + OpenChat + อีเมล + QR + กล่องเตรียมข้อความแรก + เวลาตอบแชท) · fenix_chrome_launch() ใน inc/modules/chrome.php
+ *    พิมพ์ที่นี่เฉพาะหน้าที่ยังไม่มีบล็อกติดต่อท้ายเนื้อหา (หน้าที่เรียก fenix_line_cta() พิมพ์ไปแล้ว → footer เริ่มที่ดัชนี ไม่ซ้ำ)
+ * 2) ดัชนี: หน้าในเว็บ · คู่มือ (จาก manifest · รวมหน้า /dashboard/) · ช่องทาง · เอกสาร · ข้อมูลระบบ
+ *    + แถวเล็กสำหรับสมาชิกแดชบอร์ด: ลิงก์เข้าสู่ระบบ (fenix_chrome_member_link · เปิดแท็บใหม่)
+ * 3) คำเตือนความเสี่ยงฉบับเต็ม (ห้ามลบ/ย่อ) + ลิงก์ไปหน้าประกาศความเสี่ยง
+ * 4) ชื่อแบรนด์ตัวใหญ่แบบเส้นขอบ (show_footer_watermark · ค่าเริ่มต้นปิด = ไม่พิมพ์ p.ft-wm)
  * 5) แถบสถานะ: ลิขสิทธิ์ · ข้อความสถานะ · นาฬิกาเวลาไทย (ต้องมี JS) · กลับขึ้นด้านบน
  * + บาร์ล่างมือถือ (ช่อง active คิดฝั่ง PHP) และปุ่ม LINE ลอย (เฉพาะเมื่อมีลิงก์ LINE)
  * การ์ดความยินยอมคุกกี้พิมพ์ผ่าน wp_footer (inc/modules/consent.php) ไม่ใช่ไฟล์นี้
@@ -22,26 +24,27 @@ if ( ! function_exists( 'fenix_chrome_dock' ) ) {
 	return;
 }
 
-$fenix_target   = fenix_contact_target();
-$fenix_is_admin = current_user_can( 'edit_theme_options' );
-$fenix_openchat = trim( (string) fenix_mod( 'line_openchat_url' ) );
-$fenix_openchat = fenix_chrome_url_ok( $fenix_openchat ) ? $fenix_openchat : '';
-$fenix_qr       = $fenix_target['is_line'] ? trim( (string) fenix_mod( 'line_qr_image' ) ) : '';
-$fenix_headline = trim( (string) fenix_mod( 'footer_headline' ) );
-$fenix_headline = '' !== $fenix_headline ? $fenix_headline : (string) fenix_mod( 'contact_title' );
-$fenix_sub      = trim( (string) fenix_mod( 'footer_sub' ) );
-$fenix_sub      = '' !== $fenix_sub ? $fenix_sub : (string) fenix_mod( 'contact_text' );
-$fenix_label    = trim( (string) fenix_mod( 'footer_console_label' ) );
-$fenix_prep     = fenix_lines( fenix_mod( 'footer_prep_items' ) );
-$fenix_hours    = fenix_lines( fenix_mod( 'footer_hours_text' ) );
-$fenix_launch   = '' !== $fenix_target['url'] || '' !== $fenix_openchat || $fenix_is_admin;
+/* หน้านี้มีบล็อกติดต่อท้ายเนื้อหาแล้ว → footer ต่อชิดกับบล็อกนั้น (ไม่มีเส้นคั่นและไม่เว้นช่องด้านบน) */
+$fenix_joined = fenix_chrome_launch_done();
 
 $fenix_index    = fenix_chrome_index_items();
+/* หน้า /dashboard/ อยู่ในคอลัมน์คู่มือ เว้นแต่คอลัมน์หน้าในเว็บไซต์มีลิงก์นั้นแล้ว (ไม่ซ้ำสองคอลัมน์) */
+$fenix_guides   = fenix_chrome_guide_items( $fenix_index );
+/* ลิงก์เข้าสู่ระบบแดชบอร์ดสำหรับสมาชิกเดิม (แถวเล็กใต้ดัชนี · '' = ปิดแดชบอร์ดหรือไม่มีที่อยู่) */
+$fenix_member   = function_exists( 'fenix_chrome_member_link' ) ? fenix_chrome_member_link() : '';
+$fenix_g_title  = trim( (string) fenix_mod( 'nav_guide_label' ) );
 $fenix_channels = fenix_chrome_channels();
 $fenix_docs     = fenix_chrome_doc_items();
 /* ลิงก์เปิดการ์ดคุกกี้ · ชื่อลิงก์ตั้งที่หมวดคุกกี้ (inc/modules/consent.php) */
 $fenix_cookie   = ( function_exists( 'fenix_consent_link' ) && '' !== trim( (string) fenix_mod( 'consent_link_label' ) ) ) ? fenix_consent_link( array( 'echo' => false ) ) : '';
 $fenix_specs    = fenix_chrome_spec_rows();
+
+/* จำนวนคอลัมน์ของดัชนี · จำนวนคี่ = คอลัมน์ข้อมูลระบบกินเต็มแถวในโหมด 2 คอลัมน์ (ไม่เหลือคอลัมน์เดี่ยวค้างแถว) */
+$fenix_cols = ( $fenix_index ? 1 : 0 ) + ( $fenix_guides ? 1 : 0 ) + ( $fenix_channels ? 1 : 0 ) + ( ( $fenix_docs || '' !== $fenix_cookie ) ? 1 : 0 ) + ( $fenix_specs ? 1 : 0 );
+
+/* ลิงก์ต่อท้ายคำเตือนความเสี่ยง → หน้าประกาศความเสี่ยง (เมื่อเผยแพร่แล้ว และไม่ใช่หน้านั้นเอง) */
+$fenix_risk_more = trim( (string) fenix_mod( 'footer_risk_more' ) );
+$fenix_risk_url  = ( '' !== $fenix_risk_more && ! is_page( 'risk-disclosure' ) ) ? fenix_chrome_page_url( 'risk-disclosure' ) : '';
 
 /* ชื่อแบรนด์ตัวใหญ่ · คำสุดท้ายเป็นสีเขียว (FALCON / PRO) */
 $fenix_wm   = trim( (string) fenix_mod( 'footer_watermark_text' ) );
@@ -59,81 +62,15 @@ $fenix_stat = trim( (string) fenix_mod( 'footer_status_text' ) );
 ?>
 
 <?php if ( ! function_exists( 'elementor_theme_do_location' ) || ! elementor_theme_do_location( 'footer' ) ) : ?>
-<footer class="site-footer site-footer--dark site-footer--console" id="contact">
+<footer class="site-footer site-footer--dark site-footer--console<?php echo $fenix_joined ? ' site-footer--joined' : ''; ?>" id="contact">
 	<div class="container ft-inner">
 
-		<?php if ( $fenix_launch ) : ?>
-		<section class="ft-launch<?php echo ( $fenix_prep || $fenix_hours ) ? '' : ' ft-launch--solo'; ?>" aria-labelledby="ft-launch-title">
-			<div class="ft-launch-main">
-				<?php if ( '' !== $fenix_label ) : ?>
-					<p class="chrome-label"><span class="chrome-dot" aria-hidden="true"></span><?php echo esc_html( $fenix_label ); ?></p>
-				<?php endif; ?>
-				<h2 class="ft-launch-title" id="ft-launch-title"><?php echo fenix_text( $fenix_headline ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside fenix_text ?></h2>
-				<?php if ( '' !== trim( $fenix_sub ) ) : ?>
-					<p class="ft-launch-sub"><?php echo fenix_text( $fenix_sub ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside fenix_text ?></p>
-				<?php endif; ?>
+		<?php
+		/* บล็อกติดต่อ · พิมพ์เฉพาะเมื่อหน้านี้ยังไม่มี (ตัววาดและตัวกันซ้ำอยู่ใน inc/modules/chrome.php) */
+		fenix_chrome_footer_contact();
+		?>
 
-				<div class="ft-actions">
-					<div class="ft-contact<?php echo '' !== $fenix_qr ? ' has-qr' : ''; ?>">
-						<?php
-						fenix_contact_button(
-							array(
-								'class' => 'btn btn-fire btn-lg',
-								'pos'   => 'footer',
-							)
-						);
-						?>
-						<?php if ( '' !== $fenix_qr ) : ?>
-							<div class="ft-qr-flyout" aria-hidden="true">
-								<img src="<?php echo esc_url( $fenix_qr ); ?>" alt="" width="160" height="160" loading="lazy" decoding="async">
-							</div>
-						<?php endif; ?>
-					</div>
-					<?php if ( '' !== $fenix_openchat ) : ?>
-						<a class="btn btn-ghost btn-lg ft-openchat" href="<?php echo esc_url( $fenix_openchat ); ?>" target="_blank" rel="noopener" data-line-pos="footer-openchat">
-							<?php echo fenix_icon( 'chat' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
-							<span><?php echo esc_html( fenix_mod( 'line_openchat_text' ) ); ?></span>
-						</a>
-					<?php endif; ?>
-				</div>
-
-				<?php if ( '' !== $fenix_qr ) : ?>
-					<details class="ft-qr-mobile">
-						<summary><?php echo fenix_icon( 'qr', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo esc_html( fenix_mod( 'footer_qr_toggle_text' ) ); ?></span></summary>
-						<img src="<?php echo esc_url( $fenix_qr ); ?>" alt="<?php echo esc_attr( fenix_mod( 'footer_line_qr_alt' ) ); ?>" width="200" height="200" loading="lazy" decoding="async">
-					</details>
-				<?php elseif ( $fenix_target['is_line'] && $fenix_is_admin ) : ?>
-					<p class="admin-hint">ยังไม่มีรูป QR · อัปโหลดที่ ปรับแต่ง → 1) ช่องทางติดต่อ → รูป QR Code LINE OA (ข้อความนี้เห็นเฉพาะแอดมิน)</p>
-				<?php endif; ?>
-			</div>
-
-			<?php if ( $fenix_prep || $fenix_hours ) : ?>
-			<div class="ft-launch-side">
-				<?php if ( $fenix_prep ) : ?>
-					<div class="ft-prep">
-						<h3 class="ft-side-title"><?php echo esc_html( fenix_mod( 'footer_prep_title' ) ); ?></h3>
-						<?php if ( '' !== trim( (string) fenix_mod( 'footer_prep_text' ) ) ) : ?>
-							<p class="ft-side-text"><?php echo esc_html( fenix_mod( 'footer_prep_text' ) ); ?></p>
-						<?php endif; ?>
-						<ol class="ft-prep-list">
-							<?php foreach ( $fenix_prep as $fenix_i => $fenix_item ) : ?>
-								<li><span class="ft-prep-num" aria-hidden="true"><?php echo esc_html( sprintf( '%02d', $fenix_i + 1 ) ); ?></span><span><?php echo esc_html( $fenix_item ); ?></span></li>
-							<?php endforeach; ?>
-						</ol>
-					</div>
-				<?php endif; ?>
-				<?php if ( $fenix_hours ) : ?>
-					<div class="ft-hours">
-						<h3 class="ft-side-title"><?php echo fenix_icon( 'clock', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php echo esc_html( fenix_mod( 'footer_hours_title' ) ); ?></h3>
-						<p class="ft-side-text"><?php echo implode( '<br>', array_map( 'esc_html', $fenix_hours ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- each line escaped ?></p>
-					</div>
-				<?php endif; ?>
-			</div>
-			<?php endif; ?>
-		</section>
-		<?php endif; ?>
-
-		<nav class="ft-index" aria-label="ลิงก์ท้ายเว็บ">
+		<nav class="ft-index<?php echo ( 1 === $fenix_cols % 2 ) ? ' ft-index--odd' : ''; ?>" aria-label="ลิงก์ท้ายเว็บ">
 			<?php if ( $fenix_index ) : ?>
 			<div class="ft-col">
 				<h3 class="ft-col-title"><?php echo esc_html( fenix_mod( 'footer_index_title' ) ); ?></h3>
@@ -142,6 +79,19 @@ $fenix_stat = trim( (string) fenix_mod( 'footer_status_text' ) );
 						<li><a href="<?php echo esc_url( $fenix_entry[1] ); ?>"><span class="ft-idx" aria-hidden="true"><?php echo esc_html( sprintf( '%02d', $fenix_i + 1 ) ); ?></span><span><?php echo esc_html( $fenix_entry[0] ); ?></span></a></li>
 					<?php endforeach; ?>
 				</ol>
+			</div>
+			<?php endif; ?>
+
+			<?php if ( $fenix_guides ) : ?>
+			<div class="ft-col ft-col--guides">
+				<?php if ( '' !== $fenix_g_title ) : ?>
+					<h3 class="ft-col-title"><?php echo esc_html( $fenix_g_title ); ?></h3>
+				<?php endif; ?>
+				<ul class="ft-list">
+					<?php foreach ( $fenix_guides as $fenix_guide ) : ?>
+						<li><a href="<?php echo esc_url( $fenix_guide[1] ); ?>"<?php echo $fenix_guide[2] ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $fenix_guide[0] ); ?></a></li>
+					<?php endforeach; ?>
+				</ul>
 			</div>
 			<?php endif; ?>
 
@@ -187,10 +137,18 @@ $fenix_stat = trim( (string) fenix_mod( 'footer_status_text' ) );
 			<?php endif; ?>
 		</nav>
 
+		<?php echo $fenix_member; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside fenix_chrome_member_link ?>
+
 		<?php if ( '' !== trim( (string) fenix_mod( 'risk_text' ) ) ) : ?>
 		<div class="ft-risk" role="note">
 			<span class="ft-risk-ic"><?php echo fenix_icon( 'warn', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
-			<p><?php echo esc_html( fenix_mod( 'risk_text' ) ); ?></p>
+			<div class="ft-risk-body">
+				<?php /* คำเตือนฉบับเต็มทุกคำ (ห้ามย่อ) · ลิงก์ด้านล่างเป็นส่วนเพิ่ม ไม่ได้แทนข้อความ */ ?>
+				<p><?php echo function_exists( 'fenix_dashboard_esc' ) ? fenix_dashboard_esc( fenix_mod( 'risk_text' ) ) : esc_html( fenix_mod( 'risk_text' ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside · span.nobr กันคำว่า ออเดอร์ ถูกตัดกลางคำ ?></p>
+				<?php if ( '' !== $fenix_risk_url ) : ?>
+					<a class="ft-risk-more" href="<?php echo esc_url( $fenix_risk_url ); ?>"><span><?php echo esc_html( $fenix_risk_more ); ?></span><?php echo fenix_icon( 'arrow', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
+				<?php endif; ?>
+			</div>
 		</div>
 		<?php endif; ?>
 

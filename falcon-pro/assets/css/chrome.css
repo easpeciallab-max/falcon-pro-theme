@@ -1,7 +1,7 @@
 /*
  * FALCON PRO EA · Site chrome (header · ลิ้นชักเมนู · แถบติดต่อท้ายหน้าย่อย · footer · บาร์ล่างมือถือ)
  * โหลดหลัง style.css + components.css · ใช้ token ใน :root ของ style.css
- * หน้าตา FALCON: มุมโค้ง ปุ่ม pill เส้นบาง เงานุ่ม เขียวทึบ · ห้าม gradient / glow
+ * หน้าตา FALCON: มุมโค้ง ปุ่มสี่เหลี่ยมมุมมน (--btn-radius) เส้นบาง เงานุ่ม เขียวทึบ · ห้าม gradient / glow
  */
 
 :root {
@@ -125,6 +125,42 @@
 	display: none;
 }
 
+/* ปุ่มติดต่อบนแถบหัว · ปุ่มเขียว FALCON ตัวอักษรเข้ม (ใช้ .btn .btn-fire .btn-sm) อยู่ต่อจากเมนู
+   จอ ≤760px ที่มีบาร์ล่าง → ซ่อน (ปุ่มติดต่ออยู่กลางบาร์ล่างแล้ว) · ไม่มีบาร์ล่าง → ยังอยู่ข้างปุ่มเมนู */
+.header-cta {
+	flex: 0 0 auto;
+	gap: 8px;
+	font-weight: 600;
+}
+
+.header-cta .icon {
+	width: 18px;
+	height: 18px;
+}
+
+@media (max-width: 760px) {
+	.header-cta {
+		padding: 0.5rem 0.9rem;
+		font-size: 0.86rem;
+	}
+
+	body.has-dock .header-cta {
+		display: none;
+	}
+}
+
+/* ปุ่มถูกซ่อน (≤760px + มีบาร์ล่าง): คืนหน้าที่ดันชิดขวาให้ตัวถัดไป (กฎ margin ของปุ่มอยู่ในหัวข้อ 2) */
+@media (max-width: 760px) {
+	body.has-dock .header-inner > .header-cta ~ .nav-toggle,
+	body.has-dock .header-inner > .header-cta ~ .language-switcher {
+		margin-left: auto;
+	}
+
+	body.has-dock .header-inner > .header-cta ~ .language-switcher ~ .nav-toggle {
+		margin-left: 0;
+	}
+}
+
 /* ==========================================================
    2) ลิ้นชักเมนูมือถือ (≤960px)
    - แก้ ghost-tap: ลิ้นชักที่ปิดอยู่ไม่รับการแตะ (pointer-events) และเมนูย่อยใช้ visibility: inherit
@@ -139,6 +175,23 @@
 	}
 
 	.header-inner > .language-switcher ~ .nav-toggle {
+		margin-left: 0;
+	}
+
+	/* มีปุ่มติดต่อ: ปุ่มติดต่อเป็นตัวดันชิดขวา แล้วตามด้วยตัวสลับภาษา (ถ้าเปิด) และปุ่มเมนู */
+	.header-inner > .header-cta {
+		margin-left: auto;
+	}
+
+	.header-inner > .header-cta ~ .language-switcher {
+		margin-left: 0;
+	}
+
+	.header-inner > .header-cta ~ .nav-toggle {
+		margin-left: -12px;
+	}
+
+	.header-inner > .header-cta ~ .language-switcher ~ .nav-toggle {
 		margin-left: 0;
 	}
 
@@ -188,7 +241,7 @@
 		place-items: center;
 		width: 44px;
 		height: 44px;
-		border-radius: 50%;
+		border-radius: var(--btn-radius-sm);
 		border: 1px solid var(--border);
 		color: var(--ink);
 		transition: border-color 0.16s ease, color 0.16s ease;
@@ -261,7 +314,7 @@
 	margin: 0 0 16px;
 	padding: 6px 14px 6px 10px;
 	border: 1px solid rgba(74, 242, 142, 0.28);
-	border-radius: 999px;
+	border-radius: var(--btn-radius-xs, 6px); /* ป้ายสถานะ: มุมมนเล็กน้อยแบบเดียวกับปุ่ม ไม่ใช้ทรงแคปซูล */
 	background: rgba(74, 242, 142, 0.08);
 	color: var(--mint);
 	font-size: 0.8rem;
@@ -279,51 +332,15 @@
 }
 
 /* ==========================================================
-   4) แถบติดต่อท้ายหน้าย่อย (.cta-console) · เข้มเต็มความกว้าง ตัดทแยงแบบแบนเนอร์
+   4) บล็อกติดต่อท้ายหน้าย่อย (.cta-console) · แถบเข้มเต็มความกว้าง ห่อการ์ด .ft-launch ใบเดียวกับ footer
+   พื้นเดียวกับ footer (--black-deep) แล้ว footer ต่อชิดด้านล่าง (.site-footer--joined) → เห็นเป็นส่วนท้ายผืนเดียว
+   ตัวการ์ด (หัวข้อ ปุ่ม QR รายการเตรียมข้อความ) อยู่ในหัวข้อ 5 · มุมทแยงเป็นของการ์ด แถบนี้จึงไม่มีของตัวเอง
    ========================================================== */
 .cta-console {
-	position: relative;
-	isolation: isolate;
-	overflow: hidden;
-	padding: 72px 0;
+	padding: 56px 0 0;
 	border-top: 1px solid var(--border-dark);
-	background: var(--black);
+	background: var(--black-deep);
 	color: var(--on-black-2);
-}
-
-.cta-console::before {
-	content: "";
-	position: absolute;
-	inset: 0;
-	z-index: -1;
-	background: var(--black-2);
-	clip-path: polygon(70% 0, 100% 0, 100% 100%, 58% 100%);
-}
-
-.cta-console-inner {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) auto;
-	gap: 28px 48px;
-	align-items: center;
-}
-
-.cta-console-title {
-	margin: 0 0 12px;
-	color: #FFFFFF;
-	font-size: clamp(1.5rem, 3vw, 2.25rem);
-	line-height: 1.28;
-	text-wrap: balance;
-}
-
-.cta-console-sub {
-	margin: 0;
-	max-width: 40em;
-	color: var(--on-black-2);
-}
-
-.cta-console-action .btn {
-	white-space: normal;
-	text-align: center;
 }
 
 /* ==========================================================
@@ -342,6 +359,15 @@
 
 .ft-inner {
 	padding-top: 56px;
+}
+
+/* หน้าที่มีบล็อกติดต่อท้ายเนื้อหาแล้ว: footer เริ่มที่ดัชนีลิงก์ ต่อชิดกับบล็อกนั้น (ไม่มีเส้นคั่น ไม่เว้นช่องซ้ำ) */
+.site-footer--joined {
+	border-top: 0;
+}
+
+.site-footer--joined .ft-inner {
+	padding-top: 0;
 }
 
 /* ---------- แถว 1 · ช่องทางติดต่อ ---------- */
@@ -415,10 +441,6 @@
 	text-align: center;
 }
 
-.ft-contact {
-	position: relative;
-}
-
 .ft-openchat.btn-ghost {
 	border-color: rgba(255, 255, 255, 0.24);
 	background: transparent;
@@ -435,8 +457,37 @@
 	margin: 16px 0 0;
 }
 
-/* QR · เดสก์ท็อปลอยขึ้นเมื่อชี้/โฟกัสปุ่ม · มือถือ/จอสัมผัสใช้ <details> */
-.ft-qr-flyout {
+/* อีเมล · ลิงก์ข้อความใต้ปุ่ม (ที่อยู่อีเมลอยู่ใน href ไม่พิมพ์บนหน้า) */
+.ft-mail {
+	margin: 16px 0 0;
+}
+
+.ft-mail a {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--on-black);
+	font-size: 0.92rem;
+	line-height: 1.5;
+	text-decoration: underline;
+	text-decoration-color: rgba(255, 255, 255, 0.28);
+	text-underline-offset: 4px;
+	transition: color 0.16s ease, text-decoration-color 0.16s ease;
+}
+
+.ft-mail a .icon {
+	flex: 0 0 auto;
+	color: var(--mint);
+}
+
+.ft-mail a:hover {
+	color: var(--mint);
+	text-decoration-color: currentColor;
+}
+
+/* QR · จอกว้าง (≥761px) เปิดไว้เป็นบล็อก: แผ่นขาวมุมโค้ง + ข้อความบรรทัดเดียว (ยกมือถือสแกนจากจอ)
+   จอแคบพับใน <details> เพราะกดปุ่ม LINE ได้ตรง ๆ · มาร์กอัปมีทั้งสองแบบ CSS แสดงทีละแบบ */
+.ft-qr {
 	display: none;
 }
 
@@ -450,7 +501,7 @@
 	gap: 8px;
 	padding: 8px 16px;
 	border: 1px solid rgba(255, 255, 255, 0.2);
-	border-radius: 999px;
+	border-radius: var(--btn-radius-sm);
 	color: var(--on-black);
 	font-size: 0.88rem;
 	cursor: pointer;
@@ -475,34 +526,40 @@
 	background: #FFFFFF;
 }
 
-@media (hover: hover) and (min-width: 761px) {
-	.ft-qr-flyout {
-		display: block;
-		position: absolute;
-		left: 0;
-		bottom: calc(100% + 12px);
-		z-index: 5;
-		padding: 10px;
-		border-radius: 16px;
+@media (min-width: 761px) {
+	.ft-qr {
+		display: flex;
+		align-items: center;
+		gap: 20px;
+		max-width: 34em;
+		margin-top: 26px;
+		padding-top: 24px;
+		border-top: 1px dashed rgba(255, 255, 255, 0.14);
+	}
+
+	.ft-qr img {
+		flex: 0 0 auto;
+		width: 132px;
+		height: 132px;
+		padding: 6px;
+		border-radius: 14px;
 		background: #FFFFFF;
-		box-shadow: 0 14px 30px rgba(0, 0, 0, 0.30);
-		opacity: 0;
-		visibility: hidden;
-		transform: translateY(6px);
-		pointer-events: none;
-		transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
 	}
 
-	.ft-qr-flyout img {
-		width: 150px;
-		height: 150px;
+	.ft-qr-text {
+		display: flex;
+		align-items: flex-start;
+		gap: 10px;
+		margin: 0;
+		color: var(--on-black);
+		font-size: 0.92rem;
+		line-height: 1.7;
 	}
 
-	.ft-contact:hover .ft-qr-flyout,
-	.ft-contact:focus-within .ft-qr-flyout {
-		opacity: 1;
-		visibility: visible;
-		transform: none;
+	.ft-qr-text .icon {
+		flex: 0 0 auto;
+		margin-top: 5px;
+		color: var(--mint);
 	}
 
 	.ft-qr-mobile {
@@ -577,12 +634,18 @@
 }
 
 /* ---------- แถว 2 · ดัชนี ---------- */
-/* คอลัมน์ที่ว่าง (เช่น ยังไม่มีช่องทางใดกรอก) ถูกซ่อน → auto-fit ให้คอลัมน์ที่เหลือขยายเต็มแถว */
+/* คอลัมน์ที่ว่าง (เช่น ยังไม่มีช่องทางใดกรอก) ถูกซ่อน → auto-fit ให้คอลัมน์ที่เหลือขยายเต็มแถว
+   สูงสุด 5 คอลัมน์ (หน้าในเว็บ · คู่มือ · ช่องทาง · เอกสาร · ข้อมูลระบบ): 5 × 160 + 4 × 32 = 928px พอดีใน container 1140px
+   (ขั้นต่ำ 200px เดิมรับได้แค่ 4 คอลัมน์ คอลัมน์ที่ 5 จะตกไปอยู่แถวใหม่ลำพัง) */
 .ft-index {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-	gap: 32px 36px;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	gap: 32px;
 	padding: 52px 0 40px;
+}
+
+.ft-col {
+	min-width: 0;
 }
 
 .ft-col-title {
@@ -613,6 +676,10 @@
 
 .ft-list a:hover {
 	color: var(--mint);
+}
+
+.ft-list a[aria-current="page"] {
+	color: var(--on-black);
 }
 
 .ft-idx {
@@ -702,11 +769,81 @@
 	color: #F2A65A;
 }
 
+.ft-risk-body {
+	min-width: 0;
+}
+
 .ft-risk p {
 	margin: 0;
 	color: rgba(238, 243, 244, 0.8);
 	font-size: 0.84rem;
 	line-height: 1.75;
+}
+
+/* ลิงก์ไปหน้าประกาศความเสี่ยง · ต่อท้ายข้อความเตือน (ข้อความเตือนด้านบนยังอยู่ครบ) */
+.ft-risk-more {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 10px;
+	color: #F2A65A;
+	font-size: 0.84rem;
+	font-weight: 600;
+	line-height: 1.5;
+	text-decoration: underline;
+	text-decoration-color: rgba(242, 166, 90, 0.45);
+	text-underline-offset: 4px;
+	transition: color 0.16s ease, text-decoration-color 0.16s ease;
+}
+
+.ft-risk-more:hover {
+	color: #FFFFFF;
+	text-decoration-color: currentColor;
+}
+
+.ft-risk-more .icon {
+	flex: 0 0 auto;
+}
+
+/* ---------- แถวสมาชิกแดชบอร์ด · ลิงก์เข้าสู่ระบบ (ใต้ดัชนี เหนือคำเตือนความเสี่ยง · fenix_chrome_member_link) ---------- */
+.ft-member {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 10px;
+	margin: -14px 0 26px;
+	padding-top: 16px;
+	border-top: 1px solid var(--border-dark);
+	color: rgba(238, 243, 244, 0.72);
+	font-size: 0.86rem;
+	line-height: 1.6;
+}
+
+.ft-member > .icon {
+	flex: 0 0 auto;
+	color: var(--mint);
+}
+
+.ft-member-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	color: #FFFFFF;
+	font-weight: 600;
+	text-decoration: underline;
+	text-decoration-color: rgba(74, 242, 142, 0.5);
+	text-underline-offset: 4px;
+	transition: color 0.16s ease, text-decoration-color 0.16s ease;
+}
+
+.ft-member-link:hover {
+	color: var(--mint);
+	text-decoration-color: currentColor;
+}
+
+.ft-member-link .icon {
+	flex: 0 0 auto;
+	opacity: 0.8;
 }
 
 /* ---------- แถว 4 · ชื่อแบรนด์ตัวใหญ่แบบเส้นขอบ (จางเข้าเมื่อเลื่อนมาถึง) ---------- */
@@ -795,7 +932,7 @@
 	gap: 8px;
 	padding: 6px 14px;
 	border: 1px solid var(--border-dark);
-	border-radius: 999px;
+	border-radius: var(--btn-radius-sm);
 	color: var(--on-black);
 	font-size: 0.8rem;
 	transition: border-color 0.16s ease, color 0.16s ease;
@@ -834,7 +971,7 @@
 		width: min(calc(100vw - 16px), 480px);
 		padding: 6px;
 		border: 1px solid var(--border-dark);
-		border-radius: 22px;
+		border-radius: calc(var(--btn-radius) + 6px);
 		background: var(--black-deep);
 		box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
 		transform: translateX(-50%);
@@ -856,7 +993,7 @@
 		min-width: 0;
 		min-height: 56px;
 		padding: 4px 2px;
-		border-radius: 16px;
+		border-radius: var(--btn-radius);
 		color: var(--on-black-2);
 		font-size: 0.68rem;
 		font-weight: 600;
@@ -871,7 +1008,7 @@
 		place-items: center;
 		width: 42px;
 		height: 30px;
-		border-radius: 999px;
+		border-radius: var(--btn-radius-sm);
 		transition: background-color 0.18s ease, color 0.18s ease;
 	}
 
@@ -984,7 +1121,7 @@
 		bottom: calc(var(--dock-h) + 26px + env(safe-area-inset-bottom));
 	}
 
-	/* ปิดบาร์ล่างไว้ → ปุ่ม LINE วงกลมกลับมาบนมือถือ (style.css ซ่อนไว้เพราะปกติบาร์ล่างมีปุ่ม LINE อยู่แล้ว) */
+	/* ปิดบาร์ล่างไว้ → ปุ่ม LINE ลอยกลับมาบนมือถือ (style.css ซ่อนไว้เพราะปกติบาร์ล่างมีปุ่ม LINE อยู่แล้ว) */
 	body:not(.has-dock) .line-fab {
 		display: inline-grid;
 		right: 16px;
@@ -999,7 +1136,7 @@
 	.dock-cap,
 	.dock-label,
 	.dock-lamp,
-	.ft-qr-flyout {
+	.ft-mail a {
 		transition: none;
 	}
 
@@ -1033,23 +1170,16 @@
 	.ft-index {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
+
+	/* จำนวนคอลัมน์เป็นคี่ (เช่น ครบ 5 คอลัมน์): ข้อมูลระบบกินเต็มแถวสุดท้าย ไม่ค้างเป็นคอลัมน์เดี่ยว */
+	.ft-index--odd .ft-col--spec {
+		grid-column: 1 / -1;
+	}
 }
 
 @media (max-width: 760px) {
 	.cta-console {
-		padding: 52px 0 56px;
-	}
-
-	.cta-console-inner {
-		grid-template-columns: minmax(0, 1fr);
-	}
-
-	.cta-console::before {
-		clip-path: polygon(0 80%, 100% 60%, 100% 100%, 0 100%);
-	}
-
-	.cta-console-action .btn {
-		width: 100%;
+		padding-top: 40px;
 	}
 
 	.ft-inner {
@@ -1080,10 +1210,6 @@
 		width: 100%;
 	}
 
-	.ft-contact {
-		width: 100%;
-	}
-
 	.ft-index {
 		gap: 28px 20px;
 		padding: 40px 0 32px;
@@ -1103,3 +1229,64 @@
 		grid-template-columns: minmax(0, 1fr);
 	}
 }
+
+/* ==========================================================
+   8) หน้า 404 · ลิงก์ลัดเป็นรายการ (ul.error-links) · หน้าตาปุ่มอยู่ใน style.css + pages.css
+   ที่นี่แค่ล้างสไตล์รายการ (จุดนำหน้า ระยะเยื้อง) หลังย้ายคลาสจาก <nav> มาอยู่ที่ <ul>
+   ========================================================== */
+ul.error-links {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+ul.error-links > li {
+	display: flex;
+}
+
+/* ==========================================================
+   9) LEGACY · ลบทั้งบล็อกนี้ได้ในรุ่นถัดไป (REMOVE IN THE NEXT RELEASE)
+   แถบติดต่อรุ่นก่อน: section.cta-console > .container.cta-console-inner > .cta-console-copy (h2.cta-console-title + p.cta-console-sub) + .cta-console-action
+   HTML รุ่นนั้นยังค้างอยู่ใน page cache ของโฮสต์ได้ราว 30 นาทีหลัง deploy รุ่นนี้ ขณะที่ไฟล์ CSS นี้ถูกแทนทันที
+   ถ้าไม่มีกฎชุดนี้ หัวข้อของแถบจะเป็นตัวอักษรเข้มบนพื้นเข้ม (อ่านไม่ออก) และปุ่มตกลงมาชิดขอบล่าง
+   มาร์กอัปปัจจุบัน (inc/modules/chrome.php · div.cta-console > .container > .ft-launch) ไม่ใช้คลาสทั้งสี่นี้
+   ("cta-console-title" เหลือเป็น id เท่านั้น) กฎชุดนี้จึงไม่แตะหน้าที่สร้างใหม่
+   ========================================================== */
+.cta-console-inner {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 28px 48px;
+	align-items: center;
+	padding-bottom: 56px;
+}
+
+.cta-console-title {
+	margin: 0 0 12px;
+	color: #FFFFFF;
+	font-size: clamp(1.5rem, 3vw, 2.25rem);
+	line-height: 1.28;
+	text-wrap: balance;
+}
+
+.cta-console-sub {
+	margin: 0;
+	max-width: 40em;
+	color: var(--on-black-2);
+}
+
+.cta-console-action .btn {
+	white-space: normal;
+	text-align: center;
+}
+
+@media (max-width: 760px) {
+	.cta-console-inner {
+		grid-template-columns: minmax(0, 1fr);
+		padding-bottom: 48px;
+	}
+
+	.cta-console-action .btn {
+		width: 100%;
+	}
+}
+/* ---------- จบบล็อก LEGACY ---------- */

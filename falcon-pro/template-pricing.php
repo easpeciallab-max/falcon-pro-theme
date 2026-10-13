@@ -3,8 +3,9 @@
  * Template Name: FALCON · หน้า Pricing
  *
  * โครง:
- * หัวเพจ → การ์ดแพ็กเกจ + หมายเหตุ → ตารางเปรียบเทียบ → สิทธิ์ใช้งาน/VPS + ขั้นตอนสั่งซื้อ
- * → เนื้อหายาวจาก editor → บล็อกติดต่อ
+ * หัวเพจ (ปุ่มติดต่อ + ปุ่มเลื่อนไปตารางเปรียบเทียบ) → การ์ดแพ็กเกจ + หมายเหตุ → บล็อกแดชบอร์ด (fenix_dashboard_block · ถ้าเปิดใช้)
+ * → ตารางเปรียบเทียบ (เน้นคอลัมน์แพ็กเกจแนะนำ)
+ * → เรื่องที่ควรรู้ก่อนชำระเงิน + ขั้นตอนสั่งซื้อ → เนื้อหายาวจาก editor → บล็อกติดต่อ
  *
  * @package falcon-pro
  */
@@ -13,17 +14,37 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/* กันตัดบรรทัดกลางคำทับศัพท์ในการ์ดแพ็กเกจ (fenix_pages_keep_words ใน inc/modules/pages.php) */
+if ( function_exists( 'fenix_pages_keep_words' ) ) {
+	add_filter( 'fenix_keep_words', 'fenix_pages_keep_words' );
+}
+
 get_header();
 
 if ( have_posts() ) {
 	the_post();
 }
-$fenix_title = get_the_title();
-$fenix_sub   = fenix_mod( 'pricing_sub' );
-fenix_page_hero( fenix_mod( 'pricing_page_kicker' ), $fenix_title ? $fenix_title : fenix_mod( 'pricing_title' ), fenix_pages_has( $fenix_sub ) ? $fenix_sub : '' );
-
+$fenix_title    = get_the_title();
+$fenix_sub      = fenix_mod( 'pricing_sub' );
 $fenix_mode     = fenix_mod( 'pricing_mode' );
 $fenix_has_line = fenix_has_line_url();
+$fenix_rows     = fenix_lines( fenix_mod( 'compare_rows' ) );
+$fenix_show_cmp = count( $fenix_rows ) >= 2;
+
+/* ปุ่มบนหัวเพจ: ติดต่อทีมงาน (ไม่มีปลายทาง = ไม่พิมพ์ปุ่ม) + เลื่อนไปตารางเปรียบเทียบ (เมื่อมีตารางและตั้งข้อความปุ่มไว้) */
+$fenix_actions = fenix_pages_capture(
+	'fenix_contact_button',
+	array(
+		'text'  => fenix_mod( 'pricing_order_btn_text' ),
+		'class' => 'btn btn-fire',
+		'pos'   => 'pricing-hero',
+	)
+);
+$fenix_jump    = trim( (string) fenix_mod( 'pricing_hero_jump_label' ) );
+if ( '' !== $fenix_jump && $fenix_show_cmp ) {
+	$fenix_actions .= '<a class="btn btn-ghost-dark phero-jump" href="#compare"><span>' . esc_html( $fenix_jump ) . '</span>' . fenix_icon( 'arrow', 'icon icon-sm' ) . '</a>';
+}
+fenix_pages_hero( fenix_mod( 'pricing_page_kicker' ), $fenix_title ? $fenix_title : fenix_mod( 'pricing_title' ), fenix_pages_has( $fenix_sub ) ? $fenix_sub : '', $fenix_actions );
 ?>
 
 <main id="main" class="pricing-page">
@@ -58,7 +79,10 @@ $fenix_has_line = fenix_has_line_url();
 					<?php if ( 'price' === $fenix_mode && fenix_pages_price_ready( $k_price ) ) : ?>
 						<div class="price-amount">
 							<strong><?php echo esc_html( $k_price ); ?></strong>
-							<span><?php echo esc_html( fenix_mod( 'pkg' . $i . '_period' ) ); ?></span>
+							<?php /* หน่วย/ระยะเวลา: เว้นว่างได้ (เช่น แพ็กเกจฟรี) = ไม่พิมพ์บรรทัดนี้ */ ?>
+							<?php if ( '' !== trim( (string) fenix_mod( 'pkg' . $i . '_period' ) ) ) : ?>
+								<span><?php echo esc_html( fenix_mod( 'pkg' . $i . '_period' ) ); ?></span>
+							<?php endif; ?>
 						</div>
 					<?php else : ?>
 						<div class="price-amount price-contact">
@@ -70,7 +94,7 @@ $fenix_has_line = fenix_has_line_url();
 					<?php endif; ?>
 					<ul class="price-feats">
 						<?php foreach ( fenix_lines( fenix_mod( 'pkg' . $i . '_features' ) ) as $fenix_item ) : ?>
-							<li><?php echo fenix_icon( 'check', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo esc_html( $fenix_item ); ?></span></li>
+							<li><?php echo fenix_icon( 'check', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo fenix_text( $fenix_item ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?></span></li>
 						<?php endforeach; ?>
 					</ul>
 					<?php fenix_pages_package_button( $k_name, $k_featured ); ?>
@@ -85,15 +109,30 @@ $fenix_has_line = fenix_has_line_url();
 </section>
 <?php endif; ?>
 
-<?php /* ตารางเปรียบเทียบ · จอแคบเรียงเป็นการ์ดทีละหัวข้อ */ ?>
 <?php
-$fenix_rows = fenix_lines( fenix_mod( 'compare_rows' ) );
-if ( count( $fenix_rows ) >= 2 ) :
+/* บล็อกแดชบอร์ดต่อจากการ์ดแพ็กเกจ: วิธีรันอีกทางหนึ่ง (MT5 กับ EA ทำงานบนเซิร์ฟเวอร์) + ปุ่มเข้าชมและปุ่มสมัคร
+ * ข้อความและการเปิดปิดอยู่ที่ ปรับแต่ง → 1.1) แดชบอร์ด (inc/modules/dashboard.php) · ปิดฟีเจอร์หรือไม่มีโมดูล = ไม่พิมพ์อะไร */
+if ( function_exists( 'fenix_dashboard_block' ) ) {
+	fenix_dashboard_block( 'pricing' );
+}
+?>
+
+<?php /* ตารางเปรียบเทียบ · จอแคบเรียงเป็นการ์ดทีละหัวข้อ · คอลัมน์ของแพ็กเกจที่ติ๊ก "แนะนำ" ถูกเน้น (.is-featured) */ ?>
+<?php
+if ( $fenix_show_cmp ) :
 	$fenix_table = array();
 	foreach ( $fenix_rows as $fenix_row ) {
-		$fenix_table[] = array_map( 'trim', explode( '|', $fenix_row ) );
+		$fenix_table[] = array_map( 'fenix_pages_compare_cell', array_map( 'trim', explode( '|', $fenix_row ) ) );
 	}
-	$fenix_head = array_shift( $fenix_table );
+	$fenix_head     = array_shift( $fenix_table );
+	$fenix_featured = fenix_pages_featured_packages();
+	$fenix_feat_col = array();
+	foreach ( $fenix_head as $idx => $fenix_cell ) {
+		if ( $idx > 0 && in_array( $fenix_cell, $fenix_featured, true ) ) {
+			$fenix_feat_col[] = $idx;
+		}
+	}
+	$fenix_flag = trim( (string) fenix_mod( 'pricing_flag_label' ) );
 	?>
 	<section class="section compare-section<?php echo esc_attr( fenix_pages_tone( 'compare' ) ); ?>" id="compare">
 		<div class="container container-narrow">
@@ -102,8 +141,16 @@ if ( count( $fenix_rows ) >= 2 ) :
 				<table class="compare-table">
 					<thead>
 						<tr>
-							<?php foreach ( $fenix_head as $idx => $fenix_cell ) : ?>
-								<th scope="col"<?php echo 0 === $idx ? ' class="compare-rowhead"' : ''; ?>><?php echo esc_html( $fenix_cell ); ?></th>
+							<?php
+							foreach ( $fenix_head as $idx => $fenix_cell ) :
+								$fenix_is_feat = in_array( $idx, $fenix_feat_col, true );
+								?>
+								<th scope="col"<?php echo 0 === $idx ? ' class="compare-rowhead"' : ( $fenix_is_feat ? ' class="is-featured"' : '' ); ?>>
+									<?php echo esc_html( $fenix_cell ); ?>
+									<?php if ( $fenix_is_feat && '' !== $fenix_flag ) : ?>
+										<span class="compare-flag"><?php echo esc_html( $fenix_flag ); ?></span>
+									<?php endif; ?>
+								</th>
 							<?php endforeach; ?>
 						</tr>
 					</thead>
@@ -117,12 +164,16 @@ if ( count( $fenix_rows ) >= 2 ) :
 									$fenix_lbl = isset( $fenix_head[ $idx ] ) ? $fenix_head[ $idx ] : '';
 									if ( 0 === $idx ) :
 										?>
-										<th scope="row" class="compare-rowhead"><?php echo esc_html( $fenix_cell ); ?></th>
+										<th scope="row" class="compare-rowhead"><?php echo fenix_text( $fenix_cell ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?></th>
 										<?php
 										continue;
 									endif;
+									$fenix_td = $fenix_yes ? 'cell-yes' : ( $fenix_no ? 'cell-no' : 'cell-text' );
+									if ( in_array( $idx, $fenix_feat_col, true ) ) {
+										$fenix_td .= ' is-featured';
+									}
 									?>
-									<td class="<?php echo $fenix_yes ? 'cell-yes' : ( $fenix_no ? 'cell-no' : 'cell-text' ); ?>" data-label="<?php echo esc_attr( $fenix_lbl ); ?>">
+									<td class="<?php echo esc_attr( $fenix_td ); ?>" data-label="<?php echo esc_attr( $fenix_lbl ); ?>">
 										<?php
 										if ( $fenix_yes ) {
 											echo fenix_icon( 'check', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput
@@ -131,7 +182,7 @@ if ( count( $fenix_rows ) >= 2 ) :
 											echo fenix_icon( 'x', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput
 											echo '<span class="sr-only">' . esc_html( fenix_mod( 'compare_no_label' ) ) . '</span>';
 										} else {
-											echo esc_html( $fenix_cell );
+											echo fenix_text( $fenix_cell ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside
 										}
 										?>
 									</td>
@@ -145,7 +196,7 @@ if ( count( $fenix_rows ) >= 2 ) :
 	</section>
 <?php endif; ?>
 
-<?php /* สิทธิ์ใช้งาน / VPS + ขั้นตอนสั่งซื้อ */ ?>
+<?php /* เรื่องที่ควรรู้ก่อนชำระเงิน (คีย์ pricing_license_* · id="license" คงไว้ให้ลิงก์เดิมใช้ได้) + ขั้นตอนสั่งซื้อ */ ?>
 <?php
 $fenix_license = trim( (string) fenix_mod( 'pricing_license_rows' ) );
 $fenix_points  = fenix_lines( fenix_mod( 'pricing_license_points' ) );

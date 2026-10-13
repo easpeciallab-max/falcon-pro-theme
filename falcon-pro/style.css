@@ -1,8 +1,8 @@
 /*
 Theme Name: FALCON PRO EA
-Theme URI: https://example.com
+Theme URI: https://falconpro-th.com/
 Author: FALCON PRO Team
-Author URI: https://example.com
+Author URI: https://falconpro-th.com/
 Description: ธีมเว็บไซต์ FALCON PRO EA · ผู้ช่วยเทรดอัตโนมัติสำหรับ MetaTrader 5 ดีไซน์ขาว·ดำ·เขียวตามแบนเนอร์แบรนด์ มีหน้าคู่มือ ทดสอบ แพ็กเกจ เอกสาร เครื่องคิด Lot/Drawdown และตัวช่วยตั้งค่าเว็บ (รูปแบบ → FALCON Setup) ปรับแต่งทุกข้อความผ่าน Customizer โดยไม่ต้องแก้โค้ด
 Version: 3.0.0
 Requires at least: 6.0
@@ -39,7 +39,7 @@ Tags: one-column, custom-logo, custom-menu, landing-page
 
 	--ink: #0F1216;
 	--ash: #4B535C;
-	--ash-2: #6C757F;
+	--ash-2: #636C76; /* เดิม #6C757F ได้แค่ 4.1 ถึง 4.3:1 บนพื้นเทาอ่อน (--coal / --coal-3) ค่านี้ผ่าน AA ทั้งบนขาวและเทาอ่อน */
 
 	--ok: #1E9E73;
 	--bad: #D64545;
@@ -61,6 +61,10 @@ Tags: one-column, custom-logo, custom-menu, landing-page
 
 	--radius: 10px;
 	--radius-lg: 12px;
+	/* ปุ่มและตัวควบคุมที่กดได้ทุกชนิด = สี่เหลี่ยมมุมมนเล็กน้อย (ไม่ใช่แคปซูล ไม่ใช่วงกลม) · แก้ค่าเดียวที่ --btn-radius แล้วตัวเล็กตามเอง */
+	--btn-radius: 10px;
+	--btn-radius-sm: calc(var(--btn-radius) - 2px);
+	--btn-radius-xs: calc(var(--btn-radius) - 4px);
 	--header-h: 78px;
 }
 
@@ -268,7 +272,7 @@ h3 {
 	justify-content: center;
 	gap: 0.55rem;
 	padding: 0.9rem 1.7rem;
-	border-radius: 999px;
+	border-radius: var(--btn-radius);
 	border: 1px solid transparent;
 	font-family: var(--font-display);
 	font-weight: 500;
@@ -583,7 +587,7 @@ h3 {
 	height: 40px;
 	padding: 0 14px;
 	border: 1px solid var(--border);
-	border-radius: 999px;
+	border-radius: var(--btn-radius-sm);
 	background: rgba(20, 24, 30, 0.04);
 	color: var(--ink);
 	font-weight: 600;
@@ -712,7 +716,7 @@ h3 {
 
 .language-switcher--plugin a {
 	border: 1px solid var(--border);
-	border-radius: 999px;
+	border-radius: var(--btn-radius-sm);
 	padding: 0.48rem 0.76rem;
 	background: rgba(20, 24, 30, 0.04);
 	font-size: 0.78rem;
@@ -725,7 +729,7 @@ h3 {
 	height: 40px;
 	padding: 0 34px 0 14px;
 	border: 1px solid var(--border);
-	border-radius: 999px;
+	border-radius: var(--btn-radius-sm);
 	background: rgba(20, 24, 30, 0.04);
 	color: var(--ink);
 	font-family: var(--font-display);
@@ -763,7 +767,7 @@ h3 {
 	overflow: visible !important;
 	position: static !important;
 	border: 1px solid var(--border) !important;
-	border-radius: 999px !important;
+	border-radius: var(--btn-radius-sm) !important;
 	background: rgba(20, 24, 30, 0.04) !important;
 	box-shadow: none !important;
 	color: var(--ink) !important;
@@ -787,7 +791,7 @@ h3 {
 
 .site-header .language-switcher--gtranslate .gt_float_switcher .gt-selected {
 	overflow: visible !important;
-	border-radius: 999px !important;
+	border-radius: var(--btn-radius-sm) !important;
 	background: transparent !important;
 }
 
@@ -890,7 +894,7 @@ h3 {
 	width: 44px;
 	height: 44px;
 	border: 1px solid var(--border);
-	border-radius: 12px;
+	border-radius: var(--btn-radius);
 	background: var(--coal-2);
 	cursor: pointer;
 	flex-direction: column;
@@ -1458,7 +1462,7 @@ h3 {
 	left: 50%;
 	transform: translateX(-50%);
 	padding: 5px 16px;
-	border-radius: 999px;
+	border-radius: var(--btn-radius-xs, 6px); /* ป้ายสถานะ: มุมมนเล็กน้อยแบบเดียวกับปุ่ม ไม่ใช้ทรงแคปซูล */
 	background: var(--grad-fire);
 	color: var(--on-ember);
 	font-family: var(--font-display);
@@ -1499,7 +1503,7 @@ h3 {
 }
 
 .price-amount span {
-	color: var(--ash-2);
+	color: var(--ash);
 	font-size: 0.9rem;
 }
 
@@ -1593,7 +1597,7 @@ h3 {
 	width: 22px;
 	height: 22px;
 	flex: 0 0 auto;
-	border-radius: 50%;
+	border-radius: var(--btn-radius-xs);
 	border: 1px solid var(--border-fire);
 }
 
@@ -1776,7 +1780,7 @@ h3 {
 	min-width: 260px;
 	padding: 15px 22px;
 	border: 1px solid rgba(20, 24, 30, 0.16);
-	border-radius: 999px;
+	border-radius: var(--btn-radius);
 	background: var(--line-green);
 	color: #03240F;
 	font-family: var(--font-display);
@@ -1958,7 +1962,7 @@ h3 {
 	align-items: center;
 	gap: 9px;
 	padding: 13px 20px;
-	border-radius: 999px;
+	border-radius: var(--btn-radius);
 	background: var(--line-green);
 	color: #03240F;
 	font-family: var(--font-display);
@@ -1977,7 +1981,7 @@ h3 {
 	height: 20px;
 }
 
-/* ปุ่ม LINE วงกลมลอยมุมขวาล่าง (เฉพาะเดสก์ท็อป) */
+/* ปุ่ม LINE ลอยมุมขวาล่าง · สี่เหลี่ยมจัตุรัสมุมมน (เฉพาะเดสก์ท็อป) */
 .line-fab {
 	position: fixed;
 	right: 28px;
@@ -1987,7 +1991,7 @@ h3 {
 	place-items: center;
 	width: 60px;
 	height: 60px;
-	border-radius: 50%;
+	border-radius: var(--btn-radius);
 	background: var(--line-green);
 	color: #03240F;
 	box-shadow: none;
@@ -2217,7 +2221,7 @@ h3 {
 	margin: 0 auto 26px;
 	padding: 6px 6px 6px 18px;
 	border: 1px solid var(--border);
-	border-radius: 999px;
+	border-radius: var(--btn-radius);
 	background: var(--coal-2);
 	transition: border-color 0.16s ease, box-shadow 0.16s ease;
 }
@@ -2269,7 +2273,7 @@ h3 {
 	width: 42px;
 	height: 42px;
 	border: 0;
-	border-radius: 50%;
+	border-radius: var(--btn-radius-sm);
 	background: var(--grad-fire);
 	color: var(--on-ember);
 	cursor: pointer;
@@ -2378,7 +2382,7 @@ h3 {
 	align-items: center;
 	padding: 9px 16px;
 	border: 1px solid var(--border);
-	border-radius: 10px;
+	border-radius: var(--btn-radius);
 	color: var(--ash);
 	font-size: 0.92rem;
 }
@@ -2441,7 +2445,7 @@ h3 {
 	display: inline-flex;
 	align-items: center;
 	padding: 5px 14px;
-	border-radius: 999px;
+	border-radius: var(--btn-radius-sm);
 	border: 1px solid var(--border-fire);
 	background: rgba(34, 197, 94, 0.08);
 	color: var(--flare);
@@ -2558,7 +2562,7 @@ h3 {
 	display: inline-flex;
 	padding: 6px 14px;
 	border: 1px solid var(--border);
-	border-radius: 999px;
+	border-radius: var(--btn-radius-sm);
 	color: var(--ash);
 	font-size: 0.82rem;
 }
@@ -2677,7 +2681,7 @@ h3 {
 	place-items: center;
 	width: 42px;
 	height: 42px;
-	border-radius: 50%;
+	border-radius: var(--btn-radius-sm);
 	border: 1px solid var(--border);
 	background: var(--coal-2);
 	color: var(--ash);
@@ -2776,7 +2780,7 @@ h3 {
 	place-items: center;
 	width: 42px;
 	height: 42px;
-	border-radius: 50%;
+	border-radius: var(--btn-radius-sm);
 	border: 1px solid var(--border);
 	background: var(--coal-2);
 	color: var(--ash);
@@ -3036,7 +3040,7 @@ h3 {
 		font-size: 0.92rem;
 	}
 
-	/* ตัวเปลี่ยนภาษาอยู่บนบาร์เหมือนเดสก์ท็อป (กด pill แล้วเปิด dropdown) ดันชิดขวาติดปุ่มเมนู */
+	/* ตัวเปลี่ยนภาษาอยู่บนบาร์เหมือนเดสก์ท็อป (กดปุ่มแล้วเปิด dropdown) ดันชิดขวาติดปุ่มเมนู */
 	.language-switcher {
 		margin-left: auto;
 	}
@@ -3590,7 +3594,7 @@ h1, h2, h3, h4,
 	display: grid;
 	place-items: center;
 	border-radius: 10px;
-	color: var(--ember);
+	color: var(--flare);
 	border: 1px solid var(--border-fire);
 	background: rgba(34, 197, 94, 0.08);
 }
@@ -4538,7 +4542,7 @@ h1, h2, h3, h4,
 
 .elementor-page-shell .elementor-button,
 .elementor-page-shell .elementor-button-link {
-	border-radius: 999px;
+	border-radius: var(--btn-radius);
 	font-family: var(--font-display);
 }
 
@@ -4831,7 +4835,7 @@ h1, h2, h3, h4,
 	left: 50%;
 	transform: translateX(-50%);
 	padding: 4px 14px;
-	border-radius: 999px;
+	border-radius: var(--btn-radius-xs, 6px); /* ป้ายสถานะ: มุมมนเล็กน้อยแบบเดียวกับปุ่ม ไม่ใช้ทรงแคปซูล */
 	font-size: 0.78rem;
 	font-family: var(--font-display);
 	font-weight: 700;
@@ -4991,7 +4995,7 @@ h3 {
 /* ---------- ปุ่ม ---------- */
 .btn {
 	font-weight: 600;
-	border-radius: 999px;
+	border-radius: var(--btn-radius);
 }
 
 .btn-fire {
@@ -5370,7 +5374,7 @@ h3 {
 	display: block;
 	margin-top: 4px;
 	font-size: 0.56rem;
-	letter-spacing: 0.16em;
+	letter-spacing: 0.02em;
 	color: var(--on-black-2);
 }
 
@@ -5427,7 +5431,7 @@ h3 {
 	max-width: 110px;
 	font-size: 0.56rem;
 	line-height: 1.7;
-	letter-spacing: 0.26em;
+	letter-spacing: 0.02em;
 	color: var(--on-black-2);
 }
 
@@ -5435,7 +5439,7 @@ h3 {
 	margin: 0;
 	text-align: center;
 	font-size: 0.78rem;
-	color: rgba(255, 255, 255, 0.6);
+	color: rgba(255, 255, 255, 0.74);
 }
 
 /* ---------- แถบข้อมูลระบบ ---------- */
@@ -5778,7 +5782,7 @@ h3 {
 	width: 48px;
 	height: 48px;
 	border: 1px solid rgba(255, 255, 255, 0.2);
-	border-radius: 50%;
+	border-radius: var(--btn-radius);
 	background: rgba(255, 255, 255, 0.06);
 	color: #FFFFFF;
 	cursor: pointer;
@@ -6527,6 +6531,9 @@ h3 {
 	background: #EEF1F4;
 	font-size: 0.9em;
 	color: var(--ink);
+	/* พาธยาวไม่มีช่องว่าง (เช่น ...\MetaQuotes\Terminal\...) ต้องตัดบรรทัดได้ ไม่งั้นหน้าเลื่อนด้านข้างบนจอ 360px
+	   ใช้ break-word (ไม่ใช่ anywhere) เพื่อไม่ให้ชื่อคุกกี้ในตารางของหน้ากฎหมายถูกหักกลางคำบนจอกว้าง */
+	overflow-wrap: break-word;
 }
 
 .guide-content img {
@@ -6865,7 +6872,7 @@ h3 {
 	width: 100%;
 	height: 46px;
 	padding: 0 12px;
-	border-radius: 10px;
+	border-radius: var(--btn-radius);
 	border: 1px solid rgba(255, 255, 255, 0.14);
 	background: #172125;
 	color: #FFFFFF;
@@ -7310,7 +7317,7 @@ h3 {
 	align-items: center;
 	gap: 6px;
 	padding: 6px 12px;
-	border-radius: 999px;
+	border-radius: var(--btn-radius-sm);
 	border: 1px solid rgba(255, 255, 255, 0.16);
 	color: var(--on-black);
 	font-size: 0.84rem;
@@ -7492,7 +7499,7 @@ h3 {
 
 .chip-link {
 	padding: 8px 16px;
-	border-radius: 999px;
+	border-radius: var(--btn-radius-sm);
 	border: 1px solid var(--border);
 	background: #FFFFFF;
 	color: var(--ink);
@@ -8131,4 +8138,131 @@ body.theme-dark .search-wrap,
 body.theme-dark .error-404,
 body.theme-dark .page-body {
 	background-color: var(--void);
+}
+
+/* ==========================================================
+   v3 · คงตัวพิมพ์อัตโนมัติ + สารบัญเพจเอกสารที่หัวข้อมีเลขอยู่แล้ว
+   ========================================================== */
+/* span.kc มาจาก fenix_nocaps_buffer() (inc/modules/infra.php) ห่อคำที่ต้องคงตัวพิมพ์ (อีเมล โดเมน ชื่อไฟล์ iPhone ...)
+   ไม่สร้างกล่องของตัวเอง ข้อความจึงต่อเนื่องกับข้อความรอบข้างแม้อยู่ในแถว flex/grid (ถ้าเป็นกล่อง คำจะถูกแยกเป็นชิ้น)
+   ห้ามใส่ display: contents ที่ .keep-case เพราะคลาสนั้นใช้กับลิงก์และบล็อกด้วย */
+.kc {
+	display: contents;
+	text-transform: none;
+}
+
+/* เพจเอกสารที่หัวข้อพิมพ์เลขข้อไว้เอง ("1. ...") : สารบัญไม่ใส่เลขลำดับซ้ำ (คลาสมาจาก page.php) */
+.doc-toc.doc-toc--plain ol {
+	padding-left: 18px;
+	list-style: none;
+}
+
+/* ==========================================================
+   v3 · บล็อกจาก shortcode ในเนื้อหายาว (inc/shortcodes.php)
+   ========================================================== */
+/* [falcon_figure]: แผนภาพที่มากับธีม · กว้างเต็มคอลัมน์แต่ไม่เกินความกว้างจริงของไฟล์ (--media-w พิมพ์บน <img>)
+   width/height ของ <img> จองพื้นที่ไว้ก่อนโหลด · ห้ามใช้ width:auto กับรูป lazy */
+.fenix-figure img {
+	display: block;
+	width: 100%;
+	max-width: var(--media-w, 100%);
+	height: auto;
+	margin: 0 auto;
+}
+
+/* [falcon_broker field="disclosure"]: ข้อความเปิดเผยความเป็นพาร์ตเนอร์แบบไม่มีกรอบ (box="1" ใช้หน้าตาของ .callout--info แทน)
+   อ่านง่าย ไม่เด่นเกินเนื้อหา แต่ไม่จางจนมองข้าม: ขอบซ้ายสีทึบ + พื้นเทาอ่อน ไม่ลดขนาดตัวอักษรต่ำกว่าข้อความรอง */
+.broker-disclosure:not(.callout) {
+	margin: 1.4em 0;
+	padding: 12px 16px;
+	border-left: 3px solid var(--ash-2);
+	border-radius: 0 12px 12px 0;
+	background: var(--coal);
+	color: var(--ink);
+	font-size: 0.94rem;
+	line-height: 1.75;
+}
+
+.broker-disclosure:not(.callout) > p {
+	margin: 0;
+}
+
+.broker-disclosure:not(.callout) > p + p {
+	margin-top: 0.6em;
+}
+
+/* ย่อหน้าที่ตามหลังตารางหรือกล่อง callout โดยตรงในเนื้อหายาวของเพจ (.guide-content: เพจคู่มือ เพจทดสอบ แพ็กเกจ ความเสี่ยง และเพจเอกสาร)
+   .entry-content p ล้างขอบบนของย่อหน้า ส่วน .table-wrap กับ .callout ไม่มีขอบล่าง สองบล็อกจึงเคยติดกัน
+   เนื้อหาตั้งต้นเลี่ยงลำดับนี้อยู่แล้ว (dev/content-spec.md) กฎนี้มีไว้รองรับเนื้อหาที่เจ้าของแก้เองในหน้าแก้ไขเพจ */
+.guide-content .table-wrap + p,
+.guide-content .callout + p {
+	margin-top: 1.1em;
+}
+
+/* ==========================================================
+   v3 · ปุ่มทั้งเว็บ = สี่เหลี่ยมมุมมนเล็กน้อย (ไม่ใช่แคปซูล ไม่ใช่วงกลม)
+   รัศมีมุมมาจาก token ชุดเดียวใน :root
+     --btn-radius      ปุ่มทั่วไป (.btn ทุกแบบ, ปุ่ม LINE, ปุ่มหน้า /go, ปุ่มการ์ดคุกกี้, ปุ่มลอย LINE, ช่องกรอก, เลขหน้า, ช่องของ dock)
+     --btn-radius-sm   ตัวควบคุมเล็ก (แท็บ, ปุ่มไอคอน 30 ถึง 44px, ลิงก์หมวด/แท็ก, ป้ายเปิดภาพ)
+     --btn-radius-xs   เครื่องหมายเล็กกว่า 26px (เครื่องหมายบวกของ FAQ)
+   กฎของปุ่มทุกตัวในไฟล์นี้และในไฟล์ CSS ของโมดูล (โฟลเดอร์ assets/css) อ้าง token ชุดนี้อยู่แล้ว (แก้ที่ตัวกฎเดิม ไม่ได้ทับจากท้ายไฟล์)
+   เพิ่มของที่กดได้ชิ้นใหม่เมื่อไร ให้ใช้ token นี้ ห้ามเขียน 999px หรือ 50%
+   ของที่ไม่ใช่ปุ่มคงรูปเดิม: วงไอคอน .ic-badge, เลขขั้นตอน, จุดสถานะ, สวิตช์เปิดปิดของการ์ดคุกกี้, วงความคืบหน้า, ป้ายสถานะ, มุมรูปและการ์ด
+   วงโฟกัส (:focus-visible) วาดตามมุมของตัวปุ่มเอง จึงเป็นสี่เหลี่ยมมุมมนตามไปด้วย
+   ========================================================== */
+/* ปุ่มที่ WordPress หรือบล็อกในหน้าแก้ไขสร้างให้ (บล็อก Button ของ core มาเป็นแคปซูล) · ค่ามุมที่ตั้งเองในบล็อกยังชนะกฎนี้ */
+.wp-block-button .wp-block-button__link,
+.wp-block-search__button,
+.wp-block-file__button,
+.entry-content .wp-element-button,
+.entry-content input[type="submit"],
+.entry-content button,
+.post-password-form input[type="submit"],
+.search-form .search-submit {
+	border-radius: var(--btn-radius);
+}
+
+.entry-content input[type="text"],
+.entry-content input[type="email"],
+.entry-content input[type="password"],
+.entry-content input[type="search"],
+.entry-content input[type="number"],
+.entry-content select,
+.entry-content textarea,
+.search-form .search-field {
+	border-radius: var(--btn-radius);
+}
+
+/* ==========================================================
+   v3 · พิมพ์ / บันทึกเป็น PDF
+   - บล็อก .reveal ที่ยังไม่เคยเลื่อนถึงค้างที่ opacity 0 (JS เปิดให้ตอนเข้าจอ) → เวลาพิมพ์ต้องเห็นครบทุกบล็อก
+   - กระดาษ A4 แนวตั้งกว้างราว 718px (ต่ำกว่า 760) จึงได้เลย์เอาต์มือถือ: dock เป็น position:fixed ถูกพิมพ์ซ้ำทุกหน้าทับเนื้อหา → ซ่อน
+   - หัวเว็บแบบ sticky ไม่ต้องตามไปทุกหน้ากระดาษ · ปุ่มลอย LINE, lightbox, ปุ่มเมนู, รางเลขบท ไม่มีประโยชน์บนกระดาษ
+   - การ์ดคุกกี้ซ่อนอยู่แล้วใน assets/css/consent.css
+   ไม่บังคับพิมพ์สีพื้น (ไม่ใช้ print-color-adjust) เบราว์เซอร์ปรับตัวอักษรบนพื้นเข้มให้อ่านได้เองเมื่อไม่พิมพ์พื้นหลัง
+   ทุกกฎเป็น !important เพราะไฟล์ CSS ของโมดูลโหลดทีหลังไฟล์นี้
+   ========================================================== */
+@media print {
+	.js .reveal,
+	.js .ft-wm.watch {
+		opacity: 1 !important;
+		transform: none !important;
+		transition: none !important;
+	}
+
+	.site-header {
+		position: static !important;
+	}
+
+	.mobile-app-nav.dock,
+	.dock-spacer,
+	.line-fab,
+	.float-line,
+	.lb,
+	.nav-toggle,
+	.skip-link,
+	.hm-rail,
+	.hm-progress {
+		display: none !important;
+	}
 }

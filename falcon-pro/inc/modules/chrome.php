@@ -4,7 +4,10 @@
  *
  * หน้าตาแบบ FALCON (มุมโค้ง ปุ่ม pill เส้นบาง เขียว FALCON บนพื้นเข้ม #172125)
  * - ค่าเริ่มต้น + ส่วน Customizer ของ header/footer/dock อยู่ในไฟล์นี้ (ผ่านฟิลเตอร์ fenix_defaults / fenix_customizer_sections)
- * - fenix_line_cta() ทุกหน้าย่อยถูกแทนด้วยแถบเข้มเต็มความกว้าง .cta-console (add_action 'fenix_line_cta')
+ * - บล็อกติดต่อ (ปุ่ม LINE · OpenChat · อีเมล · QR · รายการเตรียมข้อความ · เวลาตอบแชท) วาดโดย fenix_chrome_launch() ที่เดียว
+ *   และพิมพ์ได้หน้าละ 1 ครั้ง: หน้าที่เรียก fenix_line_cta() ได้บล็อกท้ายเนื้อหา (.cta-console) พร้อมหัวข้อของหน้านั้น
+ *   หน้าอื่น (หน้าแรก บทความรวม 404 ค้นหา เพจเอกสาร) ได้บล็อกเดียวกันเป็นแถวแรกของ footer (fenix_chrome_footer_contact)
+ * - ปุ่มติดต่อบนแถบหัว: fenix_chrome_header_cta() · คอลัมน์คู่มือใน footer: fenix_chrome_guide_items()
  * - ปุ่มติดต่อทุกปุ่มใช้ fenix_contact_target() / fenix_contact_button() · ไม่มีปุ่มใดชี้ไปที่ '#'
  *
  * @package falcon-pro
@@ -34,7 +37,10 @@ add_filter(
 				'youtube_url'              => '',
 				'float_line_text'          => 'แชทกับทีม FALCON ทาง LINE',
 
-				/* แถบติดต่อท้ายหน้าย่อย (.cta-console) */
+				/* รูป QR ของ LINE OA ที่มากับธีม (ใช้เมื่อเจ้าของยังไม่อัปโหลดรูปเอง · ไม่มีไฟล์ = ว่าง) */
+				'line_qr_image'            => fenix_chrome_qr_bundled_url(),
+
+				/* บล็อกติดต่อท้ายหน้าย่อย (.cta-console) */
 				'chrome_cta_label'         => 'ยังไม่แน่ใจ ถามก่อนได้',
 				'contact_title'            => 'อยากรู้ก่อนว่า FALCON PRO EA ไปกันได้กับทุนและบัญชีที่มีอยู่ไหม?',
 				'contact_text'             => 'ส่งรายละเอียดทุน โบรกเกอร์ และวิธีเทรดที่ใช้อยู่มาให้ทีมงาน เราจะช่วยประเมินความพร้อมของบัญชี และอธิบายลำดับการติดตั้งให้เข้าใจก่อน โดยไม่เร่งให้ตัดสินใจซื้อ',
@@ -45,6 +51,7 @@ add_filter(
 				'footer_sub'               => 'เลือกแพ็กเกจ ลง EA บน MT5 หรือปรับค่าความเสี่ยงให้พอดีกับเงินทุน ถามทีมงานได้ทุกเรื่องก่อนลงมือจริง',
 				'footer_line_text'         => 'เปิดแชท LINE กับทีมงาน',
 				'footer_qr_toggle_text'    => 'เปิด QR Code สำหรับสแกน',
+				'footer_qr_text'           => 'ดูเว็บนี้บนคอมพิวเตอร์อยู่? สแกน QR ด้วยกล้องมือถือ แล้วคุยกับทีมงานต่อใน LINE',
 				'footer_line_qr_alt'       => 'QR Code บัญชี LINE ทางการของ FALCON PRO EA',
 				'footer_prep_title'        => 'ข้อความแรกที่ช่วยให้ทีมตอบได้ตรง',
 				'footer_prep_text'         => 'พิมพ์สั้น ๆ ตามหัวข้อด้านล่าง ทีมงานจะได้ไม่ต้องถามย้อนหลายรอบ',
@@ -58,6 +65,7 @@ add_filter(
 				'footer_docs_title'        => 'เอกสารและนโยบาย',
 				'footer_docs_items'        => "about|เกี่ยวกับเรา\nprivacy-policy|นโยบายความเป็นส่วนตัว\nterms-of-use|เงื่อนไขการใช้บริการ\ndata-deletion|คำขอลบข้อมูลส่วนบุคคล",
 				'footer_risk_link'         => 'ประกาศความเสี่ยง',
+				'footer_risk_more'         => 'อ่านประกาศความเสี่ยงแบบแยกหัวข้อ',
 				'footer_spec_title'        => 'ข้อมูลระบบโดยย่อ',
 				'footer_spec_items'        => '',
 				'footer_facebook_text'     => 'เพจ Facebook',
@@ -65,9 +73,11 @@ add_filter(
 				'footer_tiktok_text'       => 'TikTok',
 				'footer_youtube_text'      => 'YouTube',
 				'footer_email_text'        => 'อีเมลถึงทีมงาน',
+				/* ลิงก์เข้าสู่ระบบแดชบอร์ดสำหรับสมาชิกเดิม (แถวเล็กใต้ดัชนี) · ข้อความลิงก์และที่อยู่ใช้ค่าจากหมวด 1.1) แดชบอร์ด */
+				'footer_member_label'      => 'สำหรับสมาชิก',
 
-				/* Footer · ลายน้ำ + แถบสถานะ */
-				'show_footer_watermark'    => true,
+				/* Footer · ลายน้ำ + แถบสถานะ · ชื่อแบรนด์ตัวใหญ่แบบเส้นขอบปิดเป็นค่าเริ่มต้น (เจ้าของสั่งถอด 12 ต.ค. 2026) · ปิด = footer.php ไม่พิมพ์ p.ft-wm */
+				'show_footer_watermark'    => false,
 				'footer_watermark_text'    => 'FALCON PRO',
 				'footer_copyright_text'    => 'สงวนลิขสิทธิ์',
 				'footer_status_text'       => 'ทำงานบน MetaTrader 5 · ตั้งความเสี่ยงให้พอดีกับทุนทุกครั้ง',
@@ -84,6 +94,8 @@ add_filter(
 				'nav_home_label'           => 'หน้าแรก',
 				'nav_test_label'           => 'การทดสอบ',
 				'nav_guide_label'          => 'คู่มือการใช้งาน',
+				/* รายการระดับบนไปหน้า /dashboard/ (แสดงเมื่อหน้านั้นเผยแพร่แล้ว) · ว่าง = หน้านั้นอยู่ในกลุ่มคู่มือตามเดิม */
+				'nav_dashboard_label'      => 'แดชบอร์ด',
 				'nav_pricing_label'        => 'แพ็กเกจ',
 				'nav_articles_label'       => 'บทความ',
 				'nav_contact_label'        => 'ติดต่อ',
@@ -145,39 +157,46 @@ add_filter(
 				$sections['fenix_general']['fields'],
 				'contact_title',
 				array(
-					'chrome_cta_label' => array( 'แถบติดต่อท้ายหน้าย่อย · ป้ายเล็กเหนือหัวข้อ', 'text' ),
+					'chrome_cta_label' => array( 'บล็อกติดต่อท้ายหน้าย่อย · ป้ายเล็กเหนือหัวข้อ', 'text', 'แสดงเมื่อเปิด "แสดงคำเล็กเหนือหัวข้อ (ทั้งเว็บ)" ด้านบนเท่านั้น' ),
 				)
 			);
+			/* รูป QR: บอกเจ้าของว่าธีมมีรูปตั้งต้นให้ และแสดงเมื่อไร */
+			if ( isset( $sections['fenix_general']['fields']['line_qr_image'] ) && ! isset( $sections['fenix_general']['fields']['line_qr_image'][2] ) ) {
+				$sections['fenix_general']['fields']['line_qr_image'][2] = 'ไม่อัปโหลด = ใช้รูป QR ที่มากับธีม ซึ่งแสดงเฉพาะเมื่อ "ลิงก์ LINE OA" ด้านบนเป็นลิงก์เดียวกับที่ QR นั้นพาไป · เปลี่ยนบัญชี LINE เมื่อไร ให้อัปโหลด QR ของบัญชีใหม่ที่ช่องนี้ แล้วลองสแกนด้วยมือถือทุกครั้ง · กดลบรูป = ไม่แสดง QR';
+			}
 		}
 
 		$sections['fenix_footer'] = array(
-			'title'       => '15) Footer ท้ายเว็บ',
-			'description' => 'Footer พื้นเข้ม 5 แถว: ช่องทางติดต่อ → ดัชนีลิงก์ → คำเตือนความเสี่ยงฉบับเต็ม → ลายน้ำแบรนด์ → แถบสถานะ · ช่องที่เว้นว่างจะถูกซ่อน · ปุ่มติดต่อใช้ลิงก์ LINE จาก "1) ช่องทางติดต่อ" (ไม่มี LINE = ไปหน้า /go/ ถ้าเผยแพร่แล้ว ไม่มีทั้งคู่ = ซ่อนปุ่ม) · รูป QR ใช้ "รูป QR Code LINE OA" ในหมวด 1',
+			'title'       => '15) บล็อกติดต่อ + Footer ท้ายเว็บ',
+			'description' => 'บล็อกติดต่อ (ปุ่ม LINE · OpenChat · อีเมล · QR · รายการเตรียมข้อความ · เวลาตอบแชท) แสดงหน้าละ 1 ครั้ง: หน้าย่อยที่มีบล็อกติดต่อของตัวเอง (คู่มือ การทดสอบ แพ็กเกจ ความเสี่ยง เกี่ยวกับเรา บทความ) แสดงท้ายเนื้อหาด้วยหัวข้อของหน้านั้น ส่วนหน้าอื่น (หน้าแรก หน้ารวมบทความ เพจเอกสาร) แสดงเป็นแถวแรกของ footer ด้วยหัวข้อ "แถวติดต่อ" ด้านล่าง · ถัดลงไปคือ ดัชนีลิงก์ → คำเตือนความเสี่ยงฉบับเต็ม → ลายน้ำแบรนด์ → แถบสถานะ · ช่องที่เว้นว่างจะถูกซ่อน · ปุ่มติดต่อใช้ลิงก์ LINE จาก "1) ช่องทางติดต่อ" (ไม่มี LINE = ไปหน้า /go/ ถ้าเผยแพร่แล้ว ไม่มีทั้งคู่ = ซ่อนปุ่ม) · รูป QR ใช้ "รูป QR Code LINE OA" ในหมวด 1',
 			'fields'      => array(
-				'footer_console_label'  => array( 'แถวติดต่อ · ป้ายเล็กด้านบน', 'text' ),
-				'footer_headline'       => array( 'แถวติดต่อ · หัวข้อ (ว่าง = ใช้หัวข้อแถบติดต่อท้ายหน้าย่อย)', 'text' ),
-				'footer_sub'            => array( 'แถวติดต่อ · คำอธิบาย (ว่าง = ใช้คำอธิบายแถบติดต่อท้ายหน้าย่อย)', 'textarea' ),
+				'footer_console_label'  => array( 'แถวติดต่อ · ป้ายเล็กด้านบน', 'text', 'แสดงเมื่อเปิด "แสดงคำเล็กเหนือหัวข้อ (ทั้งเว็บ)" ที่หมวด 1 เท่านั้น' ),
+				'footer_headline'       => array( 'แถวติดต่อ · หัวข้อ (ว่าง = ใช้หัวข้อบล็อกติดต่อท้ายหน้าย่อย)', 'text' ),
+				'footer_sub'            => array( 'แถวติดต่อ · คำอธิบาย (ว่าง = ใช้คำอธิบายบล็อกติดต่อท้ายหน้าย่อย)', 'textarea' ),
 				'footer_line_text'      => array( 'ข้อความปุ่ม LINE (ใช้กับปุ่มติดต่อทั่วทั้งเว็บ)', 'text' ),
-				'footer_qr_toggle_text' => array( 'ข้อความปุ่มเปิด QR บนมือถือ', 'text' ),
+				'footer_qr_text'        => array( 'QR · ข้อความข้างรูปบนจอกว้าง (ว่าง = แสดงเฉพาะรูป)', 'text', 'บนคอมพิวเตอร์และแท็บเล็ต รูป QR แสดงเปิดไว้ในบล็อกติดต่อพร้อมข้อความนี้ · บนมือถือ QR พับอยู่ในปุ่มด้านล่าง เพราะกดปุ่ม LINE ได้โดยตรง' ),
+				'footer_qr_toggle_text' => array( 'QR · ข้อความปุ่มเปิด QR บนมือถือ', 'text' ),
 				'footer_line_qr_alt'    => array( 'คำอธิบายรูป QR (alt)', 'text' ),
 				'footer_prep_title'     => array( 'กล่องเตรียมข้อความแรก · หัวข้อ', 'text' ),
 				'footer_prep_text'      => array( 'กล่องเตรียมข้อความแรก · คำอธิบาย', 'textarea' ),
 				'footer_prep_items'     => array( 'กล่องเตรียมข้อความแรก · รายการ (บรรทัดละ 1 ข้อ)', 'textarea' ),
 				'footer_hours_title'    => array( 'เวลาตอบแชท · หัวข้อ', 'text' ),
 				'footer_hours_text'     => array( 'เวลาตอบแชท · รายละเอียด (ว่าง = ไม่แสดง)', 'textarea', 'กรอกตามเวลาที่ทีมตอบได้จริงเท่านั้น บรรทัดละ 1 ช่วง' ),
-				'footer_index_title'    => array( 'หัวคอลัมน์ · หน้าในเว็บไซต์', 'text', 'รายการหน้ามาจากเมนูหลัก (เฉพาะระดับบน) · ยังไม่มีเมนู = ใช้หน้ามาตรฐานที่เผยแพร่แล้ว' ),
+				'footer_index_title'    => array( 'หัวคอลัมน์ · หน้าในเว็บไซต์', 'text', 'รายการหน้ามาจากเมนูหลัก (เฉพาะระดับบน) · ยังไม่มีเมนู = ใช้หน้ามาตรฐานที่เผยแพร่แล้ว · คอลัมน์คู่มือที่อยู่ถัดไปดึงหน้าคู่มือที่เผยแพร่แล้วมาเองทุกหน้า หัวคอลัมน์ใช้ชื่อ "เมนู · กลุ่มคู่มือ" ในหมวด 16.1' ),
 				'footer_channels_title' => array( 'หัวคอลัมน์ · ช่องทาง', 'text' ),
 				'footer_facebook_text'  => array( 'ชื่อลิงก์ Facebook', 'text' ),
 				'footer_instagram_text' => array( 'ชื่อลิงก์ Instagram', 'text' ),
 				'footer_tiktok_text'    => array( 'ชื่อลิงก์ TikTok', 'text' ),
 				'footer_youtube_text'   => array( 'ชื่อลิงก์ YouTube', 'text' ),
-				'footer_email_text'     => array( 'ชื่อลิงก์อีเมล', 'text' ),
+				'footer_email_text'     => array( 'ชื่อลิงก์อีเมล', 'text', 'ใช้ทั้งในคอลัมน์ช่องทางและในบล็อกติดต่อ · แสดงเมื่อกรอก "อีเมลติดต่อ" ในหมวด 1 แล้วเท่านั้น' ),
+				'footer_member_label'   => array( 'แถวสมาชิกแดชบอร์ด · ข้อความนำหน้าลิงก์เข้าสู่ระบบ (ว่าง = แสดงเฉพาะลิงก์)', 'text', 'แถวเล็กใต้ดัชนีลิงก์ สำหรับสมาชิกเดิมของแดชบอร์ด · ข้อความลิงก์ใช้ "ข้อความปุ่ม · เข้าสู่ระบบ" และที่อยู่จากหมวด 1.1) แดชบอร์ด (ลบข้อความปุ่มนั้นหรือปิดแดชบอร์ด = แถวนี้หายไป) · ลิงก์เปิดแท็บใหม่' ),
 				'footer_docs_title'     => array( 'หัวคอลัมน์ · เอกสาร', 'text' ),
 				'footer_docs_items'     => array( 'รายการเอกสาร (slug|ชื่อลิงก์ บรรทัดละ 1 หน้า)', 'textarea', 'แสดงเฉพาะหน้าที่เผยแพร่แล้ว · ลิงก์ประกาศความเสี่ยงแสดงเมื่อหน้า risk-disclosure เผยแพร่แล้ว (ข้อความเตือนฉบับเต็มแสดงใต้ดัชนีเสมอ) · ชื่อลิงก์ "ตั้งค่าคุกกี้" ท้ายคอลัมน์แก้ได้ที่หมวดคุกกี้' ),
 				'footer_risk_link'      => array( 'ชื่อลิงก์ประกาศความเสี่ยง', 'text' ),
+				'footer_risk_more'      => array( 'ลิงก์ใต้คำเตือนความเสี่ยง · ข้อความ (ว่าง = ไม่แสดงลิงก์)', 'text', 'ต่อท้ายคำเตือนความเสี่ยงฉบับเต็มใน footer พาไปหน้าประกาศความเสี่ยง (แสดงเมื่อหน้านั้นเผยแพร่แล้ว) · ตัวคำเตือนยังแสดงครบทุกคำเสมอ' ),
 				'footer_spec_title'     => array( 'หัวคอลัมน์ · ข้อมูลระบบ', 'text' ),
 				'footer_spec_items'     => array( 'ข้อมูลระบบ (ป้าย|ค่า บรรทัดละ 1 แถว)', 'textarea', 'ว่าง = ใช้ไฮไลต์ 1–4 ของหน้าแรก · บรรทัดที่เป็นตัวเลขตามด้วย % หรือมีคำว่า "กำไร" จะไม่แสดง (ห้ามใส่ผลเทรด)' ),
-				'show_footer_watermark' => array( 'แสดงชื่อแบรนด์ตัวใหญ่แบบเส้นขอบ', 'checkbox' ),
+				'show_footer_watermark' => array( 'แสดงชื่อแบรนด์ตัวใหญ่แบบเส้นขอบ', 'checkbox', 'ปิดไว้เป็นค่าเริ่มต้น · เป็นตัวหนังสือตกแต่งขนาดใหญ่เหนือแถบล่างสุดของเว็บ' ),
 				'footer_watermark_text' => array( 'ชื่อแบรนด์ตัวใหญ่', 'text', 'คำสุดท้ายจะเป็นสีเขียว' ),
 				'footer_copyright_text' => array( 'แถบล่าง · ข้อความลิขสิทธิ์', 'text' ),
 				'footer_status_text'    => array( 'แถบล่าง · ข้อความสถานะ (ว่าง = ไม่แสดง)', 'text' ),
@@ -196,8 +215,8 @@ add_filter(
 				'mobile_nav_home_url'      => array( 'ช่อง 1 · ลิงก์หรือ slug', 'text' ),
 				'mobile_nav_test_label'    => array( 'ช่อง 2 · ชื่อ', 'text' ),
 				'mobile_nav_test_url'      => array( 'ช่อง 2 · ลิงก์หรือ slug', 'text' ),
-				'mobile_nav_line_label'    => array( 'ช่อง 3 (กลาง) · ชื่อปุ่มเมื่อมีลิงก์ LINE', 'text' ),
-				'mobile_nav_contact_label' => array( 'ช่อง 3 (กลาง) · ชื่อปุ่มเมื่อยังไม่มี LINE (ไปหน้า /go/)', 'text' ),
+				'mobile_nav_line_label'    => array( 'ช่อง 3 (กลาง) · ชื่อปุ่มเมื่อมีลิงก์ LINE', 'text', 'ใช้เป็นข้อความปุ่มติดต่อบนแถบหัวเว็บด้วย (จอกว้าง และจอมือถือเมื่อปิดเมนูลัดนี้) · เว้นว่าง = ไม่มีปุ่มทั้งสองที่' ),
+				'mobile_nav_contact_label' => array( 'ช่อง 3 (กลาง) · ชื่อปุ่มเมื่อยังไม่มี LINE (ไปหน้า /go/)', 'text', 'ใช้เป็นข้อความปุ่มติดต่อบนแถบหัวเว็บด้วยเช่นกัน' ),
 				'mobile_nav_price_label'   => array( 'ช่อง 4 · ชื่อ', 'text' ),
 				'mobile_nav_price_url'     => array( 'ช่อง 4 · ลิงก์หรือ slug', 'text' ),
 				'mobile_nav_install_label' => array( 'ช่อง 5 · ชื่อ', 'text' ),
@@ -215,7 +234,8 @@ add_filter(
 					'fields'      => array(
 						'nav_home_label'      => array( 'เมนู · หน้าแรก', 'text' ),
 						'nav_test_label'      => array( 'เมนู · กลุ่มการทดสอบ', 'text' ),
-						'nav_guide_label'     => array( 'เมนู · กลุ่มคู่มือ', 'text' ),
+						'nav_guide_label'     => array( 'เมนู · กลุ่มคู่มือ', 'text', 'ใช้เป็นหัวคอลัมน์คู่มือใน footer ด้วย' ),
+						'nav_dashboard_label' => array( 'เมนู · แดชบอร์ด (ไปหน้า /dashboard/ ของเว็บนี้)', 'text', 'แสดงเป็นรายการระดับบนเมื่อหน้า /dashboard/ เผยแพร่แล้ว · เว้นว่าง = หน้านั้นกลับไปอยู่ใต้กลุ่มคู่มือ · มีผลกับเมนูสำรองเท่านั้น ถ้าตั้งเมนูเองที่ รูปแบบ → เมนู ให้เพิ่มหน้า "แดชบอร์ด FALCON PRO" ที่นั่น · footer แสดงลิงก์หน้านี้เสมอเมื่อเผยแพร่แล้ว (คอลัมน์หน้าในเว็บไซต์ หรือคอลัมน์คู่มือ)' ),
 						'nav_pricing_label'   => array( 'เมนู · แพ็กเกจ', 'text' ),
 						'nav_articles_label'  => array( 'เมนู · บทความ', 'text' ),
 						'nav_contact_label'   => array( 'เมนู · ติดต่อ (ว่าง = ไม่ต่อท้ายอัตโนมัติ)', 'text' ),
@@ -255,13 +275,17 @@ add_filter(
 );
 
 /**
- * body class: มีบาร์ล่างมือถือ (ให้การ์ดคุกกี้/ปุ่มลอยยกตัวพ้นบาร์ได้ด้วย var(--dock-h))
+ * body class: มีบาร์ล่างมือถือจริง (เปิดใช้ และมีอย่างน้อย 1 ช่อง)
+ * ให้การ์ดคุกกี้/ปุ่มลอยยกตัวพ้นบาร์ได้ด้วย var(--dock-h) และซ่อนปุ่มติดต่อบนแถบหัวในจอมือถือ (บาร์ล่างมีปุ่มติดต่ออยู่แล้ว)
  */
 add_filter(
 	'body_class',
 	function ( $classes ) {
 		if ( fenix_mod( 'show_mobile_nav' ) ) {
-			$classes[] = 'has-dock';
+			$dock = fenix_chrome_dock();
+			if ( ! empty( $dock['items'] ) ) {
+				$classes[] = 'has-dock';
+			}
 		}
 		return $classes;
 	}
@@ -305,6 +329,29 @@ function fenix_chrome_language_switcher() {
 }
 
 /**
+ * ปุ่มติดต่อบนแถบหัว · LINE → หน้า /go/ (เมื่อเผยแพร่แล้ว) → ไม่พิมพ์ (ไม่มีปุ่มที่ชี้ '#')
+ * ข้อความใช้ชุดเดียวกับช่องกลางของบาร์ล่างมือถือ (mobile_nav_line_label / mobile_nav_contact_label) · ข้อความว่าง = ไม่พิมพ์
+ * จอ ≤760px ที่มีบาร์ล่าง (body.has-dock) ซ่อนด้วย CSS เพราะบาร์ล่างมีปุ่มติดต่ออยู่แล้ว
+ */
+function fenix_chrome_header_cta() {
+	$target = fenix_contact_target();
+	if ( '' === $target['url'] ) {
+		return;
+	}
+	$label = trim( (string) fenix_mod( $target['is_line'] ? 'mobile_nav_line_label' : 'mobile_nav_contact_label' ) );
+	if ( '' === $label ) {
+		return;
+	}
+	printf(
+		'<a class="btn btn-fire btn-sm header-cta" href="%1$s"%2$s data-line-pos="header">%3$s<span>%4$s</span></a>',
+		esc_url( $target['url'] ),
+		$target['is_line'] ? ' target="_blank" rel="noopener"' : '',
+		fenix_icon( $target['is_line'] ? 'line' : 'chat' ), // phpcs:ignore WordPress.Security.EscapeOutput
+		esc_html( $label )
+	);
+}
+
+/**
  * URL ของหน้าตาม slug เมื่อเผยแพร่แล้ว ('' = ยังไม่เผยแพร่/ไม่มี)
  */
 function fenix_chrome_page_url( $slug ) {
@@ -323,7 +370,17 @@ function fenix_chrome_articles_url() {
 }
 
 /**
+ * หน้า /dashboard/ ของเว็บนี้เป็นรายการระดับบนของเมนูมาตรฐานหรือไม่: หน้าเผยแพร่แล้ว และมีชื่อเมนู (nav_dashboard_label)
+ * ชื่อเมนูว่าง = หน้านั้นอยู่ในกลุ่มคู่มือตาม manifest (fenix_site_pages) เหมือนหน้าคู่มืออื่น
+ * หน้านี้เป็นหน้าอธิบายบนเว็บเรา (ไม่ใช่ตัวแดชบอร์ด) จึงแสดงได้แม้ปิดปุ่มไปแดชบอร์ดที่หมวด 1.1
+ */
+function fenix_chrome_dashboard_top() {
+	return '' !== trim( (string) fenix_mod( 'nav_dashboard_label' ) ) && '' !== fenix_chrome_page_url( 'dashboard' );
+}
+
+/**
  * โครงเมนูมาตรฐานของ FALCON (ใช้เมื่อยังไม่มีเมนูใน WP) · เฉพาะหน้าที่เผยแพร่แล้ว
+ * ลำดับ: หน้าแรก → การทดสอบ → คู่มือการใช้งาน → แดชบอร์ด → แพ็กเกจ → บทความ → ติดต่อ
  *
  * @return array[] { label, url, slug, current, children[] }
  */
@@ -341,6 +398,9 @@ function fenix_chrome_nav_tree() {
 		),
 	);
 
+	/* หน้า /dashboard/ เป็นรายการระดับบนของเมนู (เมื่อเผยแพร่แล้วและมีชื่อเมนู) · กรณีนั้นไม่ซ้ำในเมนูย่อยของกลุ่มคู่มือ */
+	$dash_top = fenix_chrome_dashboard_top();
+
 	$groups = array(
 		'test'  => array( 'nav_test_label', 'backtest' ),
 		'guide' => array( 'nav_guide_label', 'how-to-install' ),
@@ -350,6 +410,9 @@ function fenix_chrome_nav_tree() {
 		$active   = false;
 		if ( function_exists( 'fenix_guide_links' ) ) {
 			foreach ( fenix_guide_links( array( $group ) ) as $slug => $link ) {
+				if ( 'dashboard' === $slug && $dash_top ) {
+					continue;
+				}
 				$url = fenix_chrome_page_url( $slug );
 				if ( '' === $url ) {
 					continue;
@@ -377,6 +440,7 @@ function fenix_chrome_nav_tree() {
 	}
 
 	$singles = array(
+		array( 'nav_dashboard_label', $dash_top ? fenix_chrome_page_url( 'dashboard' ) : '', is_page( 'dashboard' ) ),
 		array( 'nav_pricing_label', fenix_chrome_page_url( 'pricing' ), is_page( 'pricing' ) ),
 		array( 'nav_articles_label', fenix_chrome_articles_url(), is_home() ),
 		array( 'nav_contact_label', fenix_chrome_page_url( 'go' ), is_page( 'go' ) ),
@@ -481,16 +545,30 @@ function fenix_chrome_socials() {
 			'label' => $label,
 		);
 	}
-	$email = trim( (string) fenix_mod( 'contact_email' ) );
-	$label = trim( (string) fenix_mod( 'footer_email_text' ) );
-	if ( '' !== $email && '' !== $label && is_email( $email ) ) {
-		$out[] = array(
-			'icon'   => 'mail',
-			'mailto' => $email,
-			'label'  => $label,
-		);
+	$mail = fenix_chrome_mail();
+	if ( $mail ) {
+		$out[] = $mail;
 	}
 	return $out;
+}
+
+/**
+ * ช่องทางอีเมล (contact_email ในหมวด 1 + ชื่อลิงก์ footer_email_text) · ยังไม่กรอก/รูปแบบผิด/ไม่มีชื่อลิงก์ = array ว่าง
+ * ใช้ทั้งคอลัมน์ช่องทาง แถวไอคอนในลิ้นชัก และบล็อกติดต่อ · ที่อยู่อีเมลอยู่ใน href เท่านั้น (ไม่พิมพ์เป็นข้อความ จึงไม่โดนกฎตัวพิมพ์ใหญ่)
+ *
+ * @return array { icon, mailto, label } หรือ array()
+ */
+function fenix_chrome_mail() {
+	$email = trim( (string) fenix_mod( 'contact_email' ) );
+	$label = trim( (string) fenix_mod( 'footer_email_text' ) );
+	if ( '' === $email || '' === $label || ! is_email( $email ) ) {
+		return array();
+	}
+	return array(
+		'icon'   => 'mail',
+		'mailto' => $email,
+		'label'  => $label,
+	);
 }
 
 /**
@@ -549,6 +627,64 @@ function fenix_chrome_index_items() {
 		}
 	}
 	return $items;
+}
+
+/**
+ * Footer · คอลัมน์คู่มือ: ทุกหน้าในกลุ่ม guide ของ fenix_site_pages() ที่เผยแพร่แล้ว (ลำดับตาม manifest)
+ * เพิ่มหน้าคู่มือใหม่ใน manifest แล้วเผยแพร่ = ขึ้นคอลัมน์นี้เอง ไม่ต้องแก้เมนู
+ *
+ * หน้า /dashboard/ (กลุ่ม guide ใน manifest) ขึ้นคอลัมน์นี้เสมอเมื่อเผยแพร่แล้ว เว้นแต่คอลัมน์ "หน้าในเว็บไซต์" มีลิงก์หน้านั้นอยู่แล้ว
+ * (เมนูสำรองที่มีรายการ "แดชบอร์ด" ระดับบน หรือเมนูที่เจ้าของเว็บตั้งเอง) · footer จึงมีลิงก์หน้านี้หนึ่งครั้งพอดี
+ *
+ * @param array[] $index รายการของคอลัมน์ "หน้าในเว็บไซต์" (fenix_chrome_index_items) ใช้กันลิงก์ซ้ำ
+ * @return array[] { 0 => label, 1 => url, 2 => bool หน้าปัจจุบัน }
+ */
+function fenix_chrome_guide_items( $index = array() ) {
+	$out = array();
+	if ( ! function_exists( 'fenix_guide_links' ) ) {
+		return $out;
+	}
+	$listed = array();
+	foreach ( (array) $index as $entry ) {
+		if ( isset( $entry[1] ) ) {
+			$listed[ untrailingslashit( (string) $entry[1] ) ] = true;
+		}
+	}
+	foreach ( fenix_guide_links( array( 'guide' ) ) as $slug => $link ) {
+		$url = fenix_chrome_page_url( $slug );
+		if ( '' === $url ) {
+			continue;
+		}
+		if ( 'dashboard' === $slug && isset( $listed[ untrailingslashit( $url ) ] ) ) {
+			continue;
+		}
+		$out[] = array( $link['label'], $url, is_page( $slug ) );
+	}
+	return $out;
+}
+
+/**
+ * Footer · ลิงก์เข้าสู่ระบบแดชบอร์ดสำหรับสมาชิกเดิม (แถวเล็กใต้ดัชนี) · คืน HTML ที่ escape แล้ว หรือ '' เมื่อไม่มีปลายทาง
+ * ปลายทางและข้อความลิงก์มาจากโมดูล dashboard (หมวด 1.1: ที่อยู่ + ข้อความปุ่มเข้าสู่ระบบ) · ปิดแดชบอร์ด / ลบข้อความปุ่ม = ''
+ * ลิงก์เปิดแท็บใหม่ และนับคลิกเป็น dashboard_click (dash_mode = signin · dash_pos = footer)
+ */
+function fenix_chrome_member_link() {
+	if ( ! function_exists( 'fenix_dashboard_button' ) ) {
+		return '';
+	}
+	$link = (string) fenix_dashboard_button(
+		'signin',
+		array(
+			'class' => 'ft-member-link',
+			'pos'   => 'footer',
+			'icon'  => false,
+		)
+	);
+	if ( '' === $link ) {
+		return '';
+	}
+	$label = trim( (string) fenix_mod( 'footer_member_label' ) );
+	return '<p class="ft-member">' . fenix_icon( 'lock', 'icon icon-sm' ) . ( '' !== $label ? '<span class="ft-member-label">' . esc_html( $label ) . '</span>' : '' ) . $link . '</p>';
 }
 
 /**
@@ -638,6 +774,11 @@ function fenix_chrome_spec_rows() {
  * @return array { items[], active (int, -1 = ไม่มี), x (float %) }
  */
 function fenix_chrome_dock() {
+	/* เรียก 2 ครั้งต่อหน้า (body_class + footer.php) · คิดครั้งเดียว */
+	static $cache = null;
+	if ( null !== $cache ) {
+		return $cache;
+	}
 	$slots = array(
 		array(
 			'label' => fenix_mod( 'mobile_nav_home_label' ),
@@ -718,48 +859,269 @@ function fenix_chrome_dock() {
 	}
 
 	$count = max( 1, count( $items ) );
-	return array(
+	$dock  = array(
 		'items'  => $items,
 		'active' => $active,
 		'x'      => $active >= 0 ? ( $active + 0.5 ) * ( 100 / $count ) : 50,
 	);
+	/* จำผลไว้เฉพาะเมื่อ WordPress รู้แล้วว่ากำลังแสดงหน้าไหน (ช่อง active ขึ้นกับหน้าปัจจุบัน) */
+	if ( did_action( 'wp' ) ) {
+		$cache = $dock;
+	}
+	return $dock;
 }
 
 /* ==============================================================
- * แถบติดต่อท้ายหน้าย่อย (.cta-console) · แทน fenix_line_cta() เดิม
- * QR / OpenChat / รายการเตรียมข้อความ ย้ายไปอยู่ในแถวแรกของ footer (ไม่ซ้ำสองที่)
+ * บล็อกติดต่อ (.ft-launch) · ตัววาดเดียวของทั้งเว็บ พิมพ์ได้หน้าละ 1 ครั้ง
+ * ซ้าย: ป้ายเล็ก · หัวข้อ · คำอธิบาย · ปุ่มติดต่อ · OpenChat · อีเมล · QR
+ * ขวา: รายการเตรียมข้อความแรก + เวลาตอบแชท
+ * หน้าย่อยเรียกผ่าน fenix_line_cta() (ห่อด้วย .cta-console ท้ายเนื้อหา) · หน้าที่เหลือได้จาก footer.php
  * ============================================================== */
-function fenix_chrome_line_cta( $title = '', $sub = '' ) {
-	if ( '' === fenix_contact_href() && ! current_user_can( 'edit_theme_options' ) ) {
-		return;
+
+/**
+ * รูป QR ของ LINE OA ที่มากับธีม และลิงก์ที่ QR นั้นพาไป (อ่านกลับจากไฟล์ด้วยตัวถอดรหัสแล้ว)
+ * เปลี่ยนบัญชี LINE: วางไฟล์ใหม่ใน assets/img/brand/ (เลขรุ่นถัดไป) แล้วแก้ทั้ง 2 ค่านี้พร้อมกัน
+ *
+ * @return array { file, link (โฮสต์ + path ไม่มี https:// และ / ท้าย) }
+ */
+function fenix_chrome_qr_bundled() {
+	return array(
+		'file' => 'falcon-pro-line-qr-v1.png',
+		'link' => 'lin.ee/9Ct7DTS',
+	);
+}
+
+/**
+ * URL ของรูป QR ที่มากับธีม · ไม่มีไฟล์ = '' (ค่าเริ่มต้นของ line_qr_image)
+ */
+function fenix_chrome_qr_bundled_url() {
+	$qr = fenix_chrome_qr_bundled();
+	if ( ! file_exists( get_template_directory() . '/assets/img/brand/' . $qr['file'] ) ) {
+		return '';
 	}
-	$title = '' !== trim( (string) $title ) ? $title : fenix_mod( 'contact_title' );
-	$sub   = '' !== trim( (string) $sub ) ? $sub : fenix_mod( 'contact_text' );
-	$label = trim( (string) fenix_mod( 'chrome_cta_label' ) );
+	return get_template_directory_uri() . '/assets/img/brand/' . $qr['file'];
+}
+
+/**
+ * รูป QR ที่จะแสดงในบล็อกติดต่อ · '' = ไม่แสดง
+ * - แสดงเฉพาะเมื่อปุ่มติดต่อเป็น LINE (ไม่มีลิงก์ LINE = ไม่มี QR)
+ * - รูปที่มากับธีมพาไปลิงก์เดียวเท่านั้น จึงแสดงเมื่อ "ลิงก์ LINE OA" ในหมวด 1 เป็นลิงก์เดียวกัน
+ *   (กัน QR พาลูกค้าไปคนละบัญชีกับปุ่ม เมื่อเจ้าของเปลี่ยนลิงก์ LINE แต่ยังไม่ได้อัปโหลด QR ใหม่)
+ * - รูปที่เจ้าของอัปโหลดเองแสดงเสมอ
+ */
+function fenix_chrome_qr_url() {
+	$target = fenix_contact_target();
+	if ( ! $target['is_line'] ) {
+		return '';
+	}
+	$qr = trim( (string) fenix_mod( 'line_qr_image' ) );
+	if ( ! fenix_chrome_url_ok( $qr ) ) {
+		return '';
+	}
+	if ( $qr === fenix_chrome_qr_bundled_url() ) {
+		$own   = fenix_chrome_qr_bundled();
+		$parts = wp_parse_url( $target['url'] );
+		$host  = isset( $parts['host'] ) ? strtolower( (string) preg_replace( '/^www\./i', '', (string) $parts['host'] ) ) : '';
+		$path  = isset( $parts['path'] ) ? rtrim( (string) $parts['path'], '/' ) : '';
+		if ( $host . $path !== $own['link'] ) {
+			return '';
+		}
+	}
+	return $qr;
+}
+
+/**
+ * บล็อกติดต่อ · คืน true เมื่อพิมพ์ · false เมื่อหน้านี้พิมพ์ไปแล้ว หรือไม่มีช่องทางให้ติดต่อเลย (แอดมินยังเห็นบล็อกพร้อมคำแนะนำ)
+ *
+ * @param array $args {
+ *     @type string $label ป้ายเล็กเหนือหัวข้อ
+ *     @type string $title หัวข้อ (H2)
+ *     @type string $sub   คำอธิบาย
+ *     @type string $pos   ตำแหน่งสำหรับนับคลิก (data-line-pos ของปุ่มติดต่อ · ปุ่ม OpenChat = {pos}-openchat)
+ *     @type bool   $wrap  true = ห่อด้วย .cta-console#cta + .container (ใช้ท้ายเนื้อหา) · false = การ์ดอย่างเดียว (ใน footer)
+ * }
+ */
+function fenix_chrome_launch( $args = array() ) {
+	if ( ! empty( $GLOBALS['fenix_chrome_cta_done'] ) ) {
+		return false;
+	}
+	$args = wp_parse_args(
+		$args,
+		array(
+			'label' => '',
+			'title' => '',
+			'sub'   => '',
+			'pos'   => 'footer',
+			'wrap'  => false,
+		)
+	);
+
+	$target   = fenix_contact_target();
+	$is_admin = current_user_can( 'edit_theme_options' );
+	$oc_url   = trim( (string) fenix_mod( 'line_openchat_url' ) );
+	$oc_text  = trim( (string) fenix_mod( 'line_openchat_text' ) );
+	$openchat = ( fenix_chrome_url_ok( $oc_url ) && '' !== $oc_text ) ? $oc_url : '';
+	$mail     = fenix_chrome_mail();
+	if ( '' === $target['url'] && '' === $openchat && ! $mail && ! $is_admin ) {
+		return false;
+	}
+	$GLOBALS['fenix_chrome_cta_done'] = true;
+
+	$pos     = sanitize_key( (string) $args['pos'] );
+	$pos     = '' !== $pos ? $pos : 'footer';
+	$wrap    = ! empty( $args['wrap'] );
+	$id      = $wrap ? 'cta-console-title' : 'ft-launch-title';
+	/* ป้ายเล็กเหนือหัวข้อของบล็อกติดต่อ: พิมพ์เฉพาะเมื่อเปิด "คำเล็กเหนือหัวข้อ" (show_kickers · หมวด 1) · ค่าเริ่มต้นปิด = H2 เป็นบรรทัดแรกของบล็อก */
+	$label   = function_exists( 'fenix_kicker' ) ? fenix_kicker( $args['label'] ) : '';
+	$title   = trim( (string) $args['title'] );
+	$sub     = trim( (string) $args['sub'] );
+	$qr      = fenix_chrome_qr_url();
+	$qr_alt  = (string) fenix_mod( 'footer_line_qr_alt' );
+	$qr_text = trim( (string) fenix_mod( 'footer_qr_text' ) );
+	$qr_open = trim( (string) fenix_mod( 'footer_qr_toggle_text' ) );
+	$prep    = fenix_lines( fenix_mod( 'footer_prep_items' ) );
+	$hours   = fenix_lines( fenix_mod( 'footer_hours_text' ) );
+	$side    = $prep || $hours;
 	?>
-	<section class="cta-console" id="cta" aria-labelledby="cta-console-title">
-		<div class="container cta-console-inner">
-			<div class="cta-console-copy reveal">
-				<?php if ( '' !== $label ) : ?>
-					<p class="chrome-label"><span class="chrome-dot" aria-hidden="true"></span><?php echo esc_html( $label ); ?></p>
-				<?php endif; ?>
-				<h2 class="cta-console-title" id="cta-console-title"><?php echo fenix_text( $title ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside fenix_text ?></h2>
-				<?php if ( '' !== trim( (string) $sub ) ) : ?>
-					<p class="cta-console-sub"><?php echo fenix_text( $sub ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside fenix_text ?></p>
-				<?php endif; ?>
-			</div>
-			<div class="cta-console-action">
+	<?php if ( $wrap ) : ?>
+	<div class="cta-console" id="cta">
+		<div class="container">
+	<?php endif; ?>
+	<section class="ft-launch<?php echo $side ? '' : ' ft-launch--solo'; ?>"<?php echo '' !== $title ? ' aria-labelledby="' . esc_attr( $id ) . '"' : ''; ?>>
+		<div class="ft-launch-main">
+			<?php if ( '' !== $label ) : ?>
+				<p class="chrome-label"><span class="chrome-dot" aria-hidden="true"></span><?php echo esc_html( $label ); ?></p>
+			<?php endif; ?>
+			<?php if ( '' !== $title ) : ?>
+				<h2 class="ft-launch-title" id="<?php echo esc_attr( $id ); ?>"><?php echo fenix_text( $title ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside fenix_text ?></h2>
+			<?php endif; ?>
+			<?php if ( '' !== $sub ) : ?>
+				<p class="ft-launch-sub"><?php echo fenix_text( $sub ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside fenix_text ?></p>
+			<?php endif; ?>
+
+			<?php /* แถวปุ่ม: ปุ่มติดต่อ (ไม่มีปลายทาง = ไม่พิมพ์ · แอดมินเห็นคำแนะนำ) + OpenChat · ไม่มีทั้งคู่และไม่ใช่แอดมิน = ไม่มีแถวนี้ (เหลือลิงก์อีเมล) */ ?>
+			<?php if ( '' !== $target['url'] || '' !== $openchat || $is_admin ) : ?>
+			<div class="ft-actions">
 				<?php
 				fenix_contact_button(
 					array(
 						'class' => 'btn btn-fire btn-lg',
-						'pos'   => 'page-cta',
+						'pos'   => $pos,
 					)
 				);
 				?>
+				<?php if ( '' !== $openchat ) : ?>
+					<a class="btn btn-ghost btn-lg ft-openchat" href="<?php echo esc_url( $openchat ); ?>" target="_blank" rel="noopener" data-line-pos="<?php echo esc_attr( $pos . '-openchat' ); ?>">
+						<?php echo fenix_icon( 'chat' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+						<span><?php echo esc_html( $oc_text ); ?></span>
+					</a>
+				<?php endif; ?>
 			</div>
+			<?php endif; ?>
+
+			<?php if ( $mail ) : ?>
+				<p class="ft-mail">
+					<a href="<?php echo fenix_chrome_social_href( $mail ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?>">
+						<?php echo fenix_icon( 'mail', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+						<span><?php echo esc_html( $mail['label'] ); ?></span>
+					</a>
+				</p>
+			<?php endif; ?>
+
+			<?php if ( '' !== $qr ) : ?>
+				<?php /* จอกว้าง: QR เปิดไว้ให้ยกมือถือสแกนจากจอ · จอแคบ: พับใน <details> (กดปุ่ม LINE ได้ตรง ๆ) · CSS แสดงทีละแบบ */ ?>
+				<div class="ft-qr">
+					<img src="<?php echo esc_url( $qr ); ?>" alt="<?php echo esc_attr( $qr_alt ); ?>" width="132" height="132" loading="lazy" decoding="async">
+					<?php if ( '' !== $qr_text ) : ?>
+						<p class="ft-qr-text"><?php echo fenix_icon( 'qr', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo fenix_text( $qr_text ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside fenix_text ?></span></p>
+					<?php endif; ?>
+				</div>
+				<?php if ( '' !== $qr_open ) : ?>
+					<details class="ft-qr-mobile">
+						<summary><?php echo fenix_icon( 'qr', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo esc_html( $qr_open ); ?></span></summary>
+						<img src="<?php echo esc_url( $qr ); ?>" alt="<?php echo esc_attr( $qr_alt ); ?>" width="200" height="200" loading="lazy" decoding="async">
+					</details>
+				<?php endif; ?>
+			<?php elseif ( $target['is_line'] && $is_admin ) : ?>
+				<p class="admin-hint">แอดมินเท่านั้นที่เห็นบรรทัดนี้: บล็อกติดต่อยังไม่มีรูป QR ที่ตรงกับลิงก์ LINE ปัจจุบัน ให้เปิด ปรับแต่ง หมวด 1 แล้วอัปโหลดรูปที่ช่อง "รูป QR Code LINE OA"</p>
+			<?php endif; ?>
 		</div>
+
+		<?php if ( $side ) : ?>
+		<div class="ft-launch-side">
+			<?php if ( $prep ) : ?>
+				<div class="ft-prep">
+					<?php if ( '' !== trim( (string) fenix_mod( 'footer_prep_title' ) ) ) : ?>
+						<h3 class="ft-side-title"><?php echo esc_html( fenix_mod( 'footer_prep_title' ) ); ?></h3>
+					<?php endif; ?>
+					<?php if ( '' !== trim( (string) fenix_mod( 'footer_prep_text' ) ) ) : ?>
+						<p class="ft-side-text"><?php echo esc_html( fenix_mod( 'footer_prep_text' ) ); ?></p>
+					<?php endif; ?>
+					<ol class="ft-prep-list">
+						<?php foreach ( $prep as $fenix_i => $fenix_item ) : ?>
+							<li><span class="ft-prep-num" aria-hidden="true"><?php echo esc_html( sprintf( '%02d', $fenix_i + 1 ) ); ?></span><span><?php echo esc_html( $fenix_item ); ?></span></li>
+						<?php endforeach; ?>
+					</ol>
+				</div>
+			<?php endif; ?>
+			<?php if ( $hours ) : ?>
+				<div class="ft-hours">
+					<h3 class="ft-side-title"><?php echo fenix_icon( 'clock', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php echo esc_html( fenix_mod( 'footer_hours_title' ) ); ?></h3>
+					<p class="ft-side-text"><?php echo implode( '<br>', array_map( 'esc_html', $hours ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- each line escaped ?></p>
+				</div>
+			<?php endif; ?>
+		</div>
+		<?php endif; ?>
 	</section>
+	<?php if ( $wrap ) : ?>
+		</div>
+	</div>
+	<?php endif; ?>
 	<?php
+	return true;
+}
+
+/**
+ * บล็อกติดต่อท้ายหน้าย่อย · แทน fenix_line_cta() เดิม (add_action 'fenix_line_cta')
+ * หัวข้อ/คำอธิบายมาจากหน้านั้น (ว่าง = contact_title / contact_text ในหมวด 1)
+ */
+function fenix_chrome_line_cta( $title = '', $sub = '' ) {
+	fenix_chrome_launch(
+		array(
+			'label' => fenix_mod( 'chrome_cta_label' ),
+			'title' => '' !== trim( (string) $title ) ? $title : fenix_mod( 'contact_title' ),
+			'sub'   => '' !== trim( (string) $sub ) ? $sub : fenix_mod( 'contact_text' ),
+			'pos'   => 'page-cta',
+			'wrap'  => true,
+		)
+	);
 }
 add_action( 'fenix_line_cta', 'fenix_chrome_line_cta', 10, 2 );
+
+/**
+ * หน้านี้พิมพ์บล็อกติดต่อไปแล้วหรือยัง (footer.php ใช้ตัดสินว่าจะต่อดัชนีลิงก์ชิดกับบล็อกท้ายเนื้อหาหรือไม่)
+ */
+function fenix_chrome_launch_done() {
+	return ! empty( $GLOBALS['fenix_chrome_cta_done'] );
+}
+
+/**
+ * บล็อกติดต่อในแถวแรกของ footer · เฉพาะหน้าที่ยังไม่มีบล็อกติดต่อ (หน้าแรก หน้ารวมบทความ เพจเอกสาร 404 ค้นหา)
+ * ปิดได้ด้วยฟิลเตอร์ fenix_chrome_footer_contact
+ */
+function fenix_chrome_footer_contact() {
+	if ( fenix_chrome_launch_done() || ! apply_filters( 'fenix_chrome_footer_contact', true ) ) {
+		return false;
+	}
+	$title = trim( (string) fenix_mod( 'footer_headline' ) );
+	$sub   = trim( (string) fenix_mod( 'footer_sub' ) );
+	return fenix_chrome_launch(
+		array(
+			'label' => fenix_mod( 'footer_console_label' ),
+			'title' => '' !== $title ? $title : fenix_mod( 'contact_title' ),
+			'sub'   => '' !== $sub ? $sub : fenix_mod( 'contact_text' ),
+			'pos'   => 'footer',
+			'wrap'  => false,
+		)
+	);
+}

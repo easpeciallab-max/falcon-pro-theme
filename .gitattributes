@@ -1,0 +1,16 @@
+# ไฟล์ข้อความทุกไฟล์เก็บและ checkout เป็น LF เสมอ (ไม่ขึ้นกับ core.autocrlf ของแต่ละเครื่อง)
+# md5 ของไฟล์ในเครื่องจึงตรงกับไฟล์ที่ WP Pusher ติดตั้งบนเว็บ (dev/deploy.sh ใช้เทียบ)
+* text=auto eol=lf
+
+# ไฟล์ไบนารี: ห้ามแปลงบรรทัด ห้าม diff เป็นข้อความ
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.webp  binary
+*.gif   binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
+*.pdf   binary

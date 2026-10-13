@@ -213,7 +213,7 @@
 	align-items: center;
 	padding: 4px 10px;
 	border: 1px solid rgba(74, 242, 142, 0.3);
-	border-radius: 999px;
+	border-radius: var(--btn-radius-xs, 6px); /* ป้ายสถานะ: มุมมนเล็กน้อยแบบเดียวกับปุ่ม ไม่ใช้ทรงแคปซูล */
 	background: rgba(74, 242, 142, 0.08);
 	color: var(--consent-accent);
 	font-size: 0.72rem;
@@ -248,7 +248,8 @@
 	width: 46px;
 	height: 26px;
 	border: 1px solid var(--consent-line-strong);
-	border-radius: 999px;
+	/* สวิตช์เป็นสี่เหลี่ยมมุมมนเหมือนปุ่มทั้งเว็บ (เจ้าของสั่ง 12 ต.ค. 2026: ไม่มีปุ่มทรงแคปซูล) · ใช้ token เดียวกับปุ่ม */
+	border-radius: var(--btn-radius-xs, 6px);
 	background: var(--consent-raise);
 	transition: background-color 0.18s ease, border-color 0.18s ease;
 }
@@ -260,7 +261,7 @@
 	left: 3px;
 	width: 18px;
 	height: 18px;
-	border-radius: 50%;
+	border-radius: calc(var(--btn-radius-xs, 6px) - 2px);
 	background: var(--consent-muted);
 	transition: transform 0.18s ease, background-color 0.18s ease;
 }
@@ -365,7 +366,7 @@
 	margin: 0;
 	padding: 10px 16px;
 	border: 1px solid var(--consent-green);
-	border-radius: 999px;
+	border-radius: var(--btn-radius, 10px);
 	background: var(--consent-green);
 	color: var(--consent-on-green);
 	font-family: var(--font-display, "Noto Sans Thai", sans-serif);
@@ -436,7 +437,7 @@
 	margin: 0;
 	padding: 0;
 	border: 1px solid var(--consent-line);
-	border-radius: 50%;
+	border-radius: var(--btn-radius-sm, 8px);
 	background: rgba(255, 255, 255, 0.04);
 	color: var(--consent-muted);
 	cursor: pointer;

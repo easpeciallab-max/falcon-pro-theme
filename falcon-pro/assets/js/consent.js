@@ -6,6 +6,7 @@
  * - fenix_consent = v<รุ่น>.a<0|1|->.m<0|1|->.t<unix> · 365 วัน · SameSite=Lax
  *   "-" หมายถึงตอนตอบยังไม่มีบริการในหมวดนั้น · ถ้าเจ้าของเว็บเพิ่มบริการทีหลัง คนกลุ่มนี้จะเห็นการ์ดอีกครั้ง
  * - Consent Mode v2: <head> ประกาศ denied ไว้แล้ว (consent.php) · ได้รับอนุญาตเมื่อไรจึงส่ง update แล้วค่อยใส่ gtag.js
+ * - Meta Pixel ทำงานในโหมดกำหนดเอง (autoConfig ปิดก่อน init): ส่งเฉพาะ PageView กับ Contact ไม่เก็บการกดปุ่มอื่นเอง
  * - เปลี่ยนใจจากอนุญาตเป็นไม่อนุญาต: ตั้ง ga-disable, ส่ง update denied, fbq('consent','revoke'), ล้างคุกกี้ของบริการ แล้วโหลดหน้าใหม่
  * - ตัวเปิดการ์ด (ดู TRIGGERS): a[href$="#cookie-settings"], .cookie-reopen, [data-cookie-settings]
  * - API: window.fenixConsent.has('analytics'|'marketing') / .get() / .open() · เหตุการณ์ 'fenix:consent' บน document
@@ -164,6 +165,11 @@
 			document.head.appendChild(tag);
 		}
 		window.fbq('consent', 'grant');
+		/* โหมดกำหนดเอง: ปิดการตั้งค่าอัตโนมัติของ Pixel รหัสนี้ก่อน init เสมอ (ลำดับนี้ห้ามสลับ)
+		   Pixel จึงไม่ส่งการกดปุ่มอื่นหรือข้อมูลที่อ่านจากเนื้อหาของหน้าเอง · เหตุการณ์ที่ส่งมีเท่าที่โค้ดของธีมสั่ง:
+		   PageView (บรรทัดถัดไป) และ Contact เมื่อกดปุ่ม LINE (main.js) ตามที่นโยบายความเป็นส่วนตัวข้อ 1 ระบุ
+		   เพิ่มเหตุการณ์ใหม่เมื่อไร ต้องแก้นโยบายและบวกเลขรุ่นความยินยอมในคราวเดียวกัน */
+		window.fbq('set', 'autoConfig', false, pixelId);
 		window.fbq('init', pixelId);
 		window.fbq('track', 'PageView');
 	}

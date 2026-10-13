@@ -39,7 +39,7 @@ function load_theme_textdomain() {}
 function register_nav_menus() {}
 $GLOBALS['fx_sc'] = array();
 function add_shortcode( $tag, $cb ) { $GLOBALS['fx_sc'][ $tag ] = $cb; }
-function shortcode_exists( $tag ) { return in_array( $tag, array( 'falcon_line', 'falcon_brand', 'falcon_broker', 'falcon_calc' ), true ) && isset( $GLOBALS['fx_sc'][ $tag ] ); }
+function shortcode_exists( $tag ) { return in_array( $tag, array( 'falcon_line', 'falcon_brand', 'falcon_broker', 'falcon_email', 'falcon_if', 'falcon_figure', 'falcon_calc', 'falcon_dashboard' ), true ) && isset( $GLOBALS['fx_sc'][ $tag ] ); }
 function shortcode_atts( $pairs, $atts ) { $atts = (array) $atts; $out = array(); foreach ( $pairs as $k => $v ) { $out[ $k ] = isset( $atts[ $k ] ) ? $atts[ $k ] : $v; } return $out; }
 function shortcode_parse_atts( $text ) { $a = array(); if ( preg_match_all( '/(\w+)\s*=\s*"([^"]*)"/', (string) $text, $m, PREG_SET_ORDER ) ) { foreach ( $m as $x ) { $a[ strtolower( $x[1] ) ] = $x[2]; } } return $a; }
 function do_shortcode( $s ) {
@@ -56,7 +56,16 @@ add_filter( 'the_content', 'do_shortcode', 11 );
 function untrailingslashit( $s ) { return rtrim( (string) $s, '/\\' ); }
 function trailingslashit( $s ) { return untrailingslashit( $s ) . '/'; }
 function get_post_field( $f, $id = 0 ) { return 'post_name' === $f ? $GLOBALS['fx_post']['slug'] : ''; }
-function get_post_status() { return 'publish'; }
+// ?unpub=slug,slug (preview only): those manifest pages count as not published, so every guarded link to them must disappear
+// (menu, footer, promo blocks, [text](/slug/) links, links inside page content). Example: /?unpub=dashboard · /pricing/?unpub=dashboard,backtest
+function get_post_status( $p = null ) {
+	if ( is_object( $p ) && isset( $p->post_title ) && ! isset( $p->post_content ) && isset( $_GET['unpub'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification -- local preview only
+		if ( in_array( $p->post_title, array_map( 'trim', explode( ',', (string) $_GET['unpub'] ) ), true ) ) { // phpcs:ignore WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput -- local preview only
+			return 'draft';
+		}
+	}
+	return 'publish';
+}
 function get_post( $id = 0 ) { return (object) array( 'ID' => 1, 'post_content' => $GLOBALS['fx_post']['content'], 'post_excerpt' => '', 'post_title' => $GLOBALS['fx_post']['title'], 'post_parent' => 0, 'post_name' => $GLOBALS['fx_post']['slug'], 'post_status' => 'publish', 'post_type' => $GLOBALS['fx_post']['type'], 'post_date' => '2026-09-29 09:00:00', 'post_modified' => '2026-09-29 09:00:00' ); }
 function has_site_icon() { return false; }
 function wp_get_nav_menu_object() { return false; }
@@ -113,7 +122,8 @@ function get_stylesheet_directory() { return fx_theme_dir(); }
 function get_template_directory_uri() { return 'http://localhost:8765/theme'; }
 function get_stylesheet_directory_uri() { return get_template_directory_uri(); }
 function get_stylesheet_uri() { return get_template_directory_uri() . '/style.css'; }
-function get_theme_mod( $k, $d = false ) { return $d; }
+// $GLOBALS['fx_mods']: saved Customizer values faked by dev/check-content.php (unset in the preview → every setting renders its default)
+function get_theme_mod( $k, $d = false ) { return isset( $GLOBALS['fx_mods'] ) && array_key_exists( $k, $GLOBALS['fx_mods'] ) ? $GLOBALS['fx_mods'][ $k ] : $d; }
 function get_option( $k, $d = false ) {
 	$m = array( 'posts_per_page' => 9, 'blog_public' => 1, 'date_format' => 'j M Y', 'show_on_front' => 'page', 'page_for_posts' => 0 );
 	return isset( $m[ $k ] ) ? $m[ $k ] : $d;
@@ -253,6 +263,58 @@ function get_nav_menu_locations() { return array(); }
 function wp_script_add_data() {}
 function wp_style_add_data() {}
 function wp_add_inline_script_safe() {}
+// [falcon_email] / [falcon_if has="email"] (inc/shortcodes.php) need these two · WordPress entity-encodes the address, the preview leaves it readable
+if ( ! function_exists( 'is_email' ) ) { function is_email( $email ) { return false !== filter_var( (string) $email, FILTER_VALIDATE_EMAIL ) ? $email : false; } }
+if ( ! function_exists( 'antispambot' ) ) { function antispambot( $email ) { return (string) $email; } }
+
+/*
+ * Preview-only switches for values that live in the Customizer on the real site (the preview always renders defaults).
+ * Nothing typed here is written to a file, so a real broker name can be proofread without entering the repo:
+ *   ?broker=<name>     broker_name + a sample partner signup link (example.com) → the partner disclosure, the signup buttons and
+ *                      [falcon_if has="partner"] blocks render · add &server=<name> for the MT5 server name
+ *   ?email=<address>   contact_email → [falcon_email], [falcon_if has="email"], footer mail entry
+ *   ?fxprice=1         the theme's own default prices (price mode is the default now) + "prices confirmed" ticked,
+ *                      so the Offer nodes of the SoftwareApplication schema can be read in the page source
+ *   ?fxprice=0         contact mode (pricing_mode = contact): cards, compare table and home chapter show the ask-for-price text
+ *   ?fxprice=pending   price mode with placeholder prices (X,XXX): the "price not ready" fallback of cards and compare cells
+ * Example: /open-mt5-account/?broker=Example%20Markets&server=Example-Live
+ */
+if ( isset( $_GET['broker'] ) || isset( $_GET['server'] ) || isset( $_GET['email'] ) || isset( $_GET['fxprice'] ) ) {
+	add_filter(
+		'fenix_defaults',
+		function ( $d ) {
+			$get = function ( $key ) {
+				return isset( $_GET[ $key ] ) ? mb_substr( sanitize_text_field( (string) $_GET[ $key ] ), 0, 80 ) : '';
+			};
+			if ( '' !== $get( 'broker' ) ) {
+				$d['broker_name']       = $get( 'broker' );
+				$d['broker_signup_url'] = 'https://example.com/signup?ref=preview-only';
+			}
+			if ( '' !== $get( 'server' ) ) {
+				$d['broker_server'] = $get( 'server' );
+			}
+			if ( '' !== $get( 'email' ) ) {
+				$d['contact_email'] = $get( 'email' );
+			}
+			if ( isset( $_GET['fxprice'] ) ) {
+				/* no dummy amounts here: the preview shows the defaults of functions.php or a state without numbers */
+				$fx_price = (string) $_GET['fxprice'];
+				if ( '0' === $fx_price ) {
+					$d['pricing_mode'] = 'contact';
+				} elseif ( 'pending' === $fx_price ) {
+					$d['pricing_mode'] = 'price';
+					$d['pkg2_price']   = 'X,XXX';
+					$d['pkg3_price']   = 'X,XXX';
+				} else {
+					$d['pricing_mode']          = 'price';
+					$d['seo_pricing_confirmed'] = true;
+				}
+			}
+			return $d;
+		},
+		98
+	);
+}
 
 /* stub เพิ่มเติมของแต่ละโมดูล: dev/preview/stubs-<module>.php (ห่อด้วย function_exists) */
 foreach ( (array) glob( __DIR__ . '/stubs-*.php' ) as $fx_stub_file ) {

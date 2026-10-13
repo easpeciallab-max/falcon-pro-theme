@@ -3,7 +3,9 @@
  * Header · แถบหัวเว็บโทนเข้ม
  * - html.no-js → .js ด้วยสคริปต์บรรทัดเดียว (ใช้กับ .reveal / .watch / นาฬิกาใน footer)
  * - viewport-fit=cover ให้ env(safe-area-inset-bottom) ของบาร์ล่างมือถือทำงานบน iPhone
- * - เมนูสำรอง/ต่อท้าย "ติดต่อ"/แถวโซเชียลในลิ้นชัก อยู่ใน inc/modules/chrome.php
+ * - เมนูสำรอง/ต่อท้าย "ติดต่อ"/แถวโซเชียลในลิ้นชัก/ปุ่มติดต่อบนแถบหัว อยู่ใน inc/modules/chrome.php
+ * - แถบหัวมีปุ่มเดียวคือปุ่มติดต่อ (LINE) · ทางไปแดชบอร์ดอยู่ในเมนู (รายการ "แดชบอร์ด" → หน้า /dashboard/ ของเว็บนี้)
+ *   และลิงก์เข้าสู่ระบบสำหรับสมาชิกอยู่ท้ายเว็บ (fenix_chrome_member_link) · ไม่เพิ่มปุ่มเข้าสู่ระบบบนแถบหัว
  *
  * @package falcon-pro
  */
@@ -52,6 +54,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</nav>
 
 		<?php
+		/* ปุ่มติดต่อ (LINE → หน้า /go/ → ไม่แสดง) · จอมือถือที่มีบาร์ล่างซ่อนด้วย CSS เพราะบาร์ล่างมีปุ่มติดต่ออยู่แล้ว */
+		if ( function_exists( 'fenix_chrome_header_cta' ) ) {
+			fenix_chrome_header_cta();
+		}
 		if ( function_exists( 'fenix_chrome_language_switcher' ) ) {
 			fenix_chrome_language_switcher();
 		}

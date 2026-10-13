@@ -4,7 +4,7 @@
  *
  * หน้าลิงก์รวม (link-in-bio / ปลายทางโฆษณา) แบบหน้าเดี่ยว: ไม่มีเมนู ท้ายเว็บ แถบล่างมือถือ หรือปุ่มลอย
  * การ์ดคุกกี้ยังแสดงตามปกติเพราะพิมพ์ผ่าน wp_footer()
- * ลำดับ: ส่วนหัว → ติดต่อทีม → ขั้นตอนเริ่มใช้งาน (เลขเรียงใหม่เมื่อซ่อนขั้น) → ข้อมูลก่อนเริ่ม → โซเชียล → คำเตือนความเสี่ยง → เอกสาร
+ * ลำดับ: ส่วนหัว → ติดต่อทีม → การ์ดแดชบอร์ด (เข้าชม / สมัคร) → ขั้นตอนติดตั้งเอง (เลขเรียงใหม่เมื่อซ่อนขั้น) → ข้อมูลก่อนเริ่ม → โซเชียล → คำเตือนความเสี่ยง → เอกสาร
  * ข้อความ/ปุ่ม/ลิงก์ทั้งหมดแก้ได้ที่ ปรับแต่ง → หมวด "30) หน้า /go" และ "31) หน้า /go · ขั้นตอนเริ่มใช้งาน" (ตัวช่วยอยู่ใน inc/modules/go.php)
  *
  * @package falcon-pro
@@ -143,6 +143,23 @@ add_filter( 'body_class', 'fenix_go_body_class', 99 );
 			</section>
 		<?php endif; ?>
 
+		<?php
+		/* การ์ดแดชบอร์ดแบบย่อ (ปุ่มเข้าชม + ปุ่มสมัคร + หมายเหตุข้อมูลตัวอย่างและรหัสเชิญ + ข้อควรรู้เรื่องความเสี่ยง) · ต่อจากกลุ่มติดต่อทีม ก่อนขั้นตอนติดตั้งเอง
+		 * ตัววาดอยู่ในโมดูล dashboard (ข้อความแก้ที่หมวด 1.1) · ปิดแดชบอร์ดหรือปิดช่อง go_show_dashboard = ไม่พิมพ์อะไร */
+		if ( fenix_go_dashboard_on() ) {
+			echo '<section class="lh-group lh-group--dash">';
+			fenix_dashboard_block(
+				'go',
+				array(
+					'heading' => 'h2',
+					'pos'     => 'go-dashboard',
+					'id'      => 'go-dashboard',
+				)
+			);
+			echo '</section>';
+		}
+		?>
+
 		<?php if ( $fenix_go_steps ) : ?>
 			<section class="lh-group lh-journey"<?php echo '' !== $fenix_go_steps_title ? ' aria-labelledby="lh-steps-title"' : ''; ?>>
 				<?php if ( '' !== $fenix_go_steps_title ) : ?>
@@ -154,14 +171,15 @@ add_filter( 'body_class', 'fenix_go_body_class', 99 );
 						$fenix_go_n     = (int) $fenix_go_step['n'];
 						$fenix_go_num   = $fenix_go_idx + 1;
 						$fenix_go_badge = fenix_go_mod( 'go_step' . $fenix_go_n . '_badge' );
-						$fenix_go_desc  = fenix_go_mod( 'go_step' . $fenix_go_n . '_desc' );
-						$fenix_go_note  = fenix_go_mod( 'go_step' . $fenix_go_n . '_note' );
+						/* หัวข้อ / คำอธิบาย / หมายเหตุ: ตัวแทน {broker} {brand} {disclosure} → ค่าจริงก่อน escape (fenix_go_text) */
+						$fenix_go_desc  = fenix_go_text( 'go_step' . $fenix_go_n . '_desc' );
+						$fenix_go_note  = fenix_go_text( 'go_step' . $fenix_go_n . '_note' );
 						?>
 						<li class="lh-step lh-step--<?php echo esc_attr( $fenix_go_step['key'] ); ?>">
 							<span class="lh-step-num" aria-hidden="true"><?php echo esc_html( (string) $fenix_go_num ); ?></span>
 							<div class="lh-step-head">
 								<h3 class="lh-step-title">
-									<span class="lh-step-name"><?php if ( '' !== $fenix_go_step_word ) : ?><span class="screen-reader-text"><?php echo esc_html( $fenix_go_step_word . ' ' . $fenix_go_num . ' ' ); ?></span><?php endif; ?><?php echo fenix_text( fenix_go_mod( 'go_step' . $fenix_go_n . '_title' ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in fenix_text ?></span>
+									<span class="lh-step-name"><?php if ( '' !== $fenix_go_step_word ) : ?><span class="screen-reader-text"><?php echo esc_html( $fenix_go_step_word . ' ' . $fenix_go_num . ' ' ); ?></span><?php endif; ?><?php echo fenix_text( fenix_go_text( 'go_step' . $fenix_go_n . '_title' ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in fenix_text ?></span>
 									<?php if ( '' !== $fenix_go_badge ) : ?>
 										<span class="lh-step-badge"><?php echo esc_html( $fenix_go_badge ); ?></span>
 									<?php endif; ?>
@@ -208,7 +226,7 @@ add_filter( 'body_class', 'fenix_go_body_class', 99 );
 		<?php endif; ?>
 
 		<?php if ( '' !== trim( (string) fenix_mod( 'risk_text' ) ) ) : ?>
-			<p class="lh-note"><?php echo fenix_icon( 'warn', 'icon' ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo fenix_text( fenix_mod( 'risk_text' ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in fenix_text ?></span></p>
+			<p class="lh-note"><?php echo fenix_icon( 'warn', 'icon' ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo function_exists( 'fenix_dashboard_esc' ) ? fenix_dashboard_esc( fenix_mod( 'risk_text' ) ) : fenix_text( fenix_mod( 'risk_text' ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside (fenix_text + span.nobr กันคำว่า ออเดอร์ ถูกตัดกลางคำ) ?></span></p>
 		<?php endif; ?>
 
 		<?php if ( '' !== $fenix_go_home_label || $fenix_go_legal || '' !== $fenix_go_cookie ) : ?>

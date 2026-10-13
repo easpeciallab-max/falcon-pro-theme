@@ -3,12 +3,15 @@
  * FALCON PRO EA · โมดูลหน้า /go (ลิงก์รวม) · template-go.php
  *
  * โครงหน้า (ลำดับตามหน้าลิงก์รวมของเว็บในเครือ · หน้าตาแบบ FALCON):
- *   โลโก้กลม + ชื่อ + คำโปรย + ป้าย → กลุ่มติดต่อทีม (LINE, OpenChat) → ขั้นตอนเริ่มใช้งานมีเลข
- *   → ข้อมูลก่อนเริ่ม (ปุ่ม 1–6) → โซเชียล → เนื้อหาเพจ (ปิดไว้) → คำเตือนความเสี่ยงฉบับเต็ม → ลิงก์เอกสาร + ตั้งค่าคุกกี้
+ *   โลโก้กลม + ชื่อ + คำโปรย + ป้าย → กลุ่มติดต่อทีม (LINE, OpenChat) → การ์ดแดชบอร์ดแบบย่อ (fenix_dashboard_block( 'go' ))
+ *   → ขั้นตอนติดตั้งเองมีเลข → ข้อมูลก่อนเริ่ม (ปุ่ม 1 ถึง 6) → โซเชียล → เนื้อหาเพจ (ปิดไว้) → คำเตือนความเสี่ยงฉบับเต็ม → ลิงก์เอกสาร + ตั้งค่าคุกกี้
  *
  * กติกา
  * - ขั้นตอนที่ไม่มีปุ่มจะถูกซ่อน และเลขขั้นเรียงใหม่ตามที่เหลือจริง ({n} ในหัวข้อ = จำนวนขั้นที่แสดง)
  * - ปุ่มที่มีข้อความแต่ไม่มีลิงก์ หรือชี้ไปเพจของเว็บที่ยังไม่เผยแพร่ = ปุ่มเส้นประ กดไม่ได้ พร้อมป้าย "เร็ว ๆ นี้"
+ * - ขั้นเปิดบัญชี: มี "ลิงก์สมัครบัญชี" และชื่อโบรกเกอร์จริง (หมวดโบรกเกอร์ · fenix_partner_ready) = ปุ่มสมัคร rel="sponsored noopener" เปิดแท็บใหม่ · ไม่มี = ปุ่ม LINE ขอลิงก์
+ *   หน้านี้ไม่มีหมายเหตุใต้ปุ่มสมัคร (ข้อความเปิดเผยความเป็นพาร์ตเนอร์อยู่ที่หน้าคู่มือเปิดบัญชีและข้อกำหนดการใช้บริการ)
+ * - ขั้นฝากเงิน: ปุ่มคู่มือ (/deposit/) แสดงเมื่อหน้านั้นเผยแพร่แล้ว · ปุ่มหน้าสมาชิกของโบรกเกอร์แสดงเมื่อเจ้าของกรอกลิงก์ · ไม่มีทั้งคู่ = ซ่อนขั้น
  * - ปุ่ม LINE ทุกปุ่มใช้ fenix_contact_target() / fenix_contact_button() · ไม่มีลิงก์ LINE = ไม่แสดงปุ่ม
  * - ข้อความทุกคำเป็น setting ในหมวด "30) หน้า /go" และ "31) หน้า /go · ขั้นตอนเริ่มใช้งาน"
  * - คีย์เดิม go_step1..6 ย้ายไปคีย์ใหม่ผ่านค่าเริ่มต้น (ค่าที่เจ้าของเคยบันทึกไว้ยังถูกใช้ต่อ)
@@ -44,22 +47,27 @@ function fenix_go_defaults( $d ) {
 			/* ส่วนหัวการ์ด */
 			'go_logo'                => '',
 			'go_title'               => 'FALCON PRO EA',
-			'go_sub'                 => "EA บน MetaTrader 5 ที่ส่งคำสั่งตามเงื่อนไขที่คุณตั้งไว้\nมีคำถามคุยกับทีมงานได้ หรือเริ่มทีละขั้นตามลำดับด้านล่าง",
-			'go_badges'              => "EA สำหรับ MT5\nคู่มือภาษาไทย\nวางแผนความเสี่ยงก่อนเริ่ม",
+			/* คำโปรยต้องตรงกับตัวระบบ: เทรดทองคำ XAUUSD อย่างเดียว ตามกลยุทธ์ของชุด EA ที่เลือก (ผู้ใช้ไม่ได้ตั้งเงื่อนไขเข้าออกเอง) */
+			'go_sub'                 => "EA เทรดทองคำ XAUUSD บน MetaTrader 5\nมีคำถามคุยกับทีมงานได้ หรือเริ่มทีละขั้นตามลำดับด้านล่าง",
+			/* ป้ายเล็กใต้คำโปรย: ว่างเป็นค่าเริ่มต้น (เจ้าของสั่งถอดป้ายตกแต่งรอบชื่อ 12 ต.ค. 2026) · ว่าง = template-go.php ไม่พิมพ์ ul.lh-badges · ช่องใน Customizer ยังอยู่ */
+			'go_badges'              => '',
 
 			/* กลุ่มติดต่อทีม */
 			'go_help_title'          => 'สงสัยตรงไหน คุยกับทีมงานก่อนเริ่มได้',
 			'go_line_label'          => 'คุยกับทีมงาน FALCON ผ่าน LINE',
 			'go_openchat_label'      => 'เข้ากลุ่ม OpenChat ผู้ใช้ FALCON',
 
-			/* ขั้นตอน · ส่วนรวม */
-			'go_steps_title'         => 'เริ่มต้นกับ FALCON PRO EA · ทำตาม {n} ขั้นนี้',
+			/* การ์ดแดชบอร์ดแบบย่อ (ต่อจากกลุ่มติดต่อทีม ก่อนขั้นตอน) · ข้อความ ปุ่ม และหมายเหตุของการ์ดอยู่ที่หมวด 1.1) แดชบอร์ด */
+			'go_show_dashboard'      => true,
+
+			/* ขั้นตอน · ส่วนรวม (ทางติดตั้งเอง · อีกทางคือรันผ่านแดชบอร์ดในการ์ดด้านบน) */
+			'go_steps_title'         => 'ทางติดตั้งเอง · ทำตาม {n} ขั้นนี้',
 			'go_step_word'           => 'ขั้นที่',
 			'go_pending_label'       => 'เร็ว ๆ นี้',
 
 			/* ขั้น 1 · เปิดบัญชี */
 			'go_step1_title'         => fenix_go_legacy( 'go_step1', 'เปิดบัญชีเทรด MT5' ),
-			'go_step1_desc'          => 'เลือกโบรกเกอร์ที่เปิดบัญชี MT5 ได้ สมัครและส่งเอกสารยืนยันตัวตนให้ครบ แล้วเก็บเลขบัญชี รหัสผ่าน และชื่อเซิร์ฟเวอร์ไว้ใช้ในขั้นต่อไป',
+			'go_step1_desc'          => 'เปิดบัญชี MT5 กับ {broker} ตั้งแต่กรอกใบสมัคร ยืนยันอีเมล จนส่งเอกสารยืนยันตัวตนผ่าน แล้วเก็บเลขบัญชี รหัสผ่าน และชื่อเซิร์ฟเวอร์ไว้ใช้ในขั้นต่อไป',
 			'go_step1_note'          => '',
 			'go_step1_badge'         => '',
 			'go_signup_line_label'   => 'ขอลิงก์เปิดบัญชีผ่าน LINE',
@@ -79,15 +87,17 @@ function fenix_go_defaults( $d ) {
 			'go_mt5_login_label'     => 'วิธีล็อกอิน MT5 ครั้งแรก',
 			'go_mt5_login_url'       => '/mt5-login/',
 
-			/* ขั้น 3 · ฝากเงิน (ไม่มีลิงก์ = ซ่อนทั้งขั้น) */
+			/* ขั้น 3 · ฝากเงิน
+			 * ปุ่มคู่มือชี้หน้า /deposit/ และแสดงเมื่อหน้านั้นเผยแพร่แล้ว · ปุ่มหลัก (หน้าสมาชิกของโบรกเกอร์) แสดงเมื่อเจ้าของกรอกลิงก์
+			 * ลิงก์หน้าสมาชิกเป็นของโบรกเกอร์รายใดรายหนึ่ง จึงไม่มีค่าเริ่มต้นในโค้ด · ยังไม่มีทั้งสองปุ่ม = ซ่อนทั้งขั้น */
 			'go_step3_title'         => 'เติมเงินทุนเข้าบัญชี MT5',
 			'go_step3_desc'          => 'ฝากผ่านช่องทางของโบรกเกอร์ และเริ่มจากจำนวนที่คุณรับการขาดทุนได้',
 			'go_step3_note'          => '',
 			'go_step3_badge'         => '',
-			'go_deposit_label'       => '',
+			'go_deposit_label'       => 'ฝากเงินผ่านหน้าสมาชิกของ {broker}',
 			'go_deposit_url'         => '',
-			'go_deposit_guide_label' => '',
-			'go_deposit_guide_url'   => '',
+			'go_deposit_guide_label' => 'คู่มือฝากเงินเข้าบัญชี MT5',
+			'go_deposit_guide_url'   => '/deposit/',
 
 			/* ขั้น 4 · ไฟล์ EA */
 			'go_step4_title'         => 'รับไฟล์ FALCON PRO EA',
@@ -102,10 +112,11 @@ function fenix_go_defaults( $d ) {
 
 			/* ขั้น 5 · ติดตั้ง EA */
 			'go_step5_title'         => fenix_go_legacy( 'go_step5', 'ติดตั้งและตั้งค่า EA ในโปรแกรม MT5' ),
-			'go_step5_desc'          => 'ย้ายไฟล์ .ex5 ไปที่ MQL5 → Experts ลาก EA ลงกราฟ แล้วตรวจว่าปุ่ม Algo Trading ทำงานอยู่',
+			'go_step5_desc'          => 'ย้ายไฟล์ .ex5 ไปที่ MQL5 → Experts ลาก EA ลงกราฟทองคำ XAUUSD แล้วตรวจว่าปุ่ม Algo Trading ทำงานอยู่',
 			'go_step5_note'          => '',
 			'go_step5_badge'         => '',
-			'go_install1_label'      => 'คู่มือติดตั้ง EA พร้อมภาพประกอบ',
+			/* ไม่สัญญาว่ามีภาพทุกขั้น: คู่มือติดตั้งมีภาพมากับธีมเพียงบางขั้น ที่เหลือรอภาพจากเจ้าของเว็บ */
+			'go_install1_label'      => 'คู่มือติดตั้ง EA ทีละขั้น',
 			'go_install1_url'        => '/how-to-install/',
 			'go_install2_label'      => 'คำนวณ Lot ก่อนเปิดใช้งานจริง',
 			'go_install2_url'        => '/tools/',
@@ -121,7 +132,8 @@ function fenix_go_defaults( $d ) {
 			'go_vps_android_url'     => '/vps-android/',
 			'go_vps_ios_label'       => 'iPhone / iPad',
 			'go_vps_ios_url'         => '/vps-ios/',
-			'go_vps_macos_label'     => 'macOS',
+			/* ยังไม่มีคู่มือ VPS สำหรับ macOS → ไม่แสดงปุ่ม (เดิมเป็นปุ่มเส้นประ "เร็ว ๆ นี้" ค้างถาวร) · มีคู่มือเมื่อไรกรอกชื่อปุ่ม + ลิงก์ได้ที่ Customizer */
+			'go_vps_macos_label'     => '',
 			'go_vps_macos_url'       => '',
 
 			/* กลุ่มข้อมูลก่อนเริ่ม */
@@ -161,10 +173,11 @@ function fenix_go_sections( $sections, $d ) {
 			'go_logo'           => array( 'โลโก้วงกลม (ไม่ใส่ = ใช้ตราเหยี่ยวของธีม)', 'image', 'แนะนำภาพจัตุรัสอย่างน้อย 168×168px เพราะแสดงในกรอบวงกลม' ),
 			'go_title'          => array( 'ชื่อบนการ์ด (H1 · เว้นว่าง = ใช้ชื่อเพจ)', 'text' ),
 			'go_sub'            => array( 'คำโปรยใต้ชื่อ (ขึ้นบรรทัดใหม่ได้)', 'textarea' ),
-			'go_badges'         => array( 'ป้ายเล็กใต้คำโปรย (บรรทัดละ 1 ป้าย · เว้นว่าง = ซ่อน)', 'textarea', 'ห้ามใส่ตัวเลขผลเทรดหรือคำรับประกันกำไร' ),
+			'go_badges'         => array( 'ป้ายเล็กใต้คำโปรย (บรรทัดละ 1 ป้าย · เว้นว่าง = ซ่อน)', 'textarea', 'ค่าเริ่มต้นเว้นว่าง ชื่อกับคำโปรยจึงขึ้นเดี่ยว ๆ · ห้ามใส่ตัวเลขผลเทรดหรือคำรับประกันกำไร' ),
 			'go_help_title'     => array( 'กลุ่มติดต่อทีม · หัวข้อ', 'text' ),
 			'go_line_label'     => array( 'กลุ่มติดต่อทีม · ข้อความปุ่ม LINE', 'text', 'ลิงก์ใช้ค่า LINE จากหมวด 1 · ไม่มีลิงก์ LINE = ไม่แสดงปุ่ม' ),
 			'go_openchat_label' => array( 'กลุ่มติดต่อทีม · ข้อความปุ่ม OpenChat', 'text', 'ลิงก์ใช้ค่า "ลิงก์ LINE OpenChat" จากหมวด 1 · ไม่มีลิงก์ = ไม่แสดงปุ่ม' ),
+			'go_show_dashboard' => array( 'แสดงการ์ดแดชบอร์ด (ปุ่มเข้าชมและปุ่มสมัคร) ต่อจากกลุ่มติดต่อทีม', 'checkbox', 'หัวข้อ คำอธิบาย ข้อความปุ่ม หมายเหตุ และข้อควรรู้เรื่องความเสี่ยงของการ์ดใช้ค่าจากหมวด "1.1) แดชบอร์ด" (หัวข้อและคำอธิบายของหน้า /go อยู่ท้ายหมวดนั้น) · ปิดแดชบอร์ดที่หมวด 1.1 = การ์ดนี้หายเอง' ),
 			'go_pending_label'  => array( 'ป้ายของปุ่มที่ยังไม่มีลิงก์', 'text', 'ปุ่มที่มีข้อความแต่ไม่มีลิงก์จะเป็นเส้นประ กดไม่ได้ พร้อมป้ายนี้' ),
 			'go_info_title'     => array( 'กลุ่มข้อมูลก่อนเริ่ม · หัวข้อ', 'text' ),
 			'go_btn1_label'     => array( 'ปุ่ม 1 · ข้อความ', 'text' ),
@@ -186,16 +199,16 @@ function fenix_go_sections( $sections, $d ) {
 
 	$steps = array(
 		'title'       => '31) หน้า /go · ขั้นตอนเริ่มใช้งาน',
-		'description' => 'ขั้นตอนที่ไม่มีปุ่มจะถูกซ่อน และเลขขั้นเรียงใหม่อัตโนมัติ · ทุกขั้นมี หัวข้อ / คำอธิบาย / หมายเหตุ / ป้ายเล็ก (เว้นว่าง = ซ่อน) · ห้ามใส่ตัวเลขผลเทรดสมมติหรือคำรับประกันกำไร',
+		'description' => 'ขั้นตอนที่ไม่มีปุ่มจะถูกซ่อน และเลขขั้นเรียงใหม่อัตโนมัติ (ครบทุกขั้น = 6 ขั้น: เปิดบัญชี → แอป MT5 → ฝากเงิน → รับไฟล์ EA → ติดตั้ง → VPS) · ทุกขั้นมี หัวข้อ / คำอธิบาย / หมายเหตุ / ป้ายเล็ก (เว้นว่าง = ซ่อน) · หัวข้อ คำอธิบาย หมายเหตุของทุกขั้น และข้อความปุ่มฝากเงิน ใช้ {broker} {brand} แทนชื่อจากหมวดโบรกเกอร์และชื่อแบรนด์ได้ · ห้ามใส่ตัวเลขผลเทรดสมมติหรือคำรับประกันกำไร',
 		'fields'      => array(
 			'go_steps_title'         => array( 'หัวข้อรวมของขั้นตอน', 'text', 'ใส่ {n} เพื่อแสดงจำนวนขั้นที่แสดงจริงอัตโนมัติ' ),
 			'go_step_word'           => array( 'คำนำหน้าเลขขั้นสำหรับโปรแกรมอ่านหน้าจอ', 'text' ),
 
 			'go_step1_title'         => array( 'ขั้นเปิดบัญชี · หัวข้อ', 'text' ),
 			'go_step1_desc'          => array( 'ขั้นเปิดบัญชี · คำอธิบาย', 'textarea' ),
-			'go_step1_note'          => array( 'ขั้นเปิดบัญชี · หมายเหตุเปิดเผยความเป็นพันธมิตร', 'textarea', 'ถ้า "ลิงก์สมัครบัญชี" ในหมวดโบรกเกอร์เป็นลิงก์พันธมิตร (affiliate) ต้องกรอกข้อความเปิดเผยตรงนี้ว่าเว็บได้รับค่าตอบแทน · แสดงก่อนปุ่มสมัคร' ),
+			'go_step1_note'          => array( 'ขั้นเปิดบัญชี · หมายเหตุ (เว้นว่าง = ไม่แสดง)', 'textarea', 'ค่าเริ่มต้นเว้นว่าง: ข้อความเปิดเผยความเป็นพาร์ตเนอร์กับโบรกเกอร์แสดงที่หน้าคู่มือเปิดบัญชีและหน้าข้อกำหนดการใช้บริการอยู่แล้ว หน้านี้จึงมีแค่ปุ่ม · ถ้าต้องการให้แสดงที่หน้านี้ด้วย พิมพ์ {disclosure} เพื่อใช้ข้อความชุดเดียวกับหมวด 29) โบรกเกอร์ (ยังไม่มีลิงก์สมัคร = ไม่แสดงอะไร) หรือพิมพ์ข้อความเอง · ข้อความแสดงเหนือปุ่มของขั้นนี้' ),
 			'go_step1_badge'         => array( 'ขั้นเปิดบัญชี · ป้ายเล็ก', 'text' ),
-			'go_signup_line_label'   => array( 'ขั้นเปิดบัญชี · ข้อความปุ่ม LINE เมื่อยังไม่มีลิงก์สมัคร', 'text', 'ปุ่มสมัครใช้ "ลิงก์สมัครบัญชี" และ "ข้อความปุ่มสมัครบัญชี" จากหมวดโบรกเกอร์ · กรอกลิงก์นั้นแล้ว ปุ่ม LINE นี้จะถูกแทนด้วยปุ่มสมัคร' ),
+			'go_signup_line_label'   => array( 'ขั้นเปิดบัญชี · ข้อความปุ่ม LINE เมื่อยังไม่มีลิงก์สมัคร', 'text', 'ปุ่มสมัครใช้ "ลิงก์สมัครบัญชี" และ "ข้อความปุ่มสมัครบัญชี" จากหมวดโบรกเกอร์ ({broker} ในข้อความปุ่มถูกแทนด้วยชื่อโบรกเกอร์) · กรอกลิงก์นั้นแล้ว ปุ่ม LINE นี้จะถูกแทนด้วยปุ่มสมัครที่เปิดแท็บใหม่' ),
 			'go_account_guide_label' => array( 'ขั้นเปิดบัญชี · ข้อความปุ่มคู่มือ', 'text' ),
 			'go_account_guide_url'   => array( 'ขั้นเปิดบัญชี · ลิงก์ปุ่มคู่มือ', 'path', $link_rule ),
 
@@ -218,10 +231,10 @@ function fenix_go_sections( $sections, $d ) {
 			'go_step3_desc'          => array( 'ขั้นฝากเงิน · คำอธิบาย', 'textarea' ),
 			'go_step3_note'          => array( 'ขั้นฝากเงิน · หมายเหตุ', 'textarea' ),
 			'go_step3_badge'         => array( 'ขั้นฝากเงิน · ป้ายเล็ก', 'text' ),
-			'go_deposit_label'       => array( 'ขั้นฝากเงิน · ข้อความปุ่มหลัก', 'text', 'ขั้นนี้ซ่อนอยู่จนกว่าจะกรอกลิงก์ปุ่มหลัก หรือข้อความปุ่มคู่มือ' ),
-			'go_deposit_url'         => array( 'ขั้นฝากเงิน · ลิงก์ปุ่มหลัก (เช่น หน้าสมาชิกของโบรกเกอร์ · ว่าง = ซ่อนปุ่ม)', 'path' ),
+			'go_deposit_label'       => array( 'ขั้นฝากเงิน · ข้อความปุ่มหลัก', 'text', '{broker} ถูกแทนด้วยชื่อโบรกเกอร์จากหมวด 29 · ปุ่มนี้แสดงเมื่อกรอกลิงก์ปุ่มหลักด้านล่างแล้วเท่านั้น' ),
+			'go_deposit_url'         => array( 'ขั้นฝากเงิน · ลิงก์ปุ่มหลัก (เช่น หน้าสมาชิกของโบรกเกอร์ · ว่าง = ซ่อนปุ่ม)', 'path', 'ใส่ URL หน้าสมาชิก (Client Portal) ของโบรกเกอร์ที่ใช้ฝากเงิน · เปิดแท็บใหม่ เป็นลิงก์ธรรมดา ไม่ใช่ลิงก์สมัคร' ),
 			'go_deposit_guide_label' => array( 'ขั้นฝากเงิน · ข้อความปุ่มคู่มือ', 'text' ),
-			'go_deposit_guide_url'   => array( 'ขั้นฝากเงิน · ลิงก์ปุ่มคู่มือ', 'path', $link_rule ),
+			'go_deposit_guide_url'   => array( 'ขั้นฝากเงิน · ลิงก์ปุ่มคู่มือ', 'path', 'ค่าเริ่มต้น /deposit/ (คู่มือฝากเงิน) · ปุ่มคู่มือแสดงเมื่อหน้านั้นเผยแพร่แล้ว หรือเมื่อมีปุ่มหลักอยู่แล้ว (กรณีหลังถ้าหน้ายังไม่เผยแพร่จะเป็นปุ่มเส้นประ "เร็ว ๆ นี้") · ยังไม่มีทั้งปุ่มหลักและหน้าคู่มือ = ซ่อนทั้งขั้น และเลขขั้นที่เหลือเรียงใหม่' ),
 
 			'go_step4_title'         => array( 'ขั้นรับไฟล์ EA · หัวข้อ', 'text' ),
 			'go_step4_desc'          => array( 'ขั้นรับไฟล์ EA · คำอธิบาย', 'textarea' ),
@@ -252,7 +265,7 @@ function fenix_go_sections( $sections, $d ) {
 			'go_vps_android_url'     => array( 'ขั้น VPS · ปุ่ม Android · ลิงก์', 'path' ),
 			'go_vps_ios_label'       => array( 'ขั้น VPS · ปุ่ม iPhone · ข้อความ', 'text' ),
 			'go_vps_ios_url'         => array( 'ขั้น VPS · ปุ่ม iPhone · ลิงก์', 'path' ),
-			'go_vps_macos_label'     => array( 'ขั้น VPS · ปุ่ม macOS · ข้อความ (เว้นว่าง = ซ่อน)', 'text' ),
+			'go_vps_macos_label'     => array( 'ขั้น VPS · ปุ่ม macOS · ข้อความ (เว้นว่าง = ซ่อน)', 'text', 'ค่าเริ่มต้นเว้นว่าง เพราะยังไม่มีคู่มือ VPS สำหรับ macOS · กรอกเมื่อมีหน้าคู่มือแล้วเท่านั้น' ),
 			'go_vps_macos_url'       => array( 'ขั้น VPS · ปุ่ม macOS · ลิงก์ (ว่าง = ปุ่มเส้นประ "เร็ว ๆ นี้")', 'path' ),
 		),
 	);
@@ -304,8 +317,19 @@ function fenix_go_mod( $key ) {
 }
 
 /**
+ * ข้อความของหน้า /go ที่ใช้ตัวแทน {brand} {broker} {server} {disclosure} ได้ (fenix_tokens ใน functions.php)
+ * แทนค่าก่อน escape เสมอ · {disclosure} ว่างเมื่อยังไม่มีลิงก์สมัครบัญชี ช่องที่มีแต่ตัวแทนนี้จึงไม่แสดงอะไร
+ * ใช้กับ: หัวข้อ / คำอธิบาย / หมายเหตุของแต่ละขั้น ข้อความปุ่มสมัครบัญชี และข้อความปุ่มฝากเงิน
+ */
+function fenix_go_text( $key ) {
+	$text = fenix_go_mod( $key );
+	return function_exists( 'fenix_tokens' ) ? trim( (string) fenix_tokens( $text ) ) : $text;
+}
+
+/**
  * แปลงลิงก์ที่ตั้งค่าไว้เป็น URL ที่กดได้จริง · '' = ยังไม่มีปลายทาง (แสดงเป็นปุ่ม "เร็ว ๆ นี้")
  * slug ของเพจในเว็บ (fenix_site_pages) ที่ยังไม่เผยแพร่ถือว่ายังไม่มีปลายทาง กันลิงก์ 404
+ * นับรวมแถวใน manifest ที่ยังรอไฟล์เนื้อหา (fenix_site_pages( true )) · เพจแบบนั้นยังไม่ถูกสร้าง จึงต้องไม่กลายเป็นลิงก์
  */
 function fenix_go_href( $url ) {
 	$url = trim( (string) $url );
@@ -313,7 +337,7 @@ function fenix_go_href( $url ) {
 		return '';
 	}
 	if ( preg_match( '#^/?([a-z0-9][a-z0-9\-]*)/?$#i', $url, $m ) && function_exists( 'fenix_site_pages' ) ) {
-		$pages = fenix_site_pages();
+		$pages = fenix_site_pages( true );
 		$slug  = strtolower( $m[1] );
 		if ( isset( $pages[ $slug ] ) && empty( $pages[ $slug ]['front'] ) && function_exists( 'fenix_published_page_url' ) && '' === fenix_published_page_url( $slug ) ) {
 			return '';
@@ -483,6 +507,13 @@ function fenix_go_download() {
 }
 
 /**
+ * แสดงการ์ดแดชบอร์ดบนหน้านี้ไหม: เปิดช่อง go_show_dashboard + มีโมดูล dashboard + แดชบอร์ดเปิดใช้อยู่ (หมวด 1.1)
+ */
+function fenix_go_dashboard_on() {
+	return (bool) fenix_mod( 'go_show_dashboard' ) && function_exists( 'fenix_dashboard_block' ) && function_exists( 'fenix_dashboard_enabled' ) && fenix_dashboard_enabled();
+}
+
+/**
  * ขั้นตอนเริ่มใช้งาน · ขั้นที่ไม่มีปุ่มถูกตัดออก ลำดับใน array = เลขที่แสดง
  *
  * @return array[] { key, n (เลข setting go_stepN_*), body (HTML ที่ escape แล้ว) }
@@ -492,9 +523,9 @@ function fenix_go_steps() {
 
 	// 1 · เปิดบัญชี: ปุ่มสมัคร (หมวดโบรกเกอร์) หรือปุ่ม LINE ขอลิงก์ + ปุ่มคู่มือ.
 	$signup_url   = fenix_go_mod( 'broker_signup_url' );
-	$signup_label = fenix_go_mod( 'broker_signup_text' );
+	$signup_label = fenix_go_text( 'broker_signup_text' ); // {broker} ในข้อความปุ่ม → ชื่อจริง (ตรงกับปุ่มของ [falcon_broker field="url"])
 	$body         = '';
-	if ( '' !== fenix_go_href( $signup_url ) && '' !== $signup_label ) {
+	if ( function_exists( 'fenix_partner_ready' ) && fenix_partner_ready() && '' !== fenix_go_href( $signup_url ) && '' !== $signup_label ) {
 		$href  = fenix_go_href( $signup_url );
 		$body .= sprintf(
 			'<a class="lh-btn lh-btn-signup" href="%1$s" target="_blank" rel="sponsored noopener" data-go-pos="go-signup"><span class="lh-ic">%2$s</span><span class="lh-lbl">%3$s</span><span class="lh-ar" aria-hidden="true">%4$s</span></a>',
@@ -522,12 +553,19 @@ function fenix_go_steps() {
 	$body   .= fenix_go_button( 'lh-mini-btn', fenix_go_mod( 'go_mt5_login_label' ), fenix_go_mod( 'go_mt5_login_url' ), 'book' );
 	$steps[] = array( 'key' => 'mt5', 'n' => 2, 'body' => $body );
 
-	// 3 · ฝากเงิน (ปุ่มหลักแสดงเมื่อมีลิงก์เท่านั้น).
-	$body = '';
-	if ( '' !== fenix_go_href( fenix_go_mod( 'go_deposit_url' ) ) ) {
-		$body .= fenix_go_button( 'lh-btn lh-btn-accent', fenix_go_mod( 'go_deposit_label' ), fenix_go_mod( 'go_deposit_url' ), 'dollar' );
+	// 3 · ฝากเงิน: ปุ่มหลัก (หน้าสมาชิกของโบรกเกอร์) แสดงเมื่อมีลิงก์เท่านั้น · ลิงก์ธรรมดา ไม่ใช่ลิงก์สมัคร (rel noopener อย่างเดียว).
+	// ปุ่มคู่มือแสดงเมื่อหน้าคู่มือเปิดได้จริง หรือมีปุ่มหลักอยู่แล้ว · ไม่ให้ขั้นนี้โผล่มาพร้อมปุ่มเส้นประ "เร็ว ๆ นี้" ปุ่มเดียว
+	// (เช่น ธีมอัปเดตแล้วแต่ยังไม่ได้กด FALCON Setup สร้างหน้า /deposit/) → กรณีนั้นซ่อนทั้งขั้น.
+	$body        = '';
+	$portal_text = fenix_go_text( 'go_deposit_label' ); // {broker} ในข้อความปุ่ม → ชื่อจริง
+	$has_portal  = '' !== $portal_text && '' !== fenix_go_href( fenix_go_mod( 'go_deposit_url' ) );
+	$guide_ready = '' !== fenix_go_href( fenix_go_mod( 'go_deposit_guide_url' ) );
+	if ( $has_portal ) {
+		$body .= fenix_go_button( 'lh-btn lh-btn-accent', $portal_text, fenix_go_mod( 'go_deposit_url' ), 'dollar' );
 	}
-	$body   .= fenix_go_button( 'lh-mini-btn', fenix_go_mod( 'go_deposit_guide_label' ), fenix_go_mod( 'go_deposit_guide_url' ), 'book' );
+	if ( $has_portal || $guide_ready ) {
+		$body .= fenix_go_button( 'lh-mini-btn', fenix_go_mod( 'go_deposit_guide_label' ), fenix_go_mod( 'go_deposit_guide_url' ), 'book' );
+	}
 	$steps[] = array( 'key' => 'deposit', 'n' => 3, 'body' => $body );
 
 	// 4 · ไฟล์ EA: การ์ด/ปุ่มดาวน์โหลด หรือปุ่ม LINE ขอไฟล์.
@@ -558,7 +596,7 @@ function fenix_go_steps() {
 		array_filter(
 			$steps,
 			static function ( $step ) {
-				return '' !== trim( $step['body'] ) && '' !== fenix_go_mod( 'go_step' . $step['n'] . '_title' );
+				return '' !== trim( $step['body'] ) && '' !== fenix_go_text( 'go_step' . $step['n'] . '_title' );
 			}
 		)
 	);
