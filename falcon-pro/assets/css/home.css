@@ -1930,6 +1930,7 @@ body:not(.theme-dark) .hm-progress {
 
 	.hm-spec {
 		grid-template-columns: minmax(0, 1fr);
+		padding: 8px 0; /* แถวแรกและแถวสุดท้ายไม่ชิดขอบแถบ (แถวละ 16px + 8px) */
 	}
 
 	.hm-spec-item,

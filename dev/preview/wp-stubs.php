@@ -114,12 +114,17 @@ function get_bloginfo( $k = 'name' ) {
 	$m = array( 'name' => 'FALCON PRO EA', 'description' => 'ผู้ช่วยเทรดอัตโนมัติสำหรับ MT5', 'charset' => 'UTF-8' );
 	return isset( $m[ $k ] ) ? $m[ $k ] : '';
 }
-function home_url( $p = '' ) { return 'http://localhost:8765' . ( $p ? '/' . ltrim( $p, '/' ) : '/' ); }
+// The preview answers on whatever local port it was started on (a second copy of the repo can run next to the first one).
+function fx_preview_origin() {
+	$host = isset( $_SERVER['HTTP_HOST'] ) ? (string) $_SERVER['HTTP_HOST'] : '';
+	return 'http://' . ( preg_match( '/^(localhost|127\.0\.0\.1)(:\d+)?$/', $host ) ? $host : 'localhost:8765' );
+}
+function home_url( $p = '' ) { return fx_preview_origin() . ( $p ? '/' . ltrim( $p, '/' ) : '/' ); }
 function site_url( $p = '' ) { return home_url( $p ); }
 function admin_url( $p = '' ) { return home_url( 'wp-admin/' . $p ); }
 function get_template_directory() { return fx_theme_dir(); }
 function get_stylesheet_directory() { return fx_theme_dir(); }
-function get_template_directory_uri() { return 'http://localhost:8765/theme'; }
+function get_template_directory_uri() { return fx_preview_origin() . '/theme'; }
 function get_stylesheet_directory_uri() { return get_template_directory_uri(); }
 function get_stylesheet_uri() { return get_template_directory_uri() . '/style.css'; }
 // $GLOBALS['fx_mods']: saved Customizer values faked by dev/check-content.php (unset in the preview → every setting renders its default)

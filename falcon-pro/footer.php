@@ -46,6 +46,12 @@ $fenix_cols = ( $fenix_index ? 1 : 0 ) + ( $fenix_guides ? 1 : 0 ) + ( $fenix_ch
 $fenix_risk_more = trim( (string) fenix_mod( 'footer_risk_more' ) );
 $fenix_risk_url  = ( '' !== $fenix_risk_more && ! is_page( 'risk-disclosure' ) ) ? fenix_chrome_page_url( 'risk-disclosure' ) : '';
 
+/* ข้อความในกล่องคำเตือน · ฉบับสั้น (footer_risk_short) ใช้ได้เฉพาะเมื่อผู้อ่านไปถึงฉบับเต็มได้ในคลิกเดียว:
+   มีลิงก์ไปหน้าประกาศความเสี่ยง หรือกำลังอยู่ที่หน้านั้น · ไม่เข้าเงื่อนไข หรือเว้นช่องว่าง = คำเตือนฉบับเต็มทุกคำ (เจ้าของตัดสิน 13 ต.ค. 2026) */
+$fenix_risk_short = trim( (string) fenix_mod( 'footer_risk_short' ) );
+$fenix_risk_brief = '' !== $fenix_risk_short && ( '' !== $fenix_risk_url || is_page( 'risk-disclosure' ) );
+$fenix_risk_text  = $fenix_risk_brief ? $fenix_risk_short : (string) fenix_mod( 'risk_text' );
+
 /* ชื่อแบรนด์ตัวใหญ่ · คำสุดท้ายเป็นสีเขียว (FALCON / PRO) */
 $fenix_wm   = trim( (string) fenix_mod( 'footer_watermark_text' ) );
 $fenix_wm_a = $fenix_wm;
@@ -139,12 +145,12 @@ $fenix_stat = trim( (string) fenix_mod( 'footer_status_text' ) );
 
 		<?php echo $fenix_member; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside fenix_chrome_member_link ?>
 
-		<?php if ( '' !== trim( (string) fenix_mod( 'risk_text' ) ) ) : ?>
-		<div class="ft-risk" role="note">
+		<?php if ( '' !== trim( $fenix_risk_text ) ) : ?>
+		<div class="ft-risk<?php echo $fenix_risk_brief ? ' ft-risk--brief' : ''; ?>" role="note">
 			<span class="ft-risk-ic"><?php echo fenix_icon( 'warn', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
 			<div class="ft-risk-body">
-				<?php /* คำเตือนฉบับเต็มทุกคำ (ห้ามย่อ) · ลิงก์ด้านล่างเป็นส่วนเพิ่ม ไม่ได้แทนข้อความ */ ?>
-				<p><?php echo function_exists( 'fenix_dashboard_esc' ) ? fenix_dashboard_esc( fenix_mod( 'risk_text' ) ) : esc_html( fenix_mod( 'risk_text' ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside · span.nobr กันคำว่า ออเดอร์ ถูกตัดกลางคำ ?></p>
+				<?php /* ฉบับสั้นต้องมาคู่กับลิงก์ไปฉบับเต็มเสมอ (ดูเงื่อนไขด้านบน) · ห้ามตัดกล่องนี้ออก */ ?>
+				<p><?php echo function_exists( 'fenix_dashboard_esc' ) ? fenix_dashboard_esc( $fenix_risk_text ) : esc_html( $fenix_risk_text ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside · span.nobr กันคำว่า ออเดอร์ ถูกตัดกลางคำ ?></p>
 				<?php if ( '' !== $fenix_risk_url ) : ?>
 					<a class="ft-risk-more" href="<?php echo esc_url( $fenix_risk_url ); ?>"><span><?php echo esc_html( $fenix_risk_more ); ?></span><?php echo fenix_icon( 'arrow', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
 				<?php endif; ?>

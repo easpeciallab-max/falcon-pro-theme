@@ -8133,6 +8133,8 @@ body.theme-dark .section-alt:not(.is-dark) {
 
 /* บทความเดี่ยว + หน้ารวมบทความ + หน้าค้นหา/404 : ตัวเนื้อหาอยู่บนพื้นขาวเสมอ (อ่านยาว) */
 body.theme-dark .single-article,
+body.theme-dark .archive-bar,
+body.theme-dark .search-bar,
 body.theme-dark .posts-wrap,
 body.theme-dark .search-wrap,
 body.theme-dark .error-404,

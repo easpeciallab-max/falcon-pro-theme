@@ -752,6 +752,7 @@
 	display: flex;
 	align-items: flex-start;
 	gap: 14px;
+	margin-bottom: 44px; /* กล่องสุดท้ายของ .ft-inner: เว้นจากเส้นบนของแถบสถานะ (เดิมขอบกล่องชนเส้นพอดี) */
 	padding: 18px 20px;
 	border: 1px solid rgba(242, 166, 90, 0.28);
 	border-radius: 14px;
@@ -1220,6 +1221,7 @@
 	}
 
 	.ft-risk {
+		margin-bottom: 32px;
 		padding: 16px;
 	}
 }
