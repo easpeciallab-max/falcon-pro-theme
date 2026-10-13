@@ -560,14 +560,14 @@ function fenix_home_customizer_sections( $sections, $d ) {
 					'tests_title'             => array( 'หัวข้อ (H2)', 'text' ),
 					'tests_subtitle'          => array( 'คำอธิบายใต้หัวข้อ', 'textarea' ),
 					'home_tests_tab_label'    => array( 'ชื่อกลุ่มแท็บ (สำหรับโปรแกรมอ่านหน้าจอ)', 'text' ),
-					'home_tests_tab_bt_label' => array( 'แท็บ 1 · ชื่อแท็บ', 'text', 'จอแคบจะตัดบรรทัดได้เฉพาะหลังเครื่องหมาย " · " (เช่น Backtest · ย้อนหลัง)' ),
+					'home_tests_tab_bt_label' => array( 'แท็บ 1 · ชื่อแท็บ', 'text', 'จอแคบแบ่งป้ายเป็นสองบรรทัดตรงเครื่องหมาย " · " และไม่แสดงจุด (เช่น Backtest · ย้อนหลัง) · จอที่พอดีบรรทัดเดียวแสดงจุดตามเดิม' ),
 					'tests_bt_title'          => array( 'แท็บ 1 · หัวข้อ', 'text' ),
 					'tests_bt_text'           => array( 'แท็บ 1 · เนื้อหา', 'textarea', $rule ),
 					'home_tests_bt_btn'       => array( 'แท็บ 1 · ข้อความปุ่มไปหน้า Backtest (เว้นว่าง = ซ่อน)', 'text' ),
 				),
 				fenix_media_fields( 'tests_bt', 'แท็บ 1 · ภาพ 03' ),
 				array(
-					'home_tests_tab_fw_label' => array( 'แท็บ 2 · ชื่อแท็บ', 'text', 'จอแคบจะตัดบรรทัดได้เฉพาะหลังเครื่องหมาย " · "' ),
+					'home_tests_tab_fw_label' => array( 'แท็บ 2 · ชื่อแท็บ', 'text', 'จอแคบแบ่งป้ายเป็นสองบรรทัดตรงเครื่องหมาย " · " และไม่แสดงจุด' ),
 					'tests_fw_title'          => array( 'แท็บ 2 · หัวข้อ', 'text' ),
 					'tests_fw_text'           => array( 'แท็บ 2 · เนื้อหา', 'textarea', $rule ),
 					'home_tests_fw_btn'       => array( 'แท็บ 2 · ข้อความปุ่มไปหน้า Forward Test (เว้นว่าง = ซ่อน)', 'text' ),
@@ -1151,18 +1151,19 @@ function fenix_home_paragraphs( $text, $class = '' ) {
 /**
  * ป้ายแท็บ (บท 05 / 07) · ตัดบรรทัดได้เฉพาะหลัง " · " แต่ละช่วงไม่ถูกตัดกลางคำ (เช่น "ย้อน|หลัง" บนจอแคบ)
  * ไม่มี " · " = ข้อความเดิมผ่าน fenix_text()
+ * จุดคั่นอยู่ใน span.hm-tab-sep ของตัวเอง: จอที่ป้ายพอดีบรรทัดเดียวเห็น "A · B" ตามเดิม (ช่องว่างหน้าจุดเป็นแบบไม่ตัดบรรทัด จุดจึงไม่ขึ้นต้นบรรทัด)
+ * จอแคบที่ป้ายต้องขึ้นสองบรรทัด CSS ซ่อนจุดแล้ววางแต่ละช่วงคนละบรรทัด (assets/css/home.css) · เดิมจุดค้างอยู่ท้ายบรรทัดแรก "BACKTEST ·" / "ย้อนหลัง"
  */
 function fenix_home_tab_label( $text ) {
 	$parts = array_values( array_filter( array_map( 'trim', explode( '·', (string) $text ) ), 'strlen' ) );
 	if ( count( $parts ) < 2 ) {
 		return fenix_text( $text );
 	}
-	$last = count( $parts ) - 1;
-	$out  = array();
-	foreach ( $parts as $i => $part ) {
-		$out[] = '<span class="hm-nw">' . fenix_text( $part ) . ( $i < $last ? "\u{00A0}·" : '' ) . '</span>';
+	$out = array();
+	foreach ( $parts as $part ) {
+		$out[] = '<span class="hm-nw">' . fenix_text( $part ) . '</span>';
 	}
-	return implode( ' ', $out );
+	return implode( '<span class="hm-tab-sep">' . "\u{00A0}· " . '</span>', $out );
 }
 
 /**

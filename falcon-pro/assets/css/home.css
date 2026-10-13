@@ -772,9 +772,11 @@ body:not(.theme-dark) .hm-progress {
 	color: var(--hm-text);
 }
 
+/* ไอคอนกับข้อความอยู่กึ่งกลางแนวตั้งด้วยกัน: กล่องนี้ไม่มีหัวข้อเล็กแล้ว (show_kickers ปิดเป็นค่าเริ่มต้น) ข้อความบรรทัดเดียวบนจอกว้าง
+   ถ้าชิดบน (flex-start) จะลอยสูงกว่ากลางไอคอนราว 9px และเหลือที่ใต้ข้อความมากกว่าด้านบนเกือบเท่าตัว */
 .hm-principle {
 	display: flex;
-	align-items: flex-start;
+	align-items: center;
 	gap: 16px;
 	margin-top: 30px;
 	padding: 20px 22px;
@@ -1445,10 +1447,13 @@ body:not(.theme-dark) .hm-progress {
 	letter-spacing: 0.02em;
 }
 
+/* คำโปรยสั้นหนึ่งถึงสองบรรทัดใต้ชื่อแพ็กเกจ: เกลี่ยสองบรรทัดให้ยาวใกล้กัน (เดิม "...พร้อมคนให้" / "ถาม" บนมือถือ)
+   ใช้ text-wrap-style แบบเดียวกับกฎกลางท้าย style.css (ไม่แตะโหมดตัดบรรทัด) */
 .hm-tier-tag {
 	margin: 0;
 	font-size: 0.95rem;
 	color: var(--hm-muted);
+	text-wrap-style: balance;
 }
 
 .hm-tier-price {
@@ -1747,6 +1752,26 @@ body:not(.theme-dark) .hm-progress {
 		align-items: start;
 		gap: 14px 18px;
 	}
+
+	/* การ์ดที่ปิดอยู่ในแถวเดียวกันสูงเท่ากัน: เดิมคำถามสองบรรทัดคู่กับคำถามบรรทัดเดียว การ์ดสูง 90px กับ 68px ช่องใต้การ์ดเตี้ยจึงกว้างกว่าแถวอื่น
+	   - การ์ดยืดเต็มแถว (stretch) และหัวคำถามของการ์ดที่ปิดสูงเต็มการ์ด คำถามจึงอยู่กลางการ์ดในแนวตั้ง
+	   - การ์ดที่เปิด และการ์ดคู่แถวของมัน กลับไปสูงตามเนื้อหาของตัวเอง (เปิดข้อหนึ่งแล้วข้อข้าง ๆ ไม่ถูกยืดตาม)
+	   การ์ดคู่แถวที่อยู่ก่อนหน้าต้องเลือกด้วย :has() จึงครอบทั้งชุดด้วย @supports: เบราว์เซอร์ที่ไม่มี :has() ใช้แบบเดิม (ชิดบน) */
+	@supports selector(:has(*)) {
+		.hm-qlog {
+			align-items: stretch;
+		}
+
+		.hm-q:not([open]) > .hm-q-sum {
+			height: 100%;
+		}
+
+		.hm-q[open],
+		.hm-q[open]:nth-child(odd) + .hm-q,
+		.hm-q:nth-child(odd):has(+ .hm-q[open]) {
+			align-self: start;
+		}
+	}
 }
 
 /* ตารางเทียบแพ็กเกจ (≥1100px) · จำนวนคอลัมน์ตามแพ็กเกจจริง */
@@ -2003,6 +2028,19 @@ body:not(.theme-dark) .hm-progress {
 
 	.hm-risk .btn {
 		width: 100%;
+	}
+}
+
+/* แท็บบทการทดสอบบนจอแคบ: ป้าย "Backtest · ย้อนหลัง" ไม่พอดีบรรทัดเดียวในแท็บครึ่งจอ (ต้องการราว 193px · แท็บกว้าง (จอ − 68) / 2)
+   → ตั้งใจให้เป็นสองบรรทัด ช่วงละบรรทัด และซ่อนจุดคั่น (เดิมจุดค้างอยู่ท้ายบรรทัดแรก "BACKTEST ·" / "ย้อนหลัง")
+   จอ 481px ขึ้นไปป้ายพอดีบรรทัดเดียว จึงแสดงจุดตามเดิม · มาร์กอัปจาก fenix_home_tab_label() (inc/modules/home.php) */
+@media (max-width: 480px) {
+	.hm-tab-txt .hm-nw {
+		display: block;
+	}
+
+	.hm-tab-sep {
+		display: none;
 	}
 }
 
@@ -2824,13 +2862,13 @@ a.hm-device:hover .hm-device-go {
 	margin-top: 14px;
 }
 
-/* ---------- เส้นทางเริ่มต้น · บรรทัด "ใช้ได้สองทาง" ---------- */
+/* ---------- เส้นทางเริ่มต้น · บรรทัด "ใช้ได้สองทาง" ----------
+   กว้างเต็มคอลัมน์เท่าตารางขั้นตอนใต้กล่องและกล่องหมายเหตุท้ายบท (เดิมจำกัด 980px ขอบขวาจึงหยุดก่อนกล่องอื่นของบทราว 160px) */
 .hm-ways {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 8px 18px;
-	max-width: 980px;
 	margin: calc(clamp(36px, 5vw, 56px) * -0.45) 0 34px;
 	padding: 14px 18px;
 	border-radius: var(--hm-radius-sm);
@@ -2846,9 +2884,11 @@ a.hm-device:hover .hm-device-go {
 	color: var(--hm-accent);
 }
 
+/* ข้อความที่ยาวเกินหนึ่งบรรทัดแบ่งสองบรรทัดให้ยาวใกล้กัน (กล่องกว้างเต็มคอลัมน์แล้วบรรทัดล่างจะเหลือแค่ "ทั้งสองทาง") */
 .hm-ways-text {
 	flex: 1 1 340px;
 	min-width: 0;
+	text-wrap: balance;
 }
 
 .hm-ways-link {

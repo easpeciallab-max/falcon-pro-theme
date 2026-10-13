@@ -893,6 +893,34 @@
 	color: var(--ash-2);
 }
 
+/* ต่อท้ายเนื้อหายาว: เส้นคั่นกับบรรทัดวันที่ต้องอยู่บนคอลัมน์เนื้อหาของ .longform-layout (style.css) ไม่ใช่กรอบ 860px กลางหน้า
+   - กรอบกว้างเท่า .container ของเนื้อหายาว (จอ ≤ 1024px เนื้อหาเป็นคอลัมน์เดียวเต็มกรอบนี้)
+   - จอกว้างกว่า 1024px เนื้อหาเป็นสองคอลัมน์ (สารบัญ 260px + ช่องว่าง 56px | เนื้อหา): เว้นซ้าย 316px แล้วชิดซ้ายเท่าข้อความ
+     (เดิมเส้นยื่นออกทางซ้ายของคอลัมน์ 176px และสั้นกว่าทางขวา 140px วันที่อยู่กลางหน้า ไม่ตรงกับอะไรเลย)
+   - เนื้อหาที่ไม่มีสารบัญ (.longform-layout--solo) บนจอกว้าง = คอลัมน์ 820px กลางหน้า วันที่อยู่กลางเหมือนเดิม */
+.longform + .riskdoc-updated-wrap > .container-narrow {
+	width: min(1140px, calc(100% - 48px));
+}
+
+@media (min-width: 1025px) {
+	.longform + .riskdoc-updated-wrap > .container-narrow {
+		padding-left: 316px;
+	}
+
+	.longform + .riskdoc-updated-wrap .riskdoc-updated {
+		justify-content: flex-start;
+	}
+
+	.longform:has(.longform-layout--solo) + .riskdoc-updated-wrap > .container-narrow {
+		width: min(820px, calc(100% - 48px));
+		padding-left: 0;
+	}
+
+	.longform:has(.longform-layout--solo) + .riskdoc-updated-wrap .riskdoc-updated {
+		justify-content: center;
+	}
+}
+
 /* ==========================================================
    5) เพจเอกสาร (page.php · เกี่ยวกับเรา / นโยบาย / เงื่อนไข / ลบข้อมูล)
    ========================================================== */
@@ -1214,8 +1242,24 @@
 	gap: 6px;
 }
 
+/* หัวบทความเป็นพื้นดำในทุกโหมดสี (style.css "v3 · หัวบทความ") ไอคอนและลิงก์ในแถวนี้จึงใช้สีสำหรับพื้นดำเสมอ
+   (เดิมโหมดสว่างสลับไอคอนเป็น --flare ซึ่งเป็นเขียวเข้มสำหรับพื้นขาว จึงจมบนพื้นดำ) */
 .article-meta-item .icon {
 	color: var(--mint);
+}
+
+/* หมวดของบทความ: ลิงก์ธรรมดาในแถวข้อมูลใต้ชื่อบทความ (เดิมเป็นป้ายสีเขียวเหนือ H1 · เจ้าของสั่งให้หัวข้อยืนเดี่ยว)
+   ตัวหนาสีขาวต่างจากข้อความเทารอบข้าง + ขีดเส้นใต้เมื่อชี้หรือโฟกัส ให้รู้ว่ากดได้ */
+.article-meta-cat {
+	font-weight: 600;
+	color: #FFFFFF;
+}
+
+.article-meta-cat:hover,
+.article-meta-cat:focus-visible {
+	color: var(--mint);
+	text-decoration: underline;
+	text-underline-offset: 3px;
 }
 
 .article-hero .crumbs li:last-child span {
@@ -1230,10 +1274,6 @@
 .article-page .entry-content > .faq-block + *,
 .article-page .entry-content > * + .related-links {
 	margin-top: 1.8em;
-}
-
-.article-hero:not(.is-dark) .article-meta-item .icon {
-	color: var(--flare);
 }
 
 /* กล่องผู้เขียน */
@@ -1416,6 +1456,13 @@
    - .compare-wrap--cards: ตารางเปรียบเทียบแพ็กเกจ
    ========================================================== */
 @media (max-width: 640px) {
+	/* การ์ดทุกใบพื้นเท่ากัน: ลายสลับแถวของจอใหญ่ (.data-table tbody tr:nth-child(even) td ใน style.css · ความเจาะจง 0,2,3)
+	   ชนะตัวล้างใน components.css (.table-wrap--stack tr:nth-child(even) td · 0,2,2) การ์ดใบคู่จึงพื้นเทาอ่อน ใบคี่ขาว สลับกันทั้งตาราง
+	   ตัวเลือกนี้เจาะจงเท่ากฎของจอใหญ่และมาทีหลัง จึงชนะ · ต่ำกว่ากฎหัวการ์ดด้านล่าง หัวการ์ดจึงยังเป็นสีเทาตามเดิม */
+	.table-wrap--stack tbody tr:nth-child(even) td {
+		background: #FFFFFF;
+	}
+
 	.table-wrap--cards td:first-child {
 		display: block;
 		padding: 12px 16px;
@@ -1432,13 +1479,23 @@
 		display: none;
 	}
 
+	/* พื้นเข้ม: การ์ดของแต่ละแถวเป็นผู้ถือพื้นและเส้นขอบ ตัวห่อจึงต้องไม่วาดอะไรบนจอแคบ
+	   กฎ .is-dark .table-wrap (หัวข้อ 1) เจาะจงกว่าตัวล้าง .table-wrap--stack ใน components.css พื้นของตัวห่อจึงกลับมา
+	   แล้วโผล่เป็นแถบ 12px ใต้การ์ดใบสุดท้าย (ช่องไฟใต้การ์ด) และถมสีในช่องไฟระหว่างการ์ดจนการ์ดดูติดกัน */
+	.is-dark .table-wrap--stack {
+		border: 0;
+		background: none;
+	}
+
 	.is-dark .table-wrap--stack tr {
 		background: var(--black-2);
 		border-color: var(--border-dark);
 	}
 
+	/* แถวคู่: ต้องเจาะจงเท่ากฎลายสลับแถวบนพื้นเข้ม (.is-dark .data-table tbody tr:nth-child(even) td ในหัวข้อ 1 · 0,3,3)
+	   ไม่งั้นการ์ดใบคู่ยังได้พื้นจางของลายสลับแถว สีไม่เท่าการ์ดใบคี่ */
 	.is-dark .table-wrap--stack td,
-	.is-dark .table-wrap--stack tr:nth-child(even) td {
+	.is-dark .table-wrap--stack tbody tr:nth-child(even) td {
 		background: var(--black-2);
 		border-bottom-color: var(--border-dark);
 	}
@@ -1835,4 +1892,26 @@
 	.longform-toc-mob ol {
 		padding: 0 10px 12px;
 	}
+}
+
+/* ==========================================================
+   13) เครื่องคำนวณในเนื้อหา ([falcon_calc] ใน inc/shortcodes.php · สไตล์หลักอยู่ที่ style.css หัวข้อ "เครื่องคำนวณ")
+   อยู่ไฟล์นี้เพราะเครื่องคิดใช้ทั้งในหน้า /tools/ และในบทความ (guides.css โหลดเฉพาะหน้าคู่มือ)
+   ========================================================== */
+
+/* เครื่องคิด Lot มี 6 ช่อง · คอลัมน์กว้างอย่างน้อย 240px = จอกว้าง 3 ช่อง × 2 แถว · แท็บเล็ต 2 ช่อง × 3 แถว · มือถือ 1 คอลัมน์ (ทุกแถวเต็ม ไม่มีช่องว่างค้าง)
+   เดิมขั้นต่ำ 180px ได้ 4 ช่องต่อแถว ช่อง "สินทรัพย์" จึงกว้างแค่ 184px ค่าที่เลือกถูกลูกศรตัดกลางคำ และแถวล่างว่างครึ่งแถว
+   min(240px, 100%) กันกล่องล้นบนจอที่แคบกว่า 240px + ระยะขอบ */
+.calc[data-calc="lot"] .calc-grid {
+	grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+}
+
+/* ป้ายที่ยาวจนขึ้นสองบรรทัดต้องไม่ดันช่องกรอกในแถวเดียวกันให้เหลื่อมกัน */
+.calc-grid {
+	align-items: end;
+}
+
+/* ค่าที่ยาวเกินช่องบนจอแคบมาก จบด้วยจุดไข่ปลา ไม่ถูกตัดกลางตัวอักษร */
+.calc-field select {
+	text-overflow: ellipsis;
 }

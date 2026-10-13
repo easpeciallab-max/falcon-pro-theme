@@ -456,6 +456,9 @@ function fenix_go_tiles( $items, $class = '' ) {
 			continue;
 		}
 		$href = fenix_go_href( $item[1] );
+		/* ป้ายที่มี " / " (เช่น iPhone / iPad): ช่องว่างหน้าเครื่องหมายเป็นแบบไม่ตัดบรรทัด ป้ายในกระเบื้องแคบจึงตัดได้เฉพาะหลัง "/"
+		   ไม่มีบรรทัดที่ขึ้นต้นด้วย "/" (เดิมตัดเป็น "iPhone" กับ "/ iPad") · ตัวหนังสือที่เห็นและที่โปรแกรมอ่านหน้าจออ่านยังเป็นคำเดิม */
+		$label_html = str_replace( ' / ', "\u{00A0}/ ", esc_html( $label ) );
 		++$count;
 		if ( '' !== $href ) {
 			$html .= sprintf(
@@ -463,14 +466,14 @@ function fenix_go_tiles( $items, $class = '' ) {
 				esc_url( $href ),
 				fenix_go_is_external( $href ) ? ' target="_blank" rel="noopener"' : '',
 				fenix_icon( $item[2] ),
-				esc_html( $label )
+				$label_html
 			);
 			continue;
 		}
 		$html .= sprintf(
 			'<span class="lh-tile is-pending" role="link" aria-disabled="true"><span class="lh-tile-ic">%1$s</span><span class="lh-tile-lbl">%2$s</span>%3$s</span>',
 			fenix_icon( $item[2] ),
-			esc_html( $label ),
+			$label_html,
 			fenix_go_pending_tag()
 		);
 	}

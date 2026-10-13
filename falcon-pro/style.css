@@ -6371,6 +6371,32 @@ h3 {
 	color: #FFFFFF;
 }
 
+/* จอแคบ: breadcrumb อยู่บรรทัดเดียว · ระดับก่อนหน้าคงขนาดเดิม ชื่อหน้าปัจจุบันใช้ที่ที่เหลือแล้วตัดด้วยจุดไข่ปลา (H1 ข้างล่างพิมพ์ชื่อเต็มซ้ำอยู่แล้ว)
+   เดิม "หน้าแรก" ค้างอยู่บรรทัดแรกตัวเดียว แล้วเครื่องหมาย › ขึ้นต้นบรรทัดที่สองหรือลอยอยู่ข้างชื่อหน้าสองบรรทัด
+   ใช้กับหัวบทความด้วย (กฎ .article-hero .crumbs ใน assets/css/pages.css จำกัดความกว้างสูงสุดไว้ 34ch ยังมีผล) */
+@media (max-width: 640px) {
+	.crumbs ol {
+		flex-wrap: nowrap;
+	}
+
+	.crumbs li {
+		flex: 0 0 auto;
+		white-space: nowrap;
+	}
+
+	.crumbs li:last-child {
+		flex: 0 1 auto;
+		min-width: 0;
+	}
+
+	.crumbs li:last-child > a,
+	.crumbs li:last-child > span {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+}
+
 /* ---------- Long-form layout + สารบัญ ---------- */
 .section--flush-top {
 	padding-top: 56px;
@@ -6533,8 +6559,10 @@ h3 {
 	font-size: 0.9em;
 	color: var(--ink);
 	/* พาธยาวไม่มีช่องว่าง (เช่น ...\MetaQuotes\Terminal\...) ต้องตัดบรรทัดได้ ไม่งั้นหน้าเลื่อนด้านข้างบนจอ 360px
-	   ใช้ break-word (ไม่ใช่ anywhere) เพื่อไม่ให้ชื่อคุกกี้ในตารางของหน้ากฎหมายถูกหักกลางคำบนจอกว้าง */
+	   ใช้ break-word (ไม่ใช่ anywhere) เพื่อไม่ให้ชื่อคุกกี้ในตารางของหน้ากฎหมายถูกหักกลางคำบนจอกว้าง
+	   จุดตัดของพาธมาจาก fenix_nobreak_path() (inc/modules/infra.php): ตัดได้เฉพาะหลัง \ หรือ / · break-word เหลือไว้สำหรับชิปยาวที่ไม่มีตัวคั่น */
 	overflow-wrap: break-word;
+	/* ไม่ใช้ box-decoration-break: clone กับชิปหลายบรรทัด: Chrome ไม่กันที่ให้ช่องไฟท้ายบรรทัดตอนตัดบรรทัด พื้นของชิปจึงล้นคอลัมน์ข้อความ 3 ถึง 6px */
 }
 
 .guide-content img {
@@ -6640,8 +6668,12 @@ h3 {
 	color: var(--bad);
 }
 
-/* ขั้นตอน */
-.guide-steps {
+/* ขั้นตอน
+   ตัวเลือกที่นำหน้าด้วย .entry-content / .guide-content: กฎรายการทั่วไปของเนื้อหายาว (.entry-content ol ที่หัวข้อ 22) เจาะจงกว่าคลาสเดียว
+   เคยชนะจนการ์ดเรียงแบบ block ไม่มีช่องไฟ (ขอบการ์ดติดกัน 0px) และเยื้องขวา 1.4em จากคอลัมน์ข้อความ ทั้งในเพจและบทความ */
+.guide-steps,
+.entry-content .guide-steps,
+.guide-content .guide-steps {
 	list-style: none;
 	counter-reset: gstep;
 	display: grid;
@@ -6770,13 +6802,28 @@ h3 {
 	margin: 0;
 }
 
+/* กฎรายการทั่วไปของเนื้อหายาวเจาะจงกว่ากฎของกล่องนี้ (.guide-content ul:not([class]) กับ li ของมัน · .entry-content ul)
+   จึงเคยใส่เยื้องซ้าย 1.3em ให้ลิงก์ (ไม่ตรงกับหัวข้อ) และเพิ่มขอบล่าง 1em + ขอบของข้อสุดท้ายใต้ลิงก์ตัวท้าย (ล่าง 50px บน 22px)
+   ล้างเฉพาะระยะ ไม่แตะ grid-template-columns: กฎจอแคบ (.related-links ul ที่ max-width 640px) ต้องยังชนะ */
+.entry-content .related-links ul,
+.guide-content .related-links ul {
+	margin: 0;
+	padding: 0;
+}
+
+.entry-content .related-links ul li,
+.guide-content .related-links ul li {
+	margin: 0;
+}
+
 .related-links a {
 	text-decoration: none !important;
 	font-weight: 500;
 }
 
+/* ช่องว่างไม่ตัดบรรทัด (U+00A0) หน้าลูกศร: ลูกศรติดกับคำสุดท้ายของลิงก์เสมอ ไม่ตกไปอยู่บรรทัดใหม่ตัวเดียว */
 .related-links a::after {
-	content: " →";
+	content: "\00A0→";
 }
 
 .sc-line {
@@ -8159,6 +8206,53 @@ body.theme-dark .page-body {
 .kc {
 	display: contents;
 	text-transform: none;
+}
+
+/* span.nb มาจากบัฟเฟอร์เดียวกัน (fenix_nobreak_text / fenix_nobreak_path ใน inc/modules/infra.php) ห่อคำที่ห้ามตัดบรรทัดกลางคำ:
+   คำทับศัพท์ที่ตัวตัดคำไทยของเบราว์เซอร์ไม่รู้จัก (ออเดอร์ แดชบอร์ด รีสตาร์ต ...) และท่อนของพาธในชิป <code>
+   - display: contents เหมือน .kc: ไม่มีกล่องของตัวเอง ข้อความที่เป็นลูกตรงของแถว flex/grid จึงไม่ถูกแยกเป็นชิ้น (ลองแล้ว white-space ยังมีผลกับตัวอักษรข้างใน)
+   - !important ที่ display และชุด inherit: กฎกว้าง ๆ แบบ ".calc-field span { display: block; font-size ... }" หรือ ".price-amt span { ... }"
+     เจาะจงกว่าคลาสเดียว ถ้าปล่อยให้ชนะ คำที่ถูกห่อจะหลุดไปขึ้นบรรทัดของตัวเองหรือเปลี่ยนขนาด/สี · span นี้ต้องหน้าตาเหมือนข้อความรอบตัวเสมอ
+   - ช่องว่างกว้างศูนย์ (U+200B) ที่บัฟเฟอร์ใส่ไว้หน้าและหลังคำ = จุดตัดบรรทัดที่ถูกต้อง และกันไม่ให้คำข้างเคียงถูกตัดผิดตามไปด้วย
+     (จำ|นวนออเดอร์) · ทำตาม white-space ของบริบท: ในกล่องที่เป็น nowrap (breadcrumb ป้าย dock ปุ่ม) ไม่มีการตัดบรรทัดเพิ่ม */
+span.nb {
+	display: contents !important;
+	white-space: nowrap;
+	font: inherit !important;
+	color: inherit !important;
+	letter-spacing: inherit !important;
+}
+
+/* ==========================================================
+   v3 · การตัดบรรทัดของข้อความสั้นและย่อหน้า (ของเสริม: เบราว์เซอร์รุ่นเก่าที่ไม่รู้จัก text-wrap-style ข้ามบรรทัดนี้ไปเฉย ๆ)
+   - pretty (ทั้งหน้า สืบทอดจาก body): ย่อหน้า รายการ ช่องตาราง เลี่ยงคำเดียวค้างบรรทัดสุดท้ายโดยไม่เกลี่ยทั้งย่อหน้า ("...ไม่" / "ได้")
+   - balance: ข้อความสั้นที่อาจยาวเกินหนึ่งบรรทัด (หัวข้อ ปุ่ม คำโปรยใต้ชื่อหน้า ชื่อการ์ด คำถาม FAQ)
+     เกลี่ยทุกบรรทัดให้ยาวพอกัน ไม่เหลือคำเดียวค้างบรรทัดสุดท้าย ("...ทีละ" / "ขั้น" · ปุ่ม "...ก่อน" / "สมัคร")
+   ใช้ text-wrap-style (ตัวย่อย) ไม่ใช้ text-wrap: ตัวย่อ text-wrap ตั้ง text-wrap-mode กลับเป็น wrap ไปด้วย
+   จึงยกเลิก white-space: nowrap ของกฎที่เจาะจงน้อยกว่าหรือมาก่อน (ปุ่มและป้ายที่ตั้งใจให้อยู่บรรทัดเดียวจะกลับมาตัดบรรทัด)
+   ไม่เปลี่ยนขนาดตัวอักษรหรือความกว้างของกล่อง · ค่านี้สืบทอดลงลูก จึงครอบข้อความใน span ของปุ่มด้วย
+   ========================================================== */
+body {
+	text-wrap-style: pretty;
+}
+
+h1,
+h2,
+h3,
+h4,
+.btn,
+button,
+[role="tab"],
+summary,
+label,
+.phero-sub {
+	text-wrap-style: balance;
+}
+
+/* ช่องพิมพ์และโค้ดหลายบรรทัด: ตัดบรรทัดแบบปกติ (ข้อความไม่ขยับไปมาระหว่างพิมพ์) */
+pre,
+textarea {
+	text-wrap-style: auto;
 }
 
 /* เพจเอกสารที่หัวข้อพิมพ์เลขข้อไว้เอง ("1. ...") : สารบัญไม่ใส่เลขลำดับซ้ำ (คลาสมาจาก page.php) */

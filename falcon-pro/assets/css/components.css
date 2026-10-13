@@ -251,26 +251,62 @@
 		overflow: hidden;
 	}
 
+	/* ช่องของการ์ด = ตารางย่อยสองคอลัมน์: ป้าย (::before เป็น table-cell) ทางซ้าย · เนื้อหาทั้งช่องทางขวา
+	   เดิมเป็น grid: ช่องที่มีข้อความ ลิงก์ แล้วข้อความต่อ ถูกแยกเป็นชิ้น grid ทีละท่อน ประโยคท้ายจึงตกไปอยู่ในคอลัมน์ป้ายแคบ ๆ
+	   แบบตาราง: ทุกอย่างที่ไม่ใช่ table-cell ถูกเบราว์เซอร์รวมเป็นช่องเดียวเอง (anonymous table-cell) ไม่ว่าข้างในมีแท็กอะไร
+	   border-collapse: separate เพราะค่า collapse ที่รับมาจาก .data-table ทำให้ padding ของช่องหาย */
 	.table-wrap--stack td {
-		display: grid;
-		grid-template-columns: minmax(96px, 38%) 1fr;
-		gap: 10px;
+		display: table;
+		table-layout: fixed;
+		width: 100%;
+		border-collapse: separate;
+		border-spacing: 0;
 		border-bottom: 1px solid var(--border);
+		overflow-wrap: break-word;
 	}
 
+	/* คอลัมน์ป้ายกว้าง 42% ของช่อง (รวมช่องไฟ 10px) · ป้ายมาจากแอตทริบิวต์ จึงห่อคำด้วย span ไม่ได้:
+	   balance เกลี่ยป้ายที่ยาวเกินหนึ่งบรรทัดให้สองบรรทัดยาวพอกัน ไม่เหลือพยางค์เดียวค้างบรรทัดล่าง */
 	.table-wrap--stack td::before {
 		content: attr(data-label);
+		display: table-cell;
+		width: 42%;
+		padding-right: 10px;
 		font-weight: 600;
 		font-size: 0.8rem;
 		color: var(--ash-2);
+		text-wrap-style: balance;
 	}
 
-	.table-wrap--stack tr:nth-child(even) td {
-		background: #FFFFFF;
+	/* ช่องที่ไม่มีป้าย: ไม่จองคอลัมน์ว่างไว้ทางซ้าย */
+	.table-wrap--stack td:not([data-label])::before {
+		content: none;
 	}
 
-	.table-wrap--stack td:last-child {
+	/* พื้นของการ์ดใบคู่ (ล้างลายสลับแถวของจอใหญ่) อยู่ที่ assets/css/pages.css หัวข้อ 9 ทั้งโทนสว่างและโทนเข้ม:
+	   กฎที่เคยอยู่ตรงนี้ (.table-wrap--stack tr:nth-child(even) td · ความเจาะจง 0,2,2) แพ้กฎลายสลับแถวใน style.css (0,2,3) จึงไม่เคยมีผล
+	   ตัวล้างต้องเจาะจงไม่เกิน 0,2,3 ไม่งั้นจะทับสีหัวการ์ดของ .table-wrap--cards (0,3,2 ใน pages.css) */
+
+	/* การ์ดใบสุดท้ายของตาราง: กฎจอใหญ่ .data-table tbody tr:last-child td ลบเส้นใต้ของทุกช่องในแถวท้าย
+	   การ์ดใบท้ายจึงไม่มีเส้นคั่นระหว่างช่องเหมือนใบอื่น · ใส่เส้นกลับ (สีตามโทนพื้น) แล้วให้ช่องสุดท้ายของทุกการ์ดไม่มีเส้นตามเดิม */
+	.table-wrap--stack .data-table tbody tr:last-child td {
+		border-bottom: 1px solid var(--border);
+	}
+
+	.is-dark .table-wrap--stack .data-table tbody tr:last-child td {
+		border-bottom-color: var(--border-dark);
+	}
+
+	.table-wrap--stack td:last-child,
+	.table-wrap--stack .data-table tbody tr td:last-child {
 		border-bottom: 0;
+	}
+
+	/* พื้นเข้ม: กฎ .is-dark .table-wrap (assets/css/pages.css) ใส่พื้นและขอบกลับให้กรอบนอก จึงเห็นแถบสีของกรอบโผล่ใต้การ์ดใบสุดท้าย
+	   (ช่องไฟ 12px ใต้การ์ด) · จอแคบกรอบนอกไม่มีหน้าตา มีแต่การ์ด */
+	.is-dark .table-wrap.table-wrap--stack {
+		border: 0;
+		background: none;
 	}
 }
 

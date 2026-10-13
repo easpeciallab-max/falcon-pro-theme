@@ -360,7 +360,7 @@ function fenix_pages_customizer_sections( $sections, $d ) {
 			'article_reading_text'    => array( 'บทความ · เวลาอ่านโดยประมาณ ({n} = นาที)', 'text' ),
 			'article_toc_label'       => array( 'บทความ · หัวกล่องสารบัญ', 'text' ),
 			'article_share_label'     => array( 'บทความ · ข้อความหน้าปุ่มแชร์', 'text' ),
-			'article_author_kicker'   => array( 'กล่องผู้เขียน · ป้ายเล็ก', 'text' ),
+			'article_author_kicker'   => array( 'กล่องผู้เขียน · ป้ายเล็ก', 'text', 'แสดงเหนือชื่อเฉพาะเมื่อเปิด "แสดงคำเล็กเหนือหัวข้อ" (หมวด 1) · ปิดอยู่ = ไม่แสดงบนหน้า แต่ยังเป็นชื่อของกล่องสำหรับโปรแกรมอ่านหน้าจอ' ),
 			'article_author_name'     => array( 'กล่องผู้เขียน · ชื่อ', 'text' ),
 			'article_author_bio'      => array( 'กล่องผู้เขียน · คำอธิบาย (ข้อเท็จจริงเท่านั้น)', 'textarea' ),
 			'article_author_link'     => array( 'กล่องผู้เขียน · ข้อความลิงก์ไปเพจเกี่ยวกับเรา', 'text' ),

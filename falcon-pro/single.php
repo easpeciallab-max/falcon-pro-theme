@@ -3,7 +3,7 @@
  * บทความเดี่ยว (คอนเทนต์ SEO)
  *
  * โครง:
- * แถบอ่าน → หัวบทความพื้นเข้ม (breadcrumb · หมวด · H1 · วันที่เผยแพร่/อัปเดต · เวลาอ่าน)
+ * แถบอ่าน → หัวบทความพื้นเข้ม (breadcrumb · H1 · แถวข้อมูล: หมวด · วันที่เผยแพร่/อัปเดต · เวลาอ่าน)
  * → รูปหน้าปก (alt จากคลังสื่อ) → สารบัญ → เนื้อหา (พื้นขาว อ่านง่าย) → แชร์ → ป้ายกำกับ
  * → กล่องผู้เขียน (ลิงก์ไปเพจเกี่ยวกับเรา) → คำเตือนความเสี่ยง → บทความในหมวดเดียวกัน (พื้นเข้ม) → บล็อกติดต่อ (ติดส่วนท้ายเว็บ)
  *
@@ -39,13 +39,16 @@ while ( have_posts() ) :
 				<div class="container container-narrow">
 					<?php fenix_pages_crumbs( wp_strip_all_tags( get_the_title() ) ); ?>
 
-					<?php if ( $fenix_cat ) : ?>
-						<a class="article-cat" href="<?php echo esc_url( get_category_link( $fenix_cat->term_id ) ); ?>"><?php echo esc_html( $fenix_cat->name ); ?></a>
-					<?php endif; ?>
-
+					<?php /* ไม่มีป้ายหมวดเหนือ H1 (เจ้าของสั่งให้หัวข้อยืนเดี่ยว) · หมวดเป็นลิงก์ธรรมดาในแถววันที่และเวลาอ่านใต้ชื่อบทความ */ ?>
 					<h1 class="article-title"><?php echo fenix_text( wp_strip_all_tags( get_the_title() ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside fenix_text ?></h1>
 
 					<div class="article-meta">
+						<?php if ( $fenix_cat ) : ?>
+							<a class="article-meta-item article-meta-cat" href="<?php echo esc_url( get_category_link( $fenix_cat->term_id ) ); ?>">
+								<?php echo fenix_icon( 'tag', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+								<span><?php echo esc_html( $fenix_cat->name ); ?></span>
+							</a>
+						<?php endif; ?>
 						<?php if ( '' !== $fenix_meta['published'] ) : ?>
 							<span class="article-meta-item">
 								<?php echo fenix_icon( 'clock', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
@@ -119,11 +122,19 @@ while ( have_posts() ) :
 					}
 					?>
 
-					<?php if ( '' !== $fenix_author ) : ?>
-						<aside class="author-box">
+					<?php
+					if ( '' !== $fenix_author ) :
+						/* ป้าย "ผู้เขียน" เป็นคำเล็กเหนือชื่อ (เจ้าของสั่งให้หัวข้อยืนเดี่ยว): มองเห็นเฉพาะเมื่อเปิด "คำเล็กเหนือหัวข้อ" (show_kickers)
+						 * ข้อความเดียวกันเป็นชื่อของกล่อง (aria-label) เสมอ โปรแกรมอ่านหน้าจอจึงยังรู้ว่ากล่องนี้คือผู้เขียน */
+						$fenix_author_label  = trim( (string) fenix_mod( 'article_author_kicker' ) );
+						$fenix_author_kicker = fenix_kicker( $fenix_author_label );
+						?>
+						<aside class="author-box"<?php echo '' !== $fenix_author_label ? ' aria-label="' . esc_attr( $fenix_author_label ) . '"' : ''; ?>>
 							<?php echo fenix_icon_badge( 'users', 'dark' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 							<div class="author-box-body">
-								<span class="card-label"><?php echo esc_html( fenix_mod( 'article_author_kicker' ) ); ?></span>
+								<?php if ( '' !== $fenix_author_kicker ) : ?>
+									<span class="card-label"><?php echo esc_html( $fenix_author_kicker ); ?></span>
+								<?php endif; ?>
 								<p class="author-box-name"><?php echo esc_html( $fenix_author ); ?></p>
 								<?php if ( fenix_pages_has( fenix_mod( 'article_author_bio' ) ) ) : ?>
 									<p class="author-box-bio"><?php echo esc_html( fenix_mod( 'article_author_bio' ) ); ?></p>

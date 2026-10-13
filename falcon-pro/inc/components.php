@@ -116,6 +116,7 @@ function fenix_contact_button( $args = array() ) {
 /**
  * กันการตัดบรรทัดกลางคำใน HTML ที่ escape แล้ว (แก้เฉพาะช่วงข้อความ ไม่แตะแท็ก)
  * - คำละตินที่มียัติภังค์ (เช่น Stop-Loss) ห่อด้วย span.nobr
+ * - จุดคั่นกลาง " · " ไม่ขึ้นต้นบรรทัดใหม่ (ติดกับคำข้างหน้า)
  * - $thai = true: ใส่ word joiner ที่รอยต่อคำไทยที่เบราว์เซอร์มักตัดผิด (แก้รายการได้ด้วยฟิลเตอร์ fenix_keep_words)
  */
 function fenix_keep_words( $html, $thai = true ) {
@@ -143,6 +144,9 @@ function fenix_keep_words( $html, $thai = true ) {
 		if ( '' === $part || '<' === $part[0] ) {
 			continue;
 		}
+		/* " · " ที่คั่นสองส่วนของหัวข้อ: ผูกจุดไว้กับคำข้างหน้าด้วยช่องว่างไม่ตัดบรรทัด (U+00A0)
+		 * บรรทัดใหม่จึงไม่ขึ้นต้นด้วยจุด ("FALCON PRO EA คืออะไร ·" / "EA เทรดทองคำ ...") · ช่องว่างหลังจุดยังตัดบรรทัดได้ตามเดิม */
+		$part = str_replace( ' · ', "\u{00A0}· ", $part );
 		if ( $from ) {
 			$part = str_replace( $from, $to, $part );
 		}

@@ -776,7 +776,7 @@ function fenix_guide_fields( $p ) {
 	$fields += fenix_guide_step_fields( $p . '_step' );
 
 	if ( in_array( $p, fenix_guide_dl_prefixes(), true ) ) {
-		$fields[ $p . '_dl_title' ] = array( 'การ์ดดาวน์โหลดแอป (ใต้ขั้นที่ 1) · หัวข้อ', 'text' );
+		$fields[ $p . '_dl_title' ] = array( 'การ์ดดาวน์โหลดแอป (ใต้ขั้นที่ 1) · หัวข้อ', 'text', 'แสดงเป็นบรรทัดเล็กเหนือการ์ดเฉพาะเมื่อเปิด "แสดงคำเล็กเหนือหัวข้อ" (หมวด 1) · ปิดอยู่ = ไม่แสดงบนหน้า แต่ยังเป็นชื่อของรายการการ์ดสำหรับโปรแกรมอ่านหน้าจอ' );
 		for ( $d = 1; $d <= fenix_guide_dl_count(); $d++ ) {
 			$fields[ $p . '_dl' . $d . '_label' ] = array( 'การ์ดที่ ' . $d . ' · ชื่อแอป/แพลตฟอร์ม (เว้นว่าง = ซ่อนการ์ด)', 'text' );
 			$fields[ $p . '_dl' . $d . '_sub' ]   = array( 'การ์ดที่ ' . $d . ' · บรรทัดรอง', 'text' );
@@ -1214,15 +1214,20 @@ function fenix_guide_store_cards( $p ) {
 	if ( empty( $cards ) ) {
 		return;
 	}
+	/* หัวข้อของแถวการ์ดเป็นคำเล็กเหนือการ์ดที่มีชื่อของตัวเองอยู่แล้ว (เจ้าของสั่งให้หัวข้อยืนเดี่ยว)
+	 * บรรทัดที่มองเห็นจึงพิมพ์เฉพาะเมื่อเปิด "คำเล็กเหนือหัวข้อ" (show_kickers · หมวด 1) · ปิด (ค่าเริ่มต้น) = ไม่พิมพ์บรรทัดนี้
+	 * แล้วใช้ข้อความเดียวกันเป็นชื่อของรายการ (aria-label) โปรแกรมอ่านหน้าจอจึงยังรู้ว่าการ์ดชุดนี้คืออะไร
+	 * role="list" มาคู่กัน เพราะ VoiceOver ไม่นับ <ul> ที่ list-style: none เป็นรายการ ชื่อจึงไม่ถูกอ่าน */
 	$title  = trim( (string) fenix_mod( $p . '_dl_title' ) );
+	$kicker = fenix_kicker( $title );
 	$btn    = trim( (string) fenix_mod( 'guides_dl_btn' ) );
 	$newtab = trim( (string) fenix_mod( 'guides_newtab' ) );
 	?>
 	<div class="gd-dl reveal">
-		<?php if ( '' !== $title ) : ?>
-			<p class="gd-dl-title"><?php echo fenix_icon( 'download', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo fenix_text( $title ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?></span></p>
+		<?php if ( '' !== $kicker ) : ?>
+			<p class="gd-dl-title"><?php echo fenix_icon( 'download', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo fenix_text( $kicker ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?></span></p>
 		<?php endif; ?>
-		<ul class="gd-dl-cards" data-count="<?php echo esc_attr( (string) count( $cards ) ); ?>">
+		<ul class="gd-dl-cards" data-count="<?php echo esc_attr( (string) count( $cards ) ); ?>"<?php echo ( '' !== $title && '' === $kicker ) ? ' role="list" aria-label="' . esc_attr( $title ) . '"' : ''; ?>>
 			<?php foreach ( $cards as $card ) : ?>
 				<li class="gd-dl-card">
 					<div class="gd-dl-head">

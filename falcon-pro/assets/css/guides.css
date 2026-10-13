@@ -104,6 +104,21 @@
 	margin-top: 0.9em;
 }
 
+/* รายการในเกริ่นนำและในหมายเหตุของกล่อง (fenix_rich_text: บรรทัด "- " / "1. ") · ธีมล้าง padding ของ ul/ol เป็น 0
+   จุดนำจึงห้อยออกนอกคอลัมน์ข้อความ (จอ 375px จุดอยู่ห่างขอบจอแค่ 6px ขณะที่ข้อความเริ่มที่ 24px)
+   เยื้องเท่ารายการในคำอธิบายขั้นตอน (.gd-step-desc) จุดนำจึงอยู่ในคอลัมน์ แนวเดียวกับขอบซ้ายของย่อหน้าด้านบน */
+.gd-intro ul,
+.gd-intro ol,
+.gd-box-note ul,
+.gd-box-note ol {
+	padding-left: 1.3em;
+}
+
+.gd-intro li + li,
+.gd-box-note li + li {
+	margin-top: 0.35em;
+}
+
 .gd-intro a,
 .gd-box a,
 .gd-step-desc a {

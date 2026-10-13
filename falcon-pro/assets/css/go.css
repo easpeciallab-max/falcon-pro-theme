@@ -108,6 +108,11 @@ body.link-hub-page {
 	text-wrap: balance;
 }
 
+/* บรรทัดของคำโปรย (template-go.php): บล็อกละบรรทัด เพื่อให้ balance เกลี่ยแต่ละบรรทัดแยกกัน */
+.lh-tagline-line {
+	display: block;
+}
+
 .lh-badges {
 	display: flex;
 	flex-wrap: wrap;
@@ -211,9 +216,11 @@ a.lh-btn:hover {
 	height: 18px;
 }
 
+/* ป้ายปุ่มที่ต้องขึ้นสองบรรทัดบนมือถือแบ่งให้สองบรรทัดยาวใกล้กัน (เดิม "คำนวณ LOT ก่อนเปิดใช้" / "งานจริง" คำว่า ใช้งาน ถูกตัดและเหลือเศษคำค้างบรรทัดล่าง) */
 .lh-lbl {
 	flex: 1 1 auto;
 	min-width: 0;
+	text-wrap: balance;
 }
 
 .lh-ar {
@@ -520,15 +527,19 @@ a.lh-mini-btn:hover {
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+/* เนื้อหาเรียงจากขอบบนด้วยระยะคงที่ (ไม่จัดกึ่งกลางแนวตั้ง): ไอคอนของกระเบื้องในแถวเดียวกันจึงอยู่ระดับเดียวกันเสมอ
+   แม้ป้ายของบางใบขึ้นสองบรรทัดหรือมีป้าย "เร็ว ๆ นี้" (เดิมใบที่ป้ายสองบรรทัด ไอคอนลอยสูงกว่าใบข้าง ๆ 8px)
+   ป้ายบรรทัดเดียวยังอยู่กลางใบเหมือนเดิม: 15px + ไอคอน 24px + 6px + ป้าย 16px = 61px ในความสูงขั้นต่ำ 78px (ขอบบนล่างข้างละ 1px) เหลือใต้ป้าย 15px
+   ขอบข้าง 10px = ระยะต่ำสุดระหว่างป้ายกับเส้นขอบของใบ (เดิม 6px ป้าย "WINDOWS" ห่างเส้นขอบแค่ 6 ถึง 7px บนมือถือ) */
 .lh-tile {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	justify-content: center;
+	justify-content: flex-start;
 	gap: 6px;
 	min-width: 0;
 	min-height: 78px;
-	padding: 10px 6px;
+	padding: 15px 10px 12px;
 	border-radius: 16px;
 	border: 1px solid var(--lh-line);
 	background: var(--lh-surface);
@@ -757,6 +768,19 @@ a.lh-tile:hover .lh-tile-lbl {
 	}
 }
 
+/* มือถือ: กระเบื้อง 3 ใบต่อแถวกว้างใบละ 81 ถึง 99px ไม่พอให้ป้าย "iPhone / iPad" อยู่บรรทัดเดียว และป้าย "WINDOWS" เหลือที่ถึงเส้นขอบไม่ถึง 10px
+   → เรียง 2 ใบต่อแถว ใบที่สามกินเต็มแถว (ไม่เหลือช่องว่างข้างใบเดี่ยว) ป้ายทุกใบอยู่บรรทัดเดียว ไอคอนในแถวเดียวกันอยู่ระดับเดียวกัน
+   จอ 481px ขึ้นไปใบกว้างอย่างน้อย 116px จึงเรียง 3 ใบตามเดิม (กฎนี้เดิมใช้ที่ 360px ลงไป และใบที่สามค้างครึ่งแถว) */
+@media (max-width: 480px) {
+	.lh-tiles--3 {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.lh-tiles--3 > :last-child {
+		grid-column: 1 / -1;
+	}
+}
+
 @media (max-width: 360px) {
 	.lh-card {
 		padding-left: 14px;
@@ -765,10 +789,6 @@ a.lh-tile:hover .lh-tile-lbl {
 
 	.lh-step {
 		padding-left: 42px;
-	}
-
-	.lh-tiles--3 {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
 

@@ -485,11 +485,16 @@ function fenix_sc_calc( $atts ) {
 					<span>ระยะ Stop Loss (pips)</span>
 					<input type="number" inputmode="decimal" min="0" step="0.1" value="50" data-in="sl">
 				</label>
+				<?php
+				/* ป้ายของตัวเลือกต้องสั้นพอให้อ่านครบในช่องที่ปิดอยู่: บนจอ 360px ช่องกว้าง 276px เหลือที่ให้ข้อความราว 230px
+				 * และ <select> ตัดบรรทัดไม่ได้ (ป้ายเดิมยาว 290 ถึง 320px จึงถูกตัดกลางคำทั้งบนมือถือและบนจอกว้าง)
+				 * ขนาดสัญญาของทองคำและตัวอย่างคู่เงินอื่นอยู่ในคำอธิบายใต้เครื่องคิดของหน้า /tools/ แล้ว · ความกว้างของช่องอยู่ที่ assets/css/pages.css หัวข้อ 13 */
+				?>
 				<label class="calc-field">
 					<span>สินทรัพย์ (ค่าอ้างอิง)</span>
 					<select data-in="preset">
-						<option value="10">EURUSD / GBPUSD / AUDUSD · บัญชี USD</option>
-						<option value="10">XAUUSD · สัญญา 100 oz (1 pip = 0.10)</option>
+						<option value="10">EURUSD · บัญชี USD</option>
+						<option value="10">XAUUSD · 1 pip = 0.10</option>
 						<option value="custom">กำหนดมูลค่า pip เอง</option>
 					</select>
 				</label>

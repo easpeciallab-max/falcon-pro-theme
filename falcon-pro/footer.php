@@ -76,7 +76,8 @@ $fenix_stat = trim( (string) fenix_mod( 'footer_status_text' ) );
 		fenix_chrome_footer_contact();
 		?>
 
-		<nav class="ft-index<?php echo ( 1 === $fenix_cols % 2 ) ? ' ft-index--odd' : ''; ?>" aria-label="ลิงก์ท้ายเว็บ">
+		<?php /* ft-index--spec = มีคอลัมน์ข้อมูลระบบ (รายการมีเส้นปิดท้ายของตัวเอง): chrome.css ใช้ตัดเส้นบนของแถวสมาชิกเมื่อคอลัมน์นี้กินเต็มแถวสุดท้าย ไม่ให้มีเส้นซ้อนสองเส้น */ ?>
+		<nav class="ft-index<?php echo ( 1 === $fenix_cols % 2 ) ? ' ft-index--odd' : ''; ?><?php echo $fenix_specs ? ' ft-index--spec' : ''; ?>" aria-label="ลิงก์ท้ายเว็บ">
 			<?php if ( $fenix_index ) : ?>
 			<div class="ft-col">
 				<h3 class="ft-col-title"><?php echo esc_html( fenix_mod( 'footer_index_title' ) ); ?></h3>

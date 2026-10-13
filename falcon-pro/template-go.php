@@ -114,7 +114,17 @@ add_filter( 'body_class', 'fenix_go_body_class', 99 );
 			<h1 class="lh-title"><?php echo fenix_text( $fenix_go_title ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in fenix_text ?></h1>
 
 			<?php if ( '' !== $fenix_go_tagline ) : ?>
-				<p class="lh-tagline"><?php echo nl2br( fenix_text( $fenix_go_tagline ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in fenix_text ?></p>
+				<?php
+				/* แต่ละบรรทัดของคำโปรยเป็นบล็อกของตัวเอง (span.lh-tagline-line · display: block ใน assets/css/go.css) แทน <br>:
+				 * text-wrap: balance ของ .lh-tagline ไม่ทำงานกับย่อหน้าที่มีการขึ้นบรรทัดบังคับ บรรทัดที่สองจึงเคยเหลือคำว่า "ด้านล่าง" ค้างอยู่บรรทัดเดียวบนมือถือ */
+				$fenix_go_tag_lines = array();
+				foreach ( preg_split( '/\r\n|\r|\n/', $fenix_go_tagline ) as $fenix_go_tag_line ) {
+					if ( '' !== trim( $fenix_go_tag_line ) ) {
+						$fenix_go_tag_lines[] = '<span class="lh-tagline-line">' . fenix_text( trim( $fenix_go_tag_line ) ) . '</span>';
+					}
+				}
+				?>
+				<p class="lh-tagline"><?php echo implode( ' ', $fenix_go_tag_lines ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in fenix_text ?></p>
 			<?php endif; ?>
 
 			<?php if ( $fenix_go_badges ) : ?>
