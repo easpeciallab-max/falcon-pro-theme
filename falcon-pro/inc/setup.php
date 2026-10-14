@@ -220,6 +220,12 @@ function fenix_seed_article_covers() {
 		'backtest-mt5-how-to'         => 'falcon-pro-ea-mt5-laptop-falcon.webp',
 		'cpi'                         => 'falcon-pro-ea-mt5-navigator.webp',
 		'blown-account'               => 'falcon-pro-ea-mt5-settings-panel.webp',
+		'ea-no-stop-loss'             => 'falcon-pro-ea-mt5-settings-panel.webp',
+		'gold-bot-losses'             => 'falcon-pro-ea-mt5-mobile-xauusd.webp',
+		'mt5-login-failed'            => 'falcon-pro-ea-mt5-phone-watch.webp',
+		'gold-price-drivers'          => 'falcon-pro-ea-mt5-mobile-xauusd.webp',
+		'ai-gold-trading'             => 'falcon-pro-ea-mt5-ea-status-panel.webp',
+		'investor-password'           => 'falcon-pro-ea-mt5-phone-watch.webp',
 	);
 }
 
