@@ -333,6 +333,29 @@ $check( 'F: published posts are never refreshed', false === fenix_setup_refresh_
 $row->post_status = 'future';
 $check( 'F: scheduled posts are never refreshed', false === fenix_setup_refresh_draft( $find(), $arts[ $slug ] ) && 'old import' === $row->post_content );
 
+// ---- G · the "update articles" button: unedited published and scheduled posts follow the seed, status and date stay -------
+$seed();
+fenix_setup_release_to_total( 6, 2 );
+$pub = array_values( $by( 'publish' ) );
+$fut = array_values( $by( 'future' ) );
+$p1  = $pub[0];
+$f1  = $fut[0];
+$p2  = $pub[1];
+$p1->post_content = 'old text of a published article';
+$f1->post_content = 'old text of a scheduled article';
+foreach ( array( $p1, $f1, $p2 ) as $r ) {
+	update_post_meta( $r->ID, 'fenix_seed_hash', fenix_seed_fingerprint( fenix_find_post( $r->post_name ) ) );
+}
+$p2->post_content = 'the owner rewrote this published article';
+$d1   = array( $p1->post_date, $p1->post_date_gmt, $f1->post_date, $f1->post_date_gmt );
+$glog = implode( "\n", fenix_setup_refresh_articles() );
+$check( 'G: unedited published article follows the seed file', fenix_seed_content( $arts[ $p1->post_name ]['content'] ) === $p1->post_content );
+$check( 'G: it stays published with the same date', 'publish' === $p1->post_status && $d1[0] === $p1->post_date && $d1[1] === $p1->post_date_gmt, $p1->post_status . ' ' . $p1->post_date );
+$check( 'G: unedited scheduled article follows the seed file', fenix_seed_content( $arts[ $f1->post_name ]['content'] ) === $f1->post_content );
+$check( 'G: it stays scheduled for the same slot', 'future' === $f1->post_status && $d1[2] === $f1->post_date && $d1[3] === $f1->post_date_gmt, $f1->post_status . ' ' . $f1->post_date );
+$check( 'G: a published article the owner edited is left alone', 'the owner rewrote this published article' === $p2->post_content && false !== strpos( $glog, $arts[ $p2->post_name ]['title'] ) );
+$check( 'G: second run changes nothing', 0 === substr_count( implode( "\n", fenix_setup_refresh_articles() ), '↻' ) );
+
 // ---- H · a draft the owner edited is released with the owner's text ------------------------
 $seed();
 $row = $GLOBALS['fx_db'][ $order[0] ];

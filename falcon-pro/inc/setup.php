@@ -980,12 +980,13 @@ function fenix_seed_fingerprint( $post ) {
  *   ห้ามใช้ post_modified === post_date เพราะ WordPress ตั้งสองค่านี้เท่ากันทุกครั้งที่บันทึกฉบับร่าง)
  * ไม่แตะบทความที่เผยแพร่/ตั้งเวลาแล้ว และไม่แตะฉบับร่างที่แก้ด้วยมือ · คืน true เมื่อมีการอัปเดต
  */
-function fenix_setup_refresh_draft( $post, $art ) {
-	if ( ! $post || 'draft' !== $post->post_status ) {
+function fenix_setup_refresh_draft( $post, $art, $statuses = array( 'draft' ) ) {
+	if ( ! $post || ! in_array( $post->post_status, (array) $statuses, true ) ) {
 		return false;
 	}
 	$hash      = (string) get_post_meta( $post->ID, 'fenix_seed_hash', true );
-	$untouched = '' !== $hash ? fenix_seed_fingerprint( $post ) === $hash : '0000-00-00 00:00:00' === $post->post_modified_gmt;
+	// ไม่มีลายนิ้วมือ: ใช้กติกา post_modified_gmt เป็นศูนย์ได้เฉพาะฉบับร่าง (บทความที่เผยแพร่หรือตั้งเวลาแล้วมีเวลาแก้ไขเสมอ จึงถือว่าแก้แล้ว)
+	$untouched = '' !== $hash ? fenix_seed_fingerprint( $post ) === $hash : ( 'draft' === $post->post_status && '0000-00-00 00:00:00' === $post->post_modified_gmt );
 	if ( ! $untouched ) {
 		return false;
 	}
@@ -1025,6 +1026,48 @@ function fenix_setup_refresh_draft( $post, $art ) {
 	fenix_apply_seo_meta( $post->ID, $meta );
 	update_post_meta( $post->ID, 'fenix_seed_hash', fenix_seed_fingerprint( fenix_find_post( $post->post_name ) ) );
 	return true;
+}
+
+/**
+ * อัปเดตบทความเริ่มต้นทุกเรื่องที่เจ้าของเว็บ "ยังไม่เคยแก้" ให้ตรงกับไฟล์รุ่นล่าสุด รวมเรื่องที่เผยแพร่และตั้งเวลาไว้แล้ว
+ * ใช้เมื่อข้อเท็จจริงของสินค้าเปลี่ยนและไฟล์บทความถูกแก้ตาม (เช่น 13 ต.ค. 2026: FALCON ใช้ผ่านแดชบอร์ดอย่างเดียว)
+ * สถานะและวันที่ของบทความไม่เปลี่ยน: wp_update_post() คงวันที่ของบทความที่เผยแพร่/ตั้งเวลาไว้ (กติกาล้างวันที่ใช้กับฉบับร่างเท่านั้น)
+ * บทความที่แก้เองแล้ว (ลายนิ้วมือไม่ตรง) ไม่ถูกแตะ
+ */
+function fenix_setup_refresh_articles() {
+	$log    = array();
+	$names  = array(
+		'draft'   => 'ฉบับร่าง',
+		'future'  => 'ตั้งเวลาไว้',
+		'publish' => 'เผยแพร่แล้ว',
+	);
+	$same   = 0;
+	$edited = array();
+	foreach ( fenix_seed_articles() as $slug => $art ) {
+		$post = fenix_find_post( $slug );
+		if ( ! $post || ! isset( $names[ $post->post_status ] ) ) {
+			continue;
+		}
+		$status = $post->post_status;
+		$hash   = (string) get_post_meta( $post->ID, 'fenix_seed_hash', true );
+		$mine   = '' !== $hash ? fenix_seed_fingerprint( $post ) === $hash : ( 'draft' === $status && '0000-00-00 00:00:00' === $post->post_modified_gmt );
+		if ( ! $mine ) {
+			$edited[] = $art['title'];
+			continue;
+		}
+		if ( fenix_setup_refresh_draft( $post, $art, array_keys( $names ) ) ) {
+			$log[] = '↻ อัปเดตตามไฟล์รุ่นล่าสุด (' . $names[ $status ] . '): ' . $art['title'];
+		} else {
+			$same++;
+		}
+	}
+	if ( $same ) {
+		$log[] = '• ตรงกับไฟล์รุ่นล่าสุดอยู่แล้ว ' . $same . ' เรื่อง';
+	}
+	if ( $edited ) {
+		$log[] = '• ไม่แตะ ' . count( $edited ) . ' เรื่องที่แก้เองแล้ว: ' . implode( ' · ', $edited );
+	}
+	return $log ? $log : array( '• ไม่มีบทความเริ่มต้นให้อัปเดต' );
 }
 
 /**
@@ -1507,6 +1550,7 @@ function fenix_setup_refusal( $do ) {
 		'reading'  => 'ตั้งหน้าแรกและหน้าบทความ',
 		'replace'  => 'แทนด้วยรุ่นล่าสุด',
 		'articles' => 'นำเข้าบทความ',
+		'articles_refresh' => 'อัปเดตบทความตามไฟล์รุ่นล่าสุด',
 		'release'  => 'เผยแพร่และตั้งเวลา',
 		'seo'      => 'ตั้งค่า SEO และระบบ',
 	);
@@ -1558,6 +1602,9 @@ function fenix_setup_handle() {
 	}
 	if ( 'articles' === $do ) {
 		$log = array_merge( $log, fenix_setup_import_articles( ! empty( $_POST['fenix_publish'] ) ) );
+	}
+	if ( 'articles_refresh' === $do ) {
+		$log = array_merge( $log, fenix_setup_refresh_articles() );
 	}
 	if ( 'release' === $do ) {
 		// ตัวเลขในฟอร์ม = จำนวนบทความที่ต้องการให้เผยแพร่อยู่ "รวม" · ส่งฟอร์มซ้ำหรือกดซ้ำหลังสะดุดจึงไม่เผยแพร่เกินที่ตั้งใจ
@@ -1660,6 +1707,8 @@ function fenix_setup_screen() {
 			<p>นำเข้าเป็น <strong>ฉบับร่าง</strong> พร้อมหมวดหมู่ คำอธิบาย SEO และรูปหน้าปก · กดซ้ำได้ บทความที่มีอยู่แล้วจะไม่ถูกสร้างซ้ำ และฉบับร่างที่ยังไม่เคยแก้จะอัปเดตตามไฟล์รุ่นล่าสุดของธีม</p>
 			<p><label><input type="checkbox" name="fenix_publish" value="1"> เผยแพร่ทันที (ไม่แนะนำ)</label></p>
 			<p><button class="button button-primary" name="fenix_do" value="articles"<?php disabled( $fenix_can_manage, false ); ?>>นำเข้าบทความ</button></p>
+			<p style="margin-top:18px;padding-top:14px;border-top:1px solid #dcdcde">เมื่อธีมอัปเดตข้อความในไฟล์บทความ: ปุ่มด้านล่างอัปเดตบทความทุกเรื่องที่<strong>ยังไม่เคยแก้เอง</strong>ให้ตรงกับไฟล์รุ่นล่าสุด รวมเรื่องที่เผยแพร่และตั้งเวลาไว้แล้ว สถานะและวันที่ของบทความไม่เปลี่ยน ส่วนเรื่องที่แก้เองแล้วไม่ถูกแตะ</p>
+			<p><button class="button" name="fenix_do" value="articles_refresh"<?php disabled( $fenix_can_manage, false ); ?>>อัปเดตบทความตามไฟล์รุ่นล่าสุด</button></p>
 		</form>
 
 		<?php $fenix_counts = fenix_setup_article_counts(); ?>

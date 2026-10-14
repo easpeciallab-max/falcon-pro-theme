@@ -439,7 +439,7 @@ $fenix_labels   = fenix_show_kickers();
 	?>
 <section class="hm-ch hm-features<?php echo esc_attr( fenix_home_tone( 'features' ) ); ?>" id="features"<?php fenix_home_ch_attrs( 'features' ); ?>>
 	<div class="container">
-		<?php fenix_home_ch_head( 'features', fenix_mod( 'features_title' ), fenix_mod( 'features_subtitle' ) ); ?>
+		<?php fenix_home_ch_head( 'features', fenix_mod( 'features_title' ), fenix_mod( 'features_subtitle' ), 'left', true ); ?>
 		<?php if ( ! empty( $fenix_modules ) ) : ?>
 			<ul class="hm-modules" style="--mods:<?php echo (int) count( $fenix_modules ); ?>">
 				<?php foreach ( $fenix_modules as $fenix_mi => $fenix_module ) : ?>
@@ -828,7 +828,7 @@ if ( function_exists( 'fenix_homeplus_section' ) ) {
 	?>
 <section class="hm-ch hm-pricing<?php echo esc_attr( fenix_home_tone( 'pricing' ) ); ?>" id="pricing"<?php fenix_home_ch_attrs( 'pricing' ); ?>>
 	<div class="container">
-		<?php fenix_home_ch_head( 'pricing', fenix_mod( 'pricing_home_title' ), fenix_mod( 'pricing_home_sub' ) ); ?>
+		<?php fenix_home_ch_head( 'pricing', fenix_mod( 'pricing_home_title' ), fenix_mod( 'pricing_home_sub' ), 'left', true ); ?>
 		<?php if ( ! empty( $fenix_tiers ) ) : ?>
 			<div class="hm-tiers" role="group" aria-label="<?php echo esc_attr( fenix_mod( 'home_pricing_tabs_label' ) ); ?>" style="--tiers:<?php echo (int) count( $fenix_tiers ); ?>">
 				<?php foreach ( $fenix_tiers as $fenix_tier ) : ?>
