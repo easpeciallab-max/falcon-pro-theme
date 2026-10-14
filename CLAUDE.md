@@ -157,8 +157,9 @@
 - [x] ลิงก์ LINE OA จริง (`line_url` ใน Customizer · 11 ต.ค. 2026)
 - [x] ราคาแพ็กเกจ ฟรี / 6,990 / 9,990 · โบรกเกอร์ ชื่อเซิร์ฟเวอร์ ลิงก์สมัครของ FALCON และอีเมลติดต่อ ตั้งใน Customizer แล้ว (13 ต.ค. 2026)
 - [x] เพจ Facebook ของเว็บ (`facebook_url` ใน Customizer · 13 ต.ค. 2026 · ใช้ที่อยู่เพจตรง ๆ ไม่ใช่ลิงก์แชร์) แสดงในบล็อกติดต่อ footer หน้า /go และ sameAs ของ schema
-- [ ] ลิงก์ LINE OpenChat และโซเชียลอื่น (Instagram TikTok YouTube) · ติ๊ก `seo_pricing_confirmed` เมื่อพร้อมให้ราคาออกใน schema
-- [ ] ปิดปลั๊กอินที่ยิง GA/Pixel เอง (Site Kit/PixelYourSite) แล้วใส่ ID ที่ 18) คุกกี้ เท่านั้น เพื่อให้โหลดหลังยินยอม
+- [x] LINE OpenChat ของเว็บ (`line_openchat_url` ใน Customizer · 14 ต.ค. 2026 · กลุ่มชื่อ FALCON PRO · เก็บลิงก์แบบไม่มี utm) แสดงในบล็อกติดต่อ footer หน้า /go และเปิดย่อหน้าเรื่อง OpenChat ในข้อกำหนดกับนโยบายความเป็นส่วนตัว (`[falcon_if has="openchat"]`)
+- [ ] โซเชียลอื่น (Instagram TikTok YouTube) · ติ๊ก `seo_pricing_confirmed` เมื่อพร้อมให้ราคาออกใน schema
+- [x] ปลั๊กอินที่ยิง GA/Pixel เอง: ตรวจแล้วไม่มี (13 ต.ค. 2026 · มีแค่ WP Pusher, Yoast SEO, Yoast Duplicate Post) · ID อยู่ที่ 18) คุกกี้ และโหลดหลังยินยอมเท่านั้น · `line_click` กับ `dashboard_click` เป็นเหตุการณ์หลักใน GA4 แล้ว
 - หมายเหตุ: เพจที่สร้างไปแล้วไม่ถูกทับเมื่อ seed เปลี่ยน · ดัน `rev` ในบรรทัด meta ของไฟล์ แล้วหน้า FALCON Setup จะขึ้น "มีรุ่นใหม่" ให้ติ๊ก "ยืนยัน" + กด "แทนด้วยรุ่นล่าสุด" รายหน้า
 - [x] ตัวเลข Backtest จริงของ 7 ชุดอยู่ในเพจ /backtest/ แล้ว (จากแดชบอร์ด 12 ต.ค. 2026)
 - [x] Forward Test: เจ้าของให้ถอดออก (13 ต.ค. 2026) · เปิดกลับได้เมื่อมีผลจริง (เอา `retired` ออก และเปิด `home_tests_show_fw`)
