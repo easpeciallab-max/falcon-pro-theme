@@ -209,6 +209,11 @@ function fenix_seed_article_covers() {
 		'what-is-backtest'            => 'falcon-pro-ea-mt5-laptop-falcon.webp',
 		'economic-calendar'           => 'falcon-pro-ea-mt5-navigator.webp',
 		'money-management'            => 'falcon-pro-ea-mt5-settings-panel.webp',
+		'fomc'                        => 'falcon-pro-ea-mt5-navigator.webp',
+		'margin-level'                => 'falcon-pro-ea-mt5-mobile-settings.webp',
+		'what-is-mt5'                 => 'falcon-pro-ea-mt5-phone-watch.webp',
+		'how-to-use-gold-ea'          => 'falcon-pro-ea-mt5-mobile-xauusd.webp',
+		'what-is-xauusd'              => 'falcon-pro-ea-mt5-mobile-xauusd.webp',
 	);
 }
 
