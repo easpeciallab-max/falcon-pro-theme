@@ -85,6 +85,47 @@ function wp_update_post( $arr, $wp_error = false ) {
 	return 0;
 }
 
+// ---- in-memory categories (names stored escaped like core: & → &amp;) --------------------------------
+$GLOBALS['fx_terms']    = array(); // term_id => name
+$GLOBALS['fx_post_cat'] = array(); // post ID => array( term_id, … )
+function fx_term_name( $name ) {
+	return str_replace( '&', '&amp;', str_replace( '&amp;', '&', (string) $name ) );
+}
+function get_term_by( $field, $value, $taxonomy ) {
+	foreach ( $GLOBALS['fx_terms'] as $id => $name ) {
+		if ( 'name' === $field && fx_term_name( $value ) === $name ) {
+			return (object) array( 'term_id' => $id, 'name' => $name );
+		}
+	}
+	return false;
+}
+function term_exists( $name, $taxonomy = '' ) {
+	$t = get_term_by( 'name', $name, $taxonomy );
+	return $t ? array( 'term_id' => (string) $t->term_id ) : null;
+}
+function wp_insert_term( $name, $taxonomy ) {
+	$id                           = 1 + ( $GLOBALS['fx_terms'] ? max( array_keys( $GLOBALS['fx_terms'] ) ) : 0 );
+	$GLOBALS['fx_terms'][ $id ] = fx_term_name( $name );
+	return array( 'term_id' => $id );
+}
+function wp_update_term( $id, $taxonomy, $args ) {
+	$GLOBALS['fx_terms'][ $id ] = fx_term_name( $args['name'] );
+	return array( 'term_id' => $id );
+}
+function wp_get_post_categories( $id, $args = array() ) {
+	$ids = isset( $GLOBALS['fx_post_cat'][ $id ] ) ? $GLOBALS['fx_post_cat'][ $id ] : array();
+	return array_map(
+		function ( $tid ) {
+			return $GLOBALS['fx_terms'][ $tid ];
+		},
+		$ids
+	);
+}
+function wp_set_post_categories( $id, $cats ) {
+	$GLOBALS['fx_post_cat'][ $id ] = array_map( 'intval', $cats );
+	return true;
+}
+
 require __DIR__ . '/../falcon-pro/functions.php';
 
 $problems = 0;
@@ -151,7 +192,7 @@ $check( 'order: every seed article exactly once', count( $order ) === $n && ! ar
 // ---- slot maths: every weekday × times around 10:00 × 1/2/3 per week -------------
 $ok  = true;
 $why = '';
-foreach ( array( 1, 2, 3 ) as $per ) {
+foreach ( array( 1, 2, 3, 7 ) as $per ) {
 	$days = fenix_release_weekdays( $per );
 	for ( $d = 12; $d <= 18; $d++ ) {
 		foreach ( array( '00:30:00', '09:59:59', '10:00:00', '10:00:01', '23:59:59' ) as $t ) {
@@ -375,6 +416,134 @@ $row->post_date     = '2026-12-25 03:00:00';
 $row->post_date_gmt = '2026-12-25 03:00:00'; // was scheduled, then pulled back to draft by the owner
 $log                = fenix_setup_release_articles( 1, 2 );
 $check( 'I: draft with a leftover future date is published now, not re-scheduled', 'publish' === $row->post_status && abs( strtotime( $row->post_date_gmt . ' UTC' ) - time() ) <= 5, $row->post_status . ' ' . $row->post_date_gmt );
+
+// ---- J · every day: new drafts fill the days around the existing Tue/Fri queue --------------------
+$k     = min( 5, $n - 6 );
+$fresh = array_slice( $order, -$k );
+$seed();
+foreach ( $fresh as $slug ) { // the new articles are not imported yet while the old queue is set up
+	$GLOBALS['fx_db'][ $slug ]->post_status = 'pending';
+}
+fenix_setup_release_to_total( 6, 2 );
+$queue = $slots();
+$GLOBALS['fx_db']['fx-owner-post'] = (object) array( // the owner scheduled a post of his own on a free day
+	'ID'                => 998,
+	'post_name'         => 'owner-note',
+	'post_title'        => 'owner',
+	'post_status'       => 'future',
+	'post_content'      => '',
+	'post_excerpt'      => '',
+	'post_date'         => '',
+	'post_date_gmt'     => '',
+	'post_modified'     => '2026-10-11 00:00:00',
+	'post_modified_gmt' => '2026-10-11 00:00:00',
+	'fx_foreign'        => true,
+);
+$first = reset( $queue );
+$from  = $first->modify( '+1 day' ); // a day after the first queued article (a Wed or a Sat)
+while ( in_array( (int) $from->format( 'N' ), array( 2, 5 ), true ) ) {
+	$from = $from->modify( '+1 day' );
+}
+$own = $from->modify( '+1 day' );
+while ( in_array( (int) $own->format( 'N' ), array( 2, 5 ), true ) ) {
+	$own = $own->modify( '+1 day' );
+}
+$GLOBALS['fx_db']['fx-owner-post']->post_date     = $own->setTime( 18, 0 )->setTimezone( $utc )->format( 'Y-m-d H:i:s' );
+$GLOBALS['fx_db']['fx-owner-post']->post_date_gmt = $GLOBALS['fx_db']['fx-owner-post']->post_date;
+foreach ( $fresh as $slug ) {
+	$GLOBALS['fx_db'][ $slug ]->post_status = 'draft';
+}
+$before = array_map(
+	function ( $at ) {
+		return $at->format( 'c' );
+	},
+	$queue
+);
+$jlog  = fenix_setup_release_articles( 0, 7, $from->format( 'Y-m-d' ) );
+$after = $slots();
+$check( 'J: every new draft is scheduled, none published now', $k === count( array_intersect( array_keys( $after ), $fresh ) ) && 6 === count( $by( 'publish' ) ) && ! preg_grep( '/^✗/u', $jlog ), implode( ' | ', $jlog ) );
+$kept = true;
+foreach ( $before as $slug => $c ) {
+	$kept = $kept && isset( $after[ $slug ] ) && $after[ $slug ]->format( 'c' ) === $c;
+}
+$check( 'J: the existing queue keeps its dates', $kept );
+$days_used = array();
+foreach ( $after as $slug => $at ) {
+	$days_used[] = $at->format( 'Y-m-d' );
+}
+$days_used[] = $own->format( 'Y-m-d' );
+$check( 'J: never two posts on one day (owner post included)', count( $days_used ) === count( array_unique( $days_used ) ) );
+$busy = array( $own->format( 'Y-m-d' ) );
+foreach ( $queue as $at ) {
+	$busy[] = $at->format( 'Y-m-d' );
+}
+$want = array();
+for ( $d = $from; count( $want ) < $k; $d = $d->modify( '+1 day' ) ) { // the first days from $from on that had no post yet
+	if ( ! in_array( $d->format( 'Y-m-d' ), $busy, true ) ) {
+		$want[] = $d->format( 'Y-m-d' );
+	}
+}
+$got = array_map(
+	function ( $s ) use ( $after ) {
+		return $after[ $s ]->format( 'Y-m-d' ) . ' ' . $after[ $s ]->format( 'H:i' );
+	},
+	$fresh
+);
+$check(
+	'J: new drafts take the first free days from the start date, in publish order, at 10:00',
+	array_map(
+		function ( $d ) {
+			return $d . ' 10:00';
+		},
+		$want
+	) === $got,
+	implode( ',', $got ) . ' vs ' . implode( ',', $want )
+);
+$seed();
+foreach ( $fresh as $slug ) {
+	$GLOBALS['fx_db'][ $slug ]->post_status = 'pending';
+}
+fenix_setup_release_to_total( 6, 2 );
+foreach ( $fresh as $slug ) {
+	$GLOBALS['fx_db'][ $slug ]->post_status = 'draft';
+}
+fenix_setup_release_articles( 0, 7, 'not-a-date' );
+$tomorrow = ( new DateTimeImmutable( 'now', $bkk ) )->modify( '+1 day' )->format( 'Y-m-d' );
+$s        = $slots();
+$check( 'J: no start date (or a bad one) starts tomorrow at the earliest', $s[ $fresh[0] ]->format( 'Y-m-d' ) >= $tomorrow, $s[ $fresh[0] ]->format( 'c' ) );
+
+// ---- K · "update articles" renames the two old categories and moves articles into their group -------------
+$seed();
+fenix_setup_release_to_total( 6, 2 );
+$GLOBALS['fx_terms']    = array(
+	1 => 'Uncategorized',
+	2 => 'พื้นฐาน EA',
+	3 => 'บริหารความเสี่ยง',
+	4 => 'MT5 &amp; VPS',
+	9 => 'ประกาศของเว็บ',
+);
+$GLOBALS['fx_post_cat'] = array();
+$id_of                  = function ( $slug ) {
+	return $GLOBALS['fx_db'][ $slug ]->ID;
+};
+foreach ( $all as $slug ) {
+	$GLOBALS['fx_post_cat'][ $id_of( $slug ) ] = array( 2 ); // everything starts in the old "basics" group
+}
+$GLOBALS['fx_post_cat'][ $id_of( 'ea-not-trading' ) ] = array( 4 );
+$GLOBALS['fx_post_cat'][ $id_of( 'profit-factor' ) ]  = array( 3, 9 ); // the owner added a category of his own
+$klog = implode( "\n", fenix_setup_refresh_articles() );
+$cat  = function ( $slug ) use ( $id_of ) {
+	return implode( ',', wp_get_post_categories( $id_of( $slug ) ) );
+};
+$check( 'K: old categories renamed in place (same term id)', 'EA และบอทเทรดทอง' === $GLOBALS['fx_terms'][2] && 'MT5 และบัญชีเทรด' === $GLOBALS['fx_terms'][4] && false !== strpos( $klog, 'เปลี่ยนชื่อหมวด' ), $GLOBALS['fx_terms'][2] . ' / ' . $GLOBALS['fx_terms'][4] );
+$check( 'K: an article already in its group stays (renamed term)', array( 2 ) === $GLOBALS['fx_post_cat'][ $id_of( 'what-is-ea-mt5' ) ] );
+$check( 'K: articles move to the group of their seed file', 'เทรดทองคำ XAUUSD' === $cat( 'ea-gold-xauusd' ) && 'EA และบอทเทรดทอง' === $cat( 'ea-not-trading' ) && 'ข่าวเศรษฐกิจ' === $cat( 'ea-news-trading' ), $cat( 'ea-gold-xauusd' ) . ' | ' . $cat( 'ea-not-trading' ) );
+$check( 'K: an article with a category of the owner is left alone', array( 3, 9 ) === $GLOBALS['fx_post_cat'][ $id_of( 'profit-factor' ) ] );
+$terms_before = $GLOBALS['fx_terms'];
+$k2           = fenix_setup_refresh_articles();
+$check( 'K: second run moves and renames nothing', $terms_before === $GLOBALS['fx_terms'] && ! preg_grep( '/หมวด/u', $k2 ), implode( ' | ', $k2 ) );
+$GLOBALS['fx_terms']    = array();
+$GLOBALS['fx_post_cat'] = array();
 
 // ---- G · counts -------------------------------------------------------------------------
 $seed();

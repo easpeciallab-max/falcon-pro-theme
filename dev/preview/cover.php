@@ -7,8 +7,9 @@
  * /__cover/pages/ prints the page-cover names, one per line (used by "dev/make-covers.php pages").
  * Rendered by headless Chrome in dev/make-covers.php.
  * Text only: no numbers, no results. Not part of the theme.
- * The two kinds differ in one thing: an article cover keeps the small category line above its title (unchanged),
- * a page cover has no line above its title (owner, 12 Oct 2026: a heading stands alone). On a page cover the freed row goes
+ * The two kinds differ in one thing: the 22 first article covers keep the small category line above their title (owner, 13 Oct 2026:
+ * not rebuilt), a page cover and every article cover made after them (dev/article-plan.md, owner 14 Oct 2026) have no line above
+ * the title (owner, 12 Oct 2026: a heading stands alone). On a cover without the line the freed row goes
  * to larger type: the title starts at 64px instead of 60px and its block may be 420px high instead of 390px. The block keeps
  * its place in the upper part of the space above the wordmark, so no empty row is left where the line was.
  *
@@ -101,12 +102,61 @@ $icons = array(
 	'vps-mt5-stable'              => 'windows',
 	'ea-optimization-overfitting' => 'target',
 	'ea-monitoring-routine'       => 'clock',
+	// แผนบทความ 14 ต.ค. 2026 (dev/article-plan.md)
+	'gold-trading-bot'            => 'robot',
+	'ea-on-mobile'                => 'phone',
+	'what-is-backtest'            => 'flask',
+	'economic-calendar'           => 'flag',
+	'money-management'            => 'shield',
+	'fomc'                        => 'users',
+	'margin-level'                => 'gauge',
+	'what-is-mt5'                 => 'monitor',
+	'how-to-use-gold-ea'          => 'play',
+	'what-is-xauusd'              => 'candles',
+	'gold-market-hours'           => 'clock',
+	'non-farm-payroll'            => 'bars',
+	'xauusd-pip-lot'              => 'calc',
+	'backtest-mt5-how-to'         => 'terminal',
+	'cpi'                         => 'flame',
+	'blown-account'               => 'warn',
+	'ea-no-stop-loss'             => 'x',
+	'gold-bot-losses'             => 'chart',
+	'mt5-login-failed'            => 'lock',
+	'gold-price-drivers'          => 'pulse',
+	'ai-gold-trading'             => 'cpu',
+	'investor-password'           => 'user',
+	'copy-trade-vs-ea'            => 'link',
+	'win-rate'                    => 'target',
+	'ea-capital'                  => 'calc',
+	'grid-trading'                => 'layout',
+	'hedging'                     => 'arrow',
+	'choose-gold-ea'              => 'check',
+	'buy-or-rent-ea'              => 'tag',
+	'gold-bar-vs-xauusd'          => 'home',
+	'mt5-withdraw'                => 'download',
+	'gold-gap'                    => 'moon',
+	'broker-price-difference'     => 'gear',
+	'xauusd-symbols'              => 'book',
+	'ea-scalping-vs-grid'         => 'bolt',
+	'dollar-index-dxy'            => 'dollar',
+	'trading-account-types'       => 'layout',
+	'investment-scam-check'       => 'shield',
+	'open-account-requirements'   => 'mail',
+	'ea-passive-income'           => 'gauge',
+	'mt5-trade-history'           => 'clock',
 );
+// ปก 22 ใบแรกมีบรรทัดหมวดเหนือหัวเรื่อง (เจ้าของตัดสิน 13 ต.ค. 2026 ไม่สร้างใหม่) · ปกบทความใหม่ทุกใบไม่มีบรรทัดนี้ (กติกาข้อ 7)
+$legacy = array( 'what-is-ea-mt5', 'ea-gold-xauusd', 'vps-for-ea', 'drawdown', 'lot-size-calculation', 'free-ea-vs-paid', 'spread-slippage', 'margin-call-stop-out', 'choose-broker-for-ea', 'ea-scam-warning', 'mt4-vs-mt5', 'demo-account-ea', 'cent-account', 'grid-martingale-ea', 'profit-factor', 'ea-not-trading', 'leverage', 'swap-commission', 'ea-news-trading', 'vps-mt5-stable', 'ea-optimization-overfitting', 'ea-monitoring-routine' );
 // category => English kicker + panel variant
 $cats = array(
 	'พื้นฐาน EA'      => array( 'EA Basics', 'green' ),
 	'บริหารความเสี่ยง' => array( 'Risk Management', 'white' ),
 	'MT5 & VPS'       => array( 'MT5 & VPS', 'dark' ),
+	'EA และบอทเทรดทอง'    => array( 'EA Basics', 'green' ),
+	'เทรดทองคำ XAUUSD'    => array( 'Gold', 'white' ),
+	'Backtest และผลทดสอบ' => array( 'Backtest', 'dark' ),
+	'MT5 และบัญชีเทรด'     => array( 'MT5', 'dark' ),
+	'ข่าวเศรษฐกิจ'         => array( 'News', 'green' ),
 );
 $cat     = isset( $art['meta']['category'] ) ? $art['meta']['category'] : '';
 $kicker  = isset( $cats[ $cat ] ) ? $cats[ $cat ][0] : 'Article';
@@ -115,7 +165,10 @@ $icon    = isset( $icons[ $fx_cover_slug ] ) ? $icons[ $fx_cover_slug ] : 'book'
 if ( $is_page ) {
 	$kicker = ''; // ปกของเพจไม่มีบรรทัดเหนือหัวเรื่อง
 	list( , $icon, $variant ) = $page_covers[ $pslug ];
+} elseif ( ! in_array( $fx_cover_slug, $legacy, true ) ) {
+	$kicker = ''; // ปกบทความใหม่ไม่มีบรรทัดเหนือหัวเรื่อง
 }
+$no_line = '' === $kicker;
 $theme   = get_template_directory_uri();
 
 // "หัวเรื่อง: คำขยาย" → บรรทัดใหญ่ + บรรทัดรอง · แต่ละวลี (คั่นด้วยช่องว่าง) ไม่ถูกตัดกลางคำ
@@ -168,9 +221,9 @@ h1{font-size:60px;line-height:1.3;font-weight:700}
 /* ปกของเพจไม่มีบรรทัดเหนือหัวเรื่อง: แถวที่ว่างลงถูกใช้ไปกับตัวอักษรที่ใหญ่ขึ้น (เริ่ม 64px แทน 60px บรรทัดรอง 38px) และบล็อกหัวเรื่องที่สูงได้ถึง 420px
  * บล็อกหัวเรื่องยังวางในช่วงบนของพื้นที่เหนือโลโก้เหมือนเดิม (ช่องว่างแบ่งสามส่วน: บนหัวเรื่อง 1 ใต้หัวเรื่อง 2) จึงไม่เหลือแถบว่างตรงที่เคยมีป้าย
  * 64px เป็นขนาดใหญ่สุดที่หัวเรื่องและบรรทัดรองของปกทั้ง 14 ใบยังตัดบรรทัดสวย (66px ทำให้บรรทัดรองของบางใบเหลือคำเดียวตกบรรทัด)
- * ปกบทความใช้ค่าเดิม (60px, 390px) */
-$fit_size = $is_page ? 64 : 60;
-$fit_max  = $is_page ? 420 : 390;
+ * ปกบทความใหม่ (ไม่มีบรรทัดหมวด) ใช้ค่าเดียวกับปกเพจ · ปก 22 ใบแรกที่มีบรรทัดหมวดใช้ค่าเดิม (60px, 390px) */
+$fit_size = $no_line ? 64 : 60;
+$fit_max  = $no_line ? 420 : 390;
 ?>
 <body class="v-<?php echo esc_attr( $variant ); ?><?php echo $is_page ? ' is-page' : ''; ?>" data-start="<?php echo (int) $fit_size; ?>" data-max="<?php echo (int) $fit_max; ?>">
 	<div class="stripe"></div>

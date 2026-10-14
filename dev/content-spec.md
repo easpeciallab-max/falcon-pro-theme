@@ -35,7 +35,7 @@ The first line must be a meta comment with JSON, and the body is plain HTML (no 
 - `description` is the meta description. Aim for 120–155 Thai characters and include the focus keyword naturally.
 - `keyword` is the focus keyword (Thai or mixed), e.g. `EA MT5`, `แดชบอร์ด FALCON PRO`.
 - `excerpt` is 1–2 sentences, used for article cards. It is for articles only.
-- `category` is for articles only and must be one of: `พื้นฐาน EA`, `บริหารความเสี่ยง`, `MT5 & VPS`.
+- `category` is for articles only and must be one of the six groups of the article plan (`dev/article-plan.md`, owner 14 Oct 2026): `EA และบอทเทรดทอง`, `เทรดทองคำ XAUUSD`, `บริหารความเสี่ยง`, `Backtest และผลทดสอบ`, `MT5 และบัญชีเทรด`, `ข่าวเศรษฐกิจ`. (Until then there were three: `พื้นฐาน EA` became `EA และบอทเทรดทอง` and `MT5 & VPS` became `MT5 และบัญชีเทรด`.)
 - `kicker` is a small English label for pages (e.g. `Guide`, `Account`, `Dashboard`). It is NOT printed by default: since 12 Oct 2026 headings stand alone (owner decision) and the label shows above the H1 only while the Customizer switch `show_kickers` (section 1) is on. Templates also use it as the fallback page title, so keep the key.
 - `rev` (pages) is the seed revision number. Raise it by one whenever the file changes in a way the live page should receive: FALCON Setup then shows "มีรุ่นใหม่" for that page and the owner replaces it with one click.
 
@@ -119,7 +119,9 @@ On pages that go live before the articles (guides, backtest, dashboard), wrap a 
 - One or two per page is enough, and the sentence around the link must still make sense if the target page moves: say what the reader finds there, and that it is in English when it is.
 - Guide pages already print the official download links of the MT5 app in the Customizer download cards, so the long text does not need to repeat those store links.
 
-A new article needs three things: the file in `inc/content/articles/`, its slug in `fenix_seed_article_covers()` (`inc/setup.php`), and a cover built with `dev/make-covers.php` (icon per slug in `dev/preview/cover.php`). Put the keyword phrase before a colon in the title when you can ("Drawdown คืออะไร: ..."), because the cover prints the part before the colon large and the rest as a subtitle.
+A new article needs three things: the file in `inc/content/articles/`, its slug in `fenix_seed_article_covers()` (`inc/setup.php`), and a cover built with `dev/make-covers.php` (icon per slug in `dev/preview/cover.php`). Put the keyword phrase before a colon in the title when you can ("Drawdown คืออะไร: ..."), because the cover prints the part before the colon large and the rest as a subtitle. Covers of articles after the first 22 have no category line above the title (rule 7, owner 14 Oct 2026); the first 22 keep theirs and are not rebuilt.
+
+The article plan (`dev/article-plan.md`) gives each new article its slug, group, primary and secondary keywords, the articles and pages it links to, and checked primary-source external links. Its publish order is `fenix_seed_publish_order()`, and FALCON Setup step 3 in the "every day" mode fills the free days around the Tuesday/Friday queue.
 
 ## HTML components (styled by the theme; use exactly these classes)
 
@@ -200,5 +202,5 @@ A new article needs three things: the file in `inc/content/articles/`, its slug 
    - The master password trades, the investor password only reads. The dashboard form needs the master password and the customer types it himself.
    - General MT5 knowledge that only an article about running an EA on one's own machine needs (the data folder File → Open Data Folder → MQL5 → Experts, the "Algo Trading" toolbar button, .ex5 as the compiled file type, Microsoft's "Windows App" for remote desktop) stays correct in the articles, but a page seed does not walk the reader through it.
 7. **SEO:** use the focus keyword in the title, the first paragraph, at least one H2, and naturally 3–6 times in total. Add related Thai search phrases, such as บอทเทรด, โรบอทเทรด, EA เทรดทอง, EA forex and MT5. A page seed does not target phrases about installing an EA or renting a VPS: FALCON has no such step, and a title or meta description that promises one would mislead the searcher.
-8. **Structure and length:** articles are 1,200–2,200 Thai words, with 6–12 H2s, some H3s, and a FAQ block (3–5 Qs) near the end. They end with a short CTA paragraph plus `[falcon_line]`. Guide pages follow the per-page outline you are given, and the reader's next step at the end of a guide is the dashboard, not an installation.
+8. **Structure and length:** articles are 1,200–2,200 Thai words (about 7,000–11,000 characters of visible text), with 6–12 H2s, some H3s, and a FAQ block (3–5 Qs) near the end. A pillar article of the plan (the first article of each group) is longer, about 13,000–17,000 characters with up to 14 H2s and 5–6 Qs, and links down to every article of its group. They end with a short CTA paragraph plus `[falcon_line]`. Guide pages follow the per-page outline you are given, and the reader's next step at the end of a guide is the dashboard, not an installation.
 9. Write English technical terms in normal case (e.g. "Stop Loss"). The theme uppercases them visually.

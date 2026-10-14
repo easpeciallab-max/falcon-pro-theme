@@ -45,7 +45,9 @@ $articles = array_map(
 	},
 	glob( $root . 'articles/*.html' )
 );
-$valid    = array_merge( $pages, $articles );
+// planned articles of dev/article-plan.md: a link may point at them before their file exists (the theme hides it until then)
+$planned  = array_values( array_diff( function_exists( 'fenix_seed_planned_order' ) ? fenix_seed_planned_order() : array(), $articles ) );
+$valid    = array_merge( $pages, $articles, $planned );
 $problems = 0;
 
 // Wording of the old model (two ways of delivery, files handed to the customer, a Forward Test page) that a page seed must
@@ -284,7 +286,7 @@ foreach ( array_merge( glob( $root . 'pages/*.html' ), glob( $root . 'articles/*
 	// while every seed article and legal page is still a draft, fenix_unlink_slugs() may only drop
 	// related-links items, xref sentences and <a> tags — never headings, tables, FAQ or risk warnings
 	// (retired pages are unreachable for good, so links to them are always part of the simulation)
-	$all_drafts = array_merge( $articles, array( 'privacy-policy', 'terms-of-use', 'data-deletion' ), array_keys( $retired ) );
+	$all_drafts = array_merge( $articles, $planned, array( 'privacy-policy', 'terms-of-use', 'data-deletion' ), array_keys( $retired ) );
 	$body       = fenix_seed_content( $rel );
 	$after      = fenix_unlink_slugs( $body, $all_drafts );
 	$core       = function ( $html ) {

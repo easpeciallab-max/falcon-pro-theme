@@ -203,6 +203,12 @@ function fenix_seed_article_covers() {
 		'vps-mt5-stable'              => 'falcon-pro-ea-mt5-desk-setup.webp',
 		'ea-optimization-overfitting' => 'falcon-pro-ea-mt5-laptop-running.webp',
 		'ea-monitoring-routine'       => 'falcon-pro-ea-mt5-phone-watch.webp',
+		// แผนบทความ 14 ต.ค. 2026 (dev/article-plan.md) · เพิ่มแถวเมื่อไฟล์เนื้อหาของเรื่องนั้นพร้อม
+		'gold-trading-bot'            => 'falcon-pro-ea-mt5-mobile-xauusd.webp',
+		'ea-on-mobile'                => 'falcon-pro-ea-mt5-phone-watch.webp',
+		'what-is-backtest'            => 'falcon-pro-ea-mt5-laptop-falcon.webp',
+		'economic-calendar'           => 'falcon-pro-ea-mt5-navigator.webp',
+		'money-management'            => 'falcon-pro-ea-mt5-settings-panel.webp',
 	);
 }
 
@@ -335,7 +341,7 @@ function fenix_published_page_url( $slug ) {
 }
 
 /**
- * slug ของบทความเริ่มต้นที่ผู้เข้าชมยังเปิดไม่ได้ (ยังไม่ได้นำเข้า หรือยังเป็นฉบับร่าง)
+ * slug ของบทความเริ่มต้นที่ผู้เข้าชมยังเปิดไม่ได้ (ยังไม่ได้นำเข้า ยังเป็นฉบับร่าง/ตั้งเวลา หรือเป็นบทความตามแผนที่ยังไม่มีไฟล์)
  * · 1 query (อ่านเฉพาะคอลัมน์ post_name) ต่อคำขอ
  */
 function fenix_unpublished_seed_articles() {
@@ -343,7 +349,7 @@ function fenix_unpublished_seed_articles() {
 		return $GLOBALS['fenix_unpublished_seed'];
 	}
 	global $wpdb;
-	$slugs = array_keys( fenix_seed_article_covers() );
+	$slugs = array_values( array_unique( array_merge( array_keys( fenix_seed_article_covers() ), fenix_seed_planned_order() ) ) );
 	$in    = implode( ',', array_fill( 0, count( $slugs ), '%s' ) );
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- $in มีแต่ %s
 	$have = (array) $wpdb->get_col( $wpdb->prepare( "SELECT post_name FROM {$wpdb->posts} WHERE post_type = 'post' AND post_status = 'publish' AND post_name IN ($in)", $slugs ) );
@@ -1029,13 +1035,83 @@ function fenix_setup_refresh_draft( $post, $art, $statuses = array( 'draft' ) ) 
 }
 
 /**
+ * หมวดบทความของธีม: 6 กลุ่มของแผนบทความ 14 ต.ค. 2026 (dev/article-plan.md · ชื่อเดียวกับ "category" ในไฟล์บทความ)
+ */
+function fenix_seed_category_names() {
+	return array( 'EA และบอทเทรดทอง', 'เทรดทองคำ XAUUSD', 'บริหารความเสี่ยง', 'Backtest และผลทดสอบ', 'MT5 และบัญชีเทรด', 'ข่าวเศรษฐกิจ' );
+}
+
+/**
+ * หมวดเดิมสองชื่อ (ก่อนแผนบทความ) → ชื่อใหม่ · เปลี่ยนชื่อหมวดเดิมแทนการสร้างหมวดใหม่ จึงคง slug และลิงก์หน้าหมวดเดิมไว้
+ */
+function fenix_seed_category_renames() {
+	return array(
+		'พื้นฐาน EA' => 'EA และบอทเทรดทอง',
+		'MT5 & VPS' => 'MT5 และบัญชีเทรด',
+	);
+}
+
+/**
+ * เปลี่ยนชื่อหมวดเดิมตาม fenix_seed_category_renames() เมื่อยังไม่มีหมวดชื่อใหม่ · กดซ้ำไม่เกิดอะไร
+ */
+function fenix_setup_rename_categories() {
+	$log = array();
+	foreach ( fenix_seed_category_renames() as $old => $new ) {
+		$from = get_term_by( 'name', $old, 'category' );
+		if ( ! $from || get_term_by( 'name', $new, 'category' ) ) {
+			continue;
+		}
+		$done = wp_update_term( (int) $from->term_id, 'category', array( 'name' => $new ) );
+		if ( ! is_wp_error( $done ) ) {
+			$log[] = '↻ เปลี่ยนชื่อหมวด ' . $old . ' → ' . $new;
+		}
+	}
+	return $log;
+}
+
+/**
+ * ย้ายบทความเริ่มต้นไปหมวดตามไฟล์รุ่นล่าสุด เฉพาะเมื่อทุกหมวดที่บทความอยู่เป็นหมวดของธีม (ชื่อใหม่ ชื่อเดิม หรือหมวดเริ่มต้นของ WordPress)
+ * บทความที่เจ้าของเว็บใส่หมวดอื่นไว้ไม่ถูกแตะ · คืน true เมื่อย้าย
+ */
+function fenix_setup_sync_category( $post, $art ) {
+	$want = isset( $art['meta']['category'] ) ? trim( (string) $art['meta']['category'] ) : '';
+	if ( ! $post || '' === $want ) {
+		return false;
+	}
+	// ชื่อหมวดใน WordPress ถูกเก็บแบบ escape (& → &amp;)
+	$have = array_map(
+		function ( $name ) {
+			return html_entity_decode( (string) $name, ENT_QUOTES, 'UTF-8' );
+		},
+		(array) wp_get_post_categories( $post->ID, array( 'fields' => 'names' ) )
+	);
+	if ( array( $want ) === array_values( $have ) ) {
+		return false;
+	}
+	$ours = array_merge( fenix_seed_category_names(), array_keys( fenix_seed_category_renames() ), array( 'Uncategorized', 'ไม่มีหมวดหมู่' ) );
+	if ( array_diff( $have, $ours ) ) {
+		return false;
+	}
+	$term = term_exists( $want, 'category' );
+	if ( ! $term ) {
+		$term = wp_insert_term( $want, 'category' );
+	}
+	if ( ! $term || is_wp_error( $term ) ) {
+		return false;
+	}
+	wp_set_post_categories( $post->ID, array( (int) ( is_array( $term ) ? $term['term_id'] : $term ) ) );
+	return true;
+}
+
+/**
  * อัปเดตบทความเริ่มต้นทุกเรื่องที่เจ้าของเว็บ "ยังไม่เคยแก้" ให้ตรงกับไฟล์รุ่นล่าสุด รวมเรื่องที่เผยแพร่และตั้งเวลาไว้แล้ว
  * ใช้เมื่อข้อเท็จจริงของสินค้าเปลี่ยนและไฟล์บทความถูกแก้ตาม (เช่น 13 ต.ค. 2026: FALCON ใช้ผ่านแดชบอร์ดอย่างเดียว)
  * สถานะและวันที่ของบทความไม่เปลี่ยน: wp_update_post() คงวันที่ของบทความที่เผยแพร่/ตั้งเวลาไว้ (กติกาล้างวันที่ใช้กับฉบับร่างเท่านั้น)
  * บทความที่แก้เองแล้ว (ลายนิ้วมือไม่ตรง) ไม่ถูกแตะ
+ * หมวดของบทความตามไฟล์ถูกจัดให้ตรงด้วย (fenix_setup_sync_category: ไม่แตะบทความที่เจ้าของเว็บใส่หมวดของตัวเอง)
  */
 function fenix_setup_refresh_articles() {
-	$log    = array();
+	$log    = fenix_setup_rename_categories();
 	$names  = array(
 		'draft'   => 'ฉบับร่าง',
 		'future'  => 'ตั้งเวลาไว้',
@@ -1049,6 +1125,9 @@ function fenix_setup_refresh_articles() {
 			continue;
 		}
 		$status = $post->post_status;
+		if ( fenix_setup_sync_category( $post, $art ) ) {
+			$log[] = '↻ ย้ายไปหมวด ' . $art['meta']['category'] . ': ' . $art['title'];
+		}
 		$hash   = (string) get_post_meta( $post->ID, 'fenix_seed_hash', true );
 		$mine   = '' !== $hash ? fenix_seed_fingerprint( $post ) === $hash : ( 'draft' === $status && '0000-00-00 00:00:00' === $post->post_modified_gmt );
 		if ( ! $mine ) {
@@ -1071,11 +1150,12 @@ function fenix_setup_refresh_articles() {
 }
 
 /**
- * ลำดับการปล่อยบทความ: เรื่องพื้นฐานและเรื่องที่หน้าคู่มืออ้างถึงออกก่อน แล้วสลับหมวดกันไป
- * slug ที่ไม่อยู่ในรายการ (บทความที่เพิ่มทีหลัง) ต่อท้ายตามลำดับใน fenix_seed_article_covers()
+ * ลำดับบทความทั้งหมดตามแผน: 22 เรื่องแรก แล้วบทความของแผน 14 ต.ค. 2026 (dev/article-plan.md) ตามปฏิทิน
+ * รวม slug ที่ยังไม่มีไฟล์ · ใช้เป็นลำดับปล่อย (fenix_seed_publish_order) และเป็นรายการ slug ที่ลิงก์ในเนื้อหาชี้ล่วงหน้าได้:
+ * ลิงก์ไป slug ในรายการนี้ที่ยังไม่เผยแพร่ถูกซ่อนจนกว่าบทความนั้นจะออก (fenix_unpublished_seed_articles)
  */
-function fenix_seed_publish_order() {
-	$order = array(
+function fenix_seed_planned_order() {
+	return array(
 		'what-is-ea-mt5',
 		'ea-not-trading',
 		'drawdown',
@@ -1098,7 +1178,57 @@ function fenix_seed_publish_order() {
 		'free-ea-vs-paid',
 		'swap-commission',
 		'ea-news-trading',
+		// แผนบทความ 14 ต.ค. 2026 (dev/article-plan.md) · ตามลำดับปฏิทิน · slug ที่ยังไม่มีไฟล์ถูกข้ามเอง
+		'gold-trading-bot',
+		'ea-on-mobile',
+		'what-is-backtest',
+		'economic-calendar',
+		'money-management',
+		'fomc',
+		'margin-level',
+		'what-is-mt5',
+		'how-to-use-gold-ea',
+		'what-is-xauusd',
+		'gold-market-hours',
+		'non-farm-payroll',
+		'xauusd-pip-lot',
+		'backtest-mt5-how-to',
+		'cpi',
+		'blown-account',
+		'ea-no-stop-loss',
+		'gold-bot-losses',
+		'mt5-login-failed',
+		'gold-price-drivers',
+		'ai-gold-trading',
+		'investor-password',
+		'copy-trade-vs-ea',
+		'win-rate',
+		'ea-capital',
+		'grid-trading',
+		'hedging',
+		'choose-gold-ea',
+		'buy-or-rent-ea',
+		'gold-bar-vs-xauusd',
+		'mt5-withdraw',
+		'gold-gap',
+		'broker-price-difference',
+		'xauusd-symbols',
+		'ea-scalping-vs-grid',
+		'dollar-index-dxy',
+		'trading-account-types',
+		'investment-scam-check',
+		'open-account-requirements',
+		'ea-passive-income',
+		'mt5-trade-history',
 	);
+}
+
+/**
+ * ลำดับการปล่อยบทความ: เรื่องพื้นฐานและเรื่องที่หน้าคู่มืออ้างถึงออกก่อน แล้วสลับหมวดกันไป (ตาม fenix_seed_planned_order)
+ * เฉพาะ slug ที่มีแถวใน fenix_seed_article_covers() · slug ที่ไม่อยู่ในแผนต่อท้ายตามลำดับของรายการนั้น
+ */
+function fenix_seed_publish_order() {
+	$order = fenix_seed_planned_order();
 	$all   = array_keys( fenix_seed_article_covers() );
 	return array_values( array_unique( array_merge( array_intersect( $order, $all ), $all ) ) );
 }
@@ -1111,18 +1241,49 @@ function fenix_release_weekdays( $per_week ) {
 		1 => array( 2 ),
 		2 => array( 2, 5 ),
 		3 => array( 1, 3, 5 ),
+		7 => array( 1, 2, 3, 4, 5, 6, 7 ), // ทุกวัน: เติมวันที่ยังไม่มีโพสต์ตั้งเวลา (fenix_release_taken_days)
 	);
 	return isset( $map[ (int) $per_week ] ) ? $map[ (int) $per_week ] : $map[2];
 }
 
 /**
- * ช่องเวลาปล่อยบทความถัดไป: วันถัดจาก $after ที่ตรงกับ $days เวลา 10:00 น. เวลาไทย (อย่างเร็วคือวันรุ่งขึ้น)
+ * วันที่ (เวลาไทย) ที่มีโพสต์ตั้งเวลาไว้แล้ว ทั้งบทความของธีมและโพสต์ที่เจ้าของเว็บตั้งเอง → array( 'Y-m-d' => true )
+ * โหมดวันละเรื่องข้ามวันเหล่านี้ จึงไม่มีสองเรื่องออกวันเดียวกัน และคิวเดิมคงวันเดิม
  */
-function fenix_release_next_slot( DateTimeImmutable $after, $days ) {
+function fenix_release_taken_days() {
+	$taken = array();
+	$utc   = new DateTimeZone( 'UTC' );
+	$bkk   = new DateTimeZone( 'Asia/Bangkok' );
+	$posts = get_posts(
+		array(
+			'post_type'        => 'post',
+			'post_status'      => 'future',
+			'posts_per_page'   => 500,
+			'no_found_rows'    => true,
+			'suppress_filters' => true,
+		)
+	);
+	foreach ( $posts as $post ) {
+		if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
+			continue;
+		}
+		$at = date_create_immutable( $post->post_date_gmt, $utc );
+		if ( $at ) {
+			$taken[ $at->setTimezone( $bkk )->format( 'Y-m-d' ) ] = true;
+		}
+	}
+	return $taken;
+}
+
+/**
+ * ช่องเวลาปล่อยบทความถัดไป: วันถัดจาก $after ที่ตรงกับ $days เวลา 10:00 น. เวลาไทย (อย่างเร็วคือวันรุ่งขึ้น)
+ * $taken = วันที่ที่มีโพสต์ตั้งเวลาไว้แล้ว (array( 'Y-m-d' => true ) เวลาไทย) → ข้ามวันนั้น
+ */
+function fenix_release_next_slot( DateTimeImmutable $after, $days, $taken = array() ) {
 	$slot = $after->setTimezone( new DateTimeZone( 'Asia/Bangkok' ) );
-	for ( $i = 0; $i < 14; $i++ ) {
+	for ( $i = 0; $i < 400; $i++ ) {
 		$slot = $slot->modify( '+1 day' )->setTime( 10, 0, 0 );
-		if ( in_array( (int) $slot->format( 'N' ), $days, true ) ) {
+		if ( in_array( (int) $slot->format( 'N' ), $days, true ) && ! isset( $taken[ $slot->format( 'Y-m-d' ) ] ) ) {
 			break;
 		}
 	}
@@ -1132,17 +1293,30 @@ function fenix_release_next_slot( DateTimeImmutable $after, $days ) {
 /**
  * ปล่อยบทความเริ่มต้นที่ยังเป็นฉบับร่าง: $now_count เรื่องแรกเผยแพร่ทันที ที่เหลือตั้งเวลา 10:00 น. เวลาไทย
  * ตามวันของ fenix_release_weekdays() ต่อคิวหลังบทความของธีมที่ตั้งเวลาไว้แล้ว · กดซ้ำได้ (ทำเฉพาะฉบับร่าง)
+ * โหมดทุกวัน ($per_week = 7): ไม่ต่อท้ายคิว แต่เติมวันที่ยังไม่มีโพสต์ตั้งเวลา ตั้งแต่วันรุ่งขึ้น หรือตั้งแต่ $from (Y-m-d เวลาไทย) ถ้าช้ากว่า
+ * เรื่องที่ตั้งเวลาไว้แล้วคงวันเดิม (แผนบทความ dev/article-plan.md: เรื่องเดิมอังคาร/ศุกร์ เรื่องใหม่ลงวันที่เหลือ)
  * ฉบับร่างที่ยังไม่เคยแก้ถูกอัปเดตตามไฟล์รุ่นล่าสุดก่อนปล่อย (ข้อความที่เผยแพร่จึงตรงกับไฟล์ของธีมเสมอ)
  * ลิงก์ไปบทความที่ยังไม่ถึงคิวถูกซ่อนด้วย fenix_unlink_slugs() จนกว่าจะเผยแพร่
  */
-function fenix_setup_release_articles( $now_count = 6, $per_week = 2 ) {
+function fenix_setup_release_articles( $now_count = 6, $per_week = 2, $from = '' ) {
 	$now_count = max( 0, min( 100, (int) $now_count ) );
+	$daily     = 7 === (int) $per_week;
 	$days      = fenix_release_weekdays( $per_week );
 	$utc       = new DateTimeZone( 'UTC' );
 	$slot      = new DateTimeImmutable( 'now', $utc );
+	$taken     = $daily ? fenix_release_taken_days() : array();
 	$arts      = fenix_seed_articles();
 	$log       = array();
 	$queue     = array();
+
+	if ( $daily && preg_match( '/^\d{4}-\d{2}-\d{2}$/', (string) $from ) ) {
+		$start = date_create_immutable( $from . ' 00:00:00', new DateTimeZone( 'Asia/Bangkok' ) );
+		// fenix_release_next_slot() เดินไปวันถัดไปก่อนเสมอ จึงเริ่มนับจากวันก่อนหน้า $from
+		$start = $start ? $start->modify( '-1 day' ) : null;
+		if ( $start && $start > $slot ) {
+			$slot = $start;
+		}
+	}
 
 	foreach ( fenix_seed_publish_order() as $slug ) {
 		$post = fenix_find_post( $slug );
@@ -1150,9 +1324,9 @@ function fenix_setup_release_articles( $now_count = 6, $per_week = 2 ) {
 			continue;
 		}
 		if ( 'future' === $post->post_status && '0000-00-00 00:00:00' !== $post->post_date_gmt ) {
-			// จุดเริ่มนับคิว = บทความของธีมที่ตั้งเวลาไว้ล่าสุด (ไม่นับโพสต์อื่นที่เจ้าของเว็บตั้งเวลาเอง)
+			// จุดเริ่มนับคิว = บทความของธีมที่ตั้งเวลาไว้ล่าสุด (ไม่นับโพสต์อื่นที่เจ้าของเว็บตั้งเวลาเอง) · โหมดทุกวันไม่ต่อท้ายคิว แต่ข้ามวันที่มีโพสต์แล้ว
 			$at = date_create_immutable( $post->post_date_gmt, $utc );
-			if ( $at && $at > $slot ) {
+			if ( ! $daily && $at && $at > $slot ) {
 				$slot = $at;
 			}
 			continue;
@@ -1186,7 +1360,8 @@ function fenix_setup_release_articles( $now_count = 6, $per_week = 2 ) {
 			$want = 'publish';
 			$ok   = '✓ เผยแพร่แล้ว: ' . $post->post_title;
 		} else {
-			$slot = fenix_release_next_slot( $slot, $days );
+			$slot = fenix_release_next_slot( $slot, $days, $taken );
+			$taken[ $slot->format( 'Y-m-d' ) ] = true;
 			$gmt  = $slot->setTimezone( $utc )->format( 'Y-m-d H:i:s' );
 			// edit_date จำเป็น: ถ้าไม่ส่ง WordPress จะล้างวันที่ของฉบับร่างเป็น "ตอนนี้" แล้วเผยแพร่ทันทีแทนการตั้งเวลา
 			$done = wp_update_post(
@@ -1217,9 +1392,9 @@ function fenix_setup_release_articles( $now_count = 6, $per_week = 2 ) {
  * ปล่อยบทความโดยระบุจำนวนที่ต้องการให้เผยแพร่อยู่ "รวม" (ไม่ใช่ "เพิ่มอีก N")
  * กดซ้ำหรือส่งฟอร์มซ้ำหลังสะดุดกลางทางจึงเติมให้ครบตามเป้าเท่านั้น ไม่เผยแพร่เกิน
  */
-function fenix_setup_release_to_total( $want_live, $per_week = 2 ) {
+function fenix_setup_release_to_total( $want_live, $per_week = 2, $from = '' ) {
 	$have = fenix_setup_article_counts();
-	return fenix_setup_release_articles( max( 0, (int) $want_live - (int) $have['publish'] ), $per_week );
+	return fenix_setup_release_articles( max( 0, (int) $want_live - (int) $have['publish'] ), $per_week, $from );
 }
 
 /**
@@ -1603,14 +1778,15 @@ function fenix_setup_handle() {
 	if ( 'articles' === $do ) {
 		$log = array_merge( $log, fenix_setup_import_articles( ! empty( $_POST['fenix_publish'] ) ) );
 	}
-	if ( 'articles_refresh' === $do ) {
+	if ( 'articles_refresh' === $do ) { // เนื้อหา ชื่อ SEO และหมวดตามไฟล์รุ่นล่าสุด
 		$log = array_merge( $log, fenix_setup_refresh_articles() );
 	}
 	if ( 'release' === $do ) {
 		// ตัวเลขในฟอร์ม = จำนวนบทความที่ต้องการให้เผยแพร่อยู่ "รวม" · ส่งฟอร์มซ้ำหรือกดซ้ำหลังสะดุดจึงไม่เผยแพร่เกินที่ตั้งใจ
 		$want = isset( $_POST['fenix_now'] ) ? absint( wp_unslash( $_POST['fenix_now'] ) ) : 6;
 		$week = isset( $_POST['fenix_per_week'] ) ? absint( wp_unslash( $_POST['fenix_per_week'] ) ) : 2;
-		$log  = array_merge( $log, fenix_setup_release_to_total( $want, $week ) );
+		$from = isset( $_POST['fenix_from'] ) ? sanitize_text_field( wp_unslash( $_POST['fenix_from'] ) ) : '';
+		$log  = array_merge( $log, fenix_setup_release_to_total( $want, $week, $from ) );
 	}
 	if ( 'seo' === $do ) {
 		// ปุ่มนี้เขียนค่าระบบของ WordPress และค่าของ Yoast SEO ซึ่ง WordPress สงวนให้ผู้ดูแลระบบ: ต้องมีสิทธิ์ manage_options
@@ -1734,9 +1910,11 @@ function fenix_setup_screen() {
 						<option value="1">1 เรื่อง (วันอังคาร)</option>
 						<option value="2" selected>2 เรื่อง (อังคาร และ ศุกร์)</option>
 						<option value="3">3 เรื่อง (จันทร์ พุธ ศุกร์)</option>
+						<option value="7">ทุกวัน (เติมวันที่ยังไม่มีบทความตั้งเวลา)</option>
 					</select>
 				</label>
 			</p>
+			<p><label>แบบทุกวัน: เริ่มไม่ก่อนวันที่ <input type="date" name="fenix_from"></label> · เว้นว่าง = เริ่มพรุ่งนี้ · บทความที่ตั้งเวลาไว้แล้วคงวันเดิม เรื่องใหม่ลงวันที่เหลือ</p>
 			<p><button class="button button-primary" name="fenix_do" value="release"<?php disabled( ! $fenix_can_manage || 0 === (int) $fenix_counts['draft'] ); ?>>เผยแพร่และตั้งเวลา</button></p>
 		</form>
 
