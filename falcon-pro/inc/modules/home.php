@@ -417,7 +417,7 @@ function fenix_home_defaults( $d ) {
 			'card4_title'        => 'เปิดบัญชี MT5',
 			'card4_desc'         => 'ขั้นตอนเปิดบัญชีเทรดเงินจริงและยืนยันตัวตนกับโบรกเกอร์ทีละขั้น',
 			'card4_url'          => '/open-mt5-account/',
-			'card5_desc'         => 'สิ่งที่ต้องรู้เรื่องความเสี่ยงก่อนใช้เงินจริง',
+			'card5_desc'         => 'ความเสี่ยงที่ควรเข้าใจให้ครบก่อนลงเงินจริง',
 			'card6_title'        => 'ลงแอป MT5 และล็อกอิน',
 			'card6_desc'         => 'ลงแอป MT5 บนมือถือหรือคอมพิวเตอร์ไว้ดูยอดเงินและออเดอร์ของบัญชี',
 			'card6_url'          => '/mt5-login/',
@@ -1307,7 +1307,7 @@ function fenix_home_contact_link( $text, $class, $pos, $pkg = '', $icons = true 
 	if ( '' === $target['url'] ) {
 		if ( ! $hinted && current_user_can( 'edit_theme_options' ) ) {
 			$hinted = true;
-			echo '<span class="admin-hint">ปุ่มติดต่อถูกซ่อน: ใส่ลิงก์ LINE ที่ ปรับแต่ง → 1) ช่องทางติดต่อ</span>';
+			echo '<span class="admin-hint">ยังไม่มีลิงก์ LINE ปุ่มติดต่อจึงไม่แสดง (ตั้งได้ที่ ปรับแต่ง → 1) ช่องทางติดต่อ)</span>';
 		}
 		return false;
 	}

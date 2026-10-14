@@ -1078,6 +1078,39 @@ function fenix_seed_category_names() {
 }
 
 /**
+ * คำอธิบายของหมวดบทความ: แสดงใต้ชื่อหน้าหมวด (index.php) และเป็นคำอธิบายของหน้าหมวดใน Google ผ่าน %%term_description%% ของ Yoast
+ * (ข้อ 4 ของ FALCON Setup ติ๊กตั้งชื่อหน้าหมวด) · เขียนลงเฉพาะหมวดที่ยังไม่มีคำอธิบาย คำอธิบายที่เจ้าของเว็บเขียนเองไม่ถูกแตะ
+ */
+function fenix_seed_category_descriptions() {
+	return array(
+		'EA และบอทเทรดทอง'    => 'รวมเรื่อง EA และบอทเทรดทองบน MT5 ตั้งแต่หลักการทำงาน ประเภทของระบบ วิธีเลือก ค่าใช้จ่าย ไปจนถึงความเสี่ยงที่ต้องรู้ก่อนปล่อยให้ระบบเทรดแทน',
+		'เทรดทองคำ XAUUSD'    => 'ความรู้เทรดทองคำ XAUUSD สำหรับมือใหม่ ทั้งการนับจุดกับ Lot เวลาตลาดตามเวลาไทย ปัจจัยที่ขับราคา ชื่อสัญลักษณ์ และต้นทุนอย่าง Spread กับ Swap',
+		'บริหารความเสี่ยง'     => 'บริหารเงินและความเสี่ยงเมื่อใช้ EA เทรดทอง เรื่อง Drawdown, Margin Level, Leverage, ทุนที่ควรมี Gap วันจันทร์ และสาเหตุที่บัญชีพอร์ตแตก',
+		'Backtest และผลทดสอบ' => 'วิธีทำและอ่าน Backtest บน MT5 ให้รู้ทันข้อจำกัด เข้าใจ Profit Factor, Win Rate และ Overfitting ก่อนเชื่อผลทดสอบของบอทเทรดตัวใด',
+		'MT5 และบัญชีเทรด'     => 'คู่มือ MetaTrader 5 และบัญชีเทรด ตั้งแต่ประเภทบัญชี การเปิดบัญชี ล็อกอิน รหัสผ่าน การฝากถอน ไปจนถึงการดูประวัติการเทรดบนมือถือ',
+		'ข่าวเศรษฐกิจ'         => 'อ่านปฏิทินเศรษฐกิจและข่าวสหรัฐที่เขย่าราคาทอง ทั้ง FOMC, Non-Farm, CPI และดัชนีดอลลาร์ DXY พร้อมเวลาประกาศตามเวลาไทย',
+	);
+}
+
+/**
+ * ใส่คำอธิบายให้หมวดของธีมที่มีอยู่และยังไม่มีคำอธิบาย · กดซ้ำไม่เกิดอะไร
+ */
+function fenix_setup_category_descriptions() {
+	$log = array();
+	foreach ( fenix_seed_category_descriptions() as $name => $text ) {
+		$term = get_term_by( 'name', $name, 'category' );
+		if ( ! $term || '' !== trim( (string) ( isset( $term->description ) ? $term->description : '' ) ) ) {
+			continue;
+		}
+		$done = wp_update_term( (int) $term->term_id, 'category', array( 'description' => $text ) );
+		if ( ! is_wp_error( $done ) ) {
+			$log[] = '✓ ใส่คำอธิบายหมวด ' . $name;
+		}
+	}
+	return $log;
+}
+
+/**
  * หมวดเดิมสองชื่อ (ก่อนแผนบทความ) → ชื่อใหม่ · เปลี่ยนชื่อหมวดเดิมแทนการสร้างหมวดใหม่ จึงคง slug และลิงก์หน้าหมวดเดิมไว้
  */
 function fenix_seed_category_renames() {
@@ -1144,7 +1177,7 @@ function fenix_setup_sync_category( $post, $art ) {
  * ใช้เมื่อข้อเท็จจริงของสินค้าเปลี่ยนและไฟล์บทความถูกแก้ตาม (เช่น 13 ต.ค. 2026: FALCON ใช้ผ่านแดชบอร์ดอย่างเดียว)
  * สถานะและวันที่ของบทความไม่เปลี่ยน: wp_update_post() คงวันที่ของบทความที่เผยแพร่/ตั้งเวลาไว้ (กติกาล้างวันที่ใช้กับฉบับร่างเท่านั้น)
  * บทความที่แก้เองแล้ว (ลายนิ้วมือไม่ตรง) ไม่ถูกแตะ
- * หมวดของบทความตามไฟล์ถูกจัดให้ตรงด้วย (fenix_setup_sync_category: ไม่แตะบทความที่เจ้าของเว็บใส่หมวดของตัวเอง)
+ * หมวดของบทความตามไฟล์ถูกจัดให้ตรงด้วย (fenix_setup_sync_category: ไม่แตะบทความที่เจ้าของเว็บใส่หมวดของตัวเอง) และหมวดที่ยังไม่มีคำอธิบายได้คำอธิบายของธีม
  */
 function fenix_setup_refresh_articles() {
 	$log    = fenix_setup_rename_categories();
@@ -1182,6 +1215,7 @@ function fenix_setup_refresh_articles() {
 	if ( $edited ) {
 		$log[] = '• ไม่แตะ ' . count( $edited ) . ' เรื่องที่แก้เองแล้ว: ' . implode( ' · ', $edited );
 	}
+	$log = array_merge( $log, fenix_setup_category_descriptions() );
 	return $log ? $log : array( '• ไม่มีบทความเริ่มต้นให้อัปเดต' );
 }
 

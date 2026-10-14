@@ -154,7 +154,7 @@ function fenix_contact_button( $args = array() ) {
 
 	if ( '' === $target['url'] ) {
 		if ( current_user_can( 'edit_theme_options' ) ) {
-			echo '<span class="admin-hint">ปุ่มติดต่อถูกซ่อน: ใส่ลิงก์ LINE ที่ ปรับแต่ง → 1) ช่องทางติดต่อ</span>';
+			echo '<span class="admin-hint">ยังไม่มีลิงก์ LINE ปุ่มติดต่อจึงไม่แสดง (ตั้งได้ที่ ปรับแต่ง → 1) ช่องทางติดต่อ)</span>';
 		}
 		return;
 	}

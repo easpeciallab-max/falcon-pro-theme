@@ -88,13 +88,14 @@ function wp_update_post( $arr, $wp_error = false ) {
 // ---- in-memory categories (names stored escaped like core: & → &amp;) --------------------------------
 $GLOBALS['fx_terms']    = array(); // term_id => name
 $GLOBALS['fx_post_cat'] = array(); // post ID => array( term_id, … )
+$GLOBALS['fx_term_desc'] = array(); // term_id => description
 function fx_term_name( $name ) {
 	return str_replace( '&', '&amp;', str_replace( '&amp;', '&', (string) $name ) );
 }
 function get_term_by( $field, $value, $taxonomy ) {
 	foreach ( $GLOBALS['fx_terms'] as $id => $name ) {
 		if ( 'name' === $field && fx_term_name( $value ) === $name ) {
-			return (object) array( 'term_id' => $id, 'name' => $name );
+			return (object) array( 'term_id' => $id, 'name' => $name, 'description' => isset( $GLOBALS['fx_term_desc'][ $id ] ) ? $GLOBALS['fx_term_desc'][ $id ] : '' );
 		}
 	}
 	return false;
@@ -109,7 +110,12 @@ function wp_insert_term( $name, $taxonomy ) {
 	return array( 'term_id' => $id );
 }
 function wp_update_term( $id, $taxonomy, $args ) {
-	$GLOBALS['fx_terms'][ $id ] = fx_term_name( $args['name'] );
+	if ( isset( $args['name'] ) ) {
+		$GLOBALS['fx_terms'][ $id ] = fx_term_name( $args['name'] );
+	}
+	if ( isset( $args['description'] ) ) {
+		$GLOBALS['fx_term_desc'][ $id ] = $args['description'];
+	}
 	return array( 'term_id' => $id );
 }
 function wp_get_post_categories( $id, $args = array() ) {
@@ -542,8 +548,14 @@ $check( 'K: an article with a category of the owner is left alone', array( 3, 9 
 $terms_before = $GLOBALS['fx_terms'];
 $k2           = fenix_setup_refresh_articles();
 $check( 'K: second run moves and renames nothing', $terms_before === $GLOBALS['fx_terms'] && ! preg_grep( '/หมวด/u', $k2 ), implode( ' | ', $k2 ) );
-$GLOBALS['fx_terms']    = array();
-$GLOBALS['fx_post_cat'] = array();
+$check( 'K: every group category got the theme description', count( fenix_seed_category_names() ) === count( array_filter( array_map( function ( $n ) { $t = get_term_by( 'name', $n, 'category' ); return $t ? $t->description : ''; }, fenix_seed_category_names() ) ) ) );
+$own_id                            = (int) get_term_by( 'name', 'บริหารความเสี่ยง', 'category' )->term_id;
+$GLOBALS['fx_term_desc'][ $own_id ] = 'คำอธิบายที่เจ้าของเขียนเอง';
+fenix_setup_refresh_articles();
+$check( 'K: a description the owner wrote is left alone', 'คำอธิบายที่เจ้าของเขียนเอง' === $GLOBALS['fx_term_desc'][ $own_id ] );
+$GLOBALS['fx_terms']     = array();
+$GLOBALS['fx_post_cat']  = array();
+$GLOBALS['fx_term_desc'] = array();
 
 // ---- G · counts -------------------------------------------------------------------------
 $seed();

@@ -187,7 +187,7 @@ function fenix_pages_defaults( $d ) {
 			'article_author_name'     => 'ทีมงาน FALCON PRO EA',
 			'article_author_bio'      => 'เรียบเรียงโดยทีมงานที่ดูแล FALCON PRO EA เพื่อใช้ศึกษาเรื่อง EA และ MetaTrader 5 เนื้อหาไม่ใช่คำแนะนำการลงทุน ถ้าพบจุดที่คลาดเคลื่อน แจ้งทีมงานได้ทางช่องทางติดต่อ',
 			'article_author_link'     => 'รู้จักทีมงานและหลักการทำงาน',
-			'article_disclaimer_text' => 'ตัวเลขในบทความเป็นตัวอย่างสมมติเพื่ออธิบายหลักการเท่านั้น ไม่ใช่ผลการเทรดของ FALCON PRO EA',
+			'article_disclaimer_text' => 'ตัวอย่างตัวเลขในบทความสมมติขึ้นเพื่อใช้อธิบายหลักการเท่านั้น และไม่ใช่ผลการเทรดของ FALCON PRO EA',
 			'article_disclaimer_link' => 'เปิดอ่านคำเตือนความเสี่ยงทุกข้อ',
 			'article_related_title'   => 'อ่านต่อในหมวดเดียวกัน',
 
@@ -484,14 +484,14 @@ function fenix_pages_reading_minutes( $html ) {
 
 /**
  * alt ของรูปหน้าปก: ใช้ข้อความ alt จากคลังสื่อ · ถ้าว่าง หรือเป็นข้อความกลางที่ Setup ใส่ให้ทุกรูป ใช้ชื่อบทความแทน
+ * รายการข้อความกลางมีที่เดียวคือ fenix_seo_is_generic_alt() ใน inc/seo.php (ฟิลเตอร์ fenix_pages_generic_alts · seo.php ถูกโหลดก่อนโมดูลเสมอ)
  */
 function fenix_pages_featured_alt( $post_id = 0 ) {
 	$post_id = $post_id ? (int) $post_id : (int) get_the_ID();
 	$title   = wp_strip_all_tags( get_the_title( $post_id ) );
 	$thumb   = function_exists( 'get_post_thumbnail_id' ) ? (int) get_post_thumbnail_id( $post_id ) : 0;
 	$alt     = $thumb ? trim( (string) get_post_meta( $thumb, '_wp_attachment_image_alt', true ) ) : '';
-	$generic = (array) apply_filters( 'fenix_pages_generic_alts', array( 'FALCON PRO EA ผู้ช่วยเทรดอัตโนมัติสำหรับ MT5 (ภาพประกอบ)' ) );
-	if ( '' === $alt || in_array( $alt, $generic, true ) ) {
+	if ( '' === $alt || fenix_seo_is_generic_alt( $alt ) ) {
 		return $title;
 	}
 	return $alt;

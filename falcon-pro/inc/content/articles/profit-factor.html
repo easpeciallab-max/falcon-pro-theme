@@ -4,7 +4,7 @@
 <div class="callout callout--info"><p><strong>สรุปสั้น:</strong> Profit Factor คือ Gross Profit หารด้วย Gross Loss ถ้าผลหารเกิน 1 แสดงว่าฝั่งกำไรใหญ่กว่าฝั่งขาดทุน แต่ตัวเลขนี้ไม่ได้บอกจำนวนเทรด ความลึกของ Drawdown หรือช่วงเวลาที่ใช้ทดสอบ จึงต้องอ่านคู่กันทุกครั้ง</p></div>
 
 <h2>Profit Factor คืออะไร และคำนวณอย่างไร</h2>
-<p>เอกสารของ MetaTrader 5 ให้ความหมายว่า Profit Factor เป็นอัตราส่วนของ Gross Profit ต่อ Gross Loss โดย Gross Profit คือผลรวมของทุกเทรดที่ปิดแล้วได้กำไร ส่วน Gross Loss คือผลรวมของทุกเทรดที่ปิดแล้วขาดทุน</p>
+<p>เอกสารของ MetaTrader 5 ให้ความหมายว่า Profit Factor เป็นอัตราส่วนของ Gross Profit ต่อ Gross Loss โดย Gross Profit คือผลรวมของทุกเทรดที่ปิดแล้วได้กำไร ส่วน Gross Loss คือผลรวมของทุกเทรดที่ปิดแล้วขาดทุน <span class="xref">ถ้ายังไม่คุ้นกับรายงานผลทดสอบย้อนหลังทั้งฉบับ อ่านภาพรวมก่อนได้ใน<a href="{{home}}/what-is-backtest/">Backtest คืออะไร</a></span></p>
 <p>สูตรคือ Profit Factor = Gross Profit ÷ Gross Loss ในรายงาน Gross Loss มักแสดงเป็นค่าติดลบ เวลาคิดให้ใช้ขนาดของตัวเลขโดยไม่สนเครื่องหมาย</p>
 <ul>
   <li><strong>มากกว่า 1:</strong> ในช่วงที่ทดสอบ กำไรรวมมากกว่าขาดทุนรวม</li>
@@ -90,7 +90,7 @@
   <li><h3>ดูจำนวนเทรด</h3><p>ดู Total Trades คู่กับ Largest profit trade ว่ากำไรกระจายอยู่ในหลายไม้ หรือกระจุกอยู่ไม่กี่ไม้</p></li>
   <li><h3>แปลง Equity Drawdown เป็นเงินของคุณ</h3><p>สมมติรายงานแสดง Drawdown 25% และคุณตั้งใจใช้ทุน 1,000 USD ถ้าใช้ Lot ต่อทุนในสัดส่วนเดียวกับที่ทดสอบ ให้นึกภาพบัญชีลดลงราว 250 USD ระหว่างทาง แต่ถ้ารายงานใช้ทุนมากกว่าและ Lot คงที่ ให้ดู Equity Drawdown Maximal ที่เป็นจำนวนเงินแทนเปอร์เซ็นต์ ถ้ารับไม่ได้ ตัวเลขกำไรก็ไม่มีความหมาย คำนวณเพิ่มได้ที่ <a href="{{home}}/tools/">หน้าเครื่องมือ</a></p></li>
   <li><h3>อ่าน Profit Factor พร้อมอีกสองค่า</h3><p>อ่านคู่กับ Expected Payoff และ Recovery Factor เพราะสามค่านี้ตอบคนละคำถาม ถ้าค่าใดอ่อนมาก ให้ถือว่ารายงานยังไม่ผ่าน</p></li>
-  <li><h3>ทดสอบซ้ำและรันบัญชี Demo</h3><p>เปลี่ยนช่วงเวลาแล้วทดสอบอีกรอบ จากนั้นรันบนบัญชี Demo ระยะหนึ่งเพื่อเทียบกับผล Backtest ดูแนวคิดได้ที่ <a href="{{home}}/forward-test/">หน้า Forward Test</a></p></li>
+  <li><h3>ทดสอบซ้ำและรันบัญชี Demo</h3><p>เปลี่ยนช่วงเวลาแล้วทดสอบอีกรอบ จากนั้นรันบนบัญชี Demo ระยะหนึ่งเพื่อเทียบกับผล Backtest ขั้นตอนทดสอบซ้ำใน MT5 อยู่ในบทความ <a href="{{home}}/backtest-mt5-how-to/">Backtest MT5 ยังไง</a></p></li>
 </ol>
 
 <h2>Profit Factor เท่าไรจึงเรียกว่าดี</h2>
@@ -101,7 +101,7 @@
   <li>Drawdown ที่ต้องแลกมา อยู่ในระดับที่คุณรับได้จริงหรือไม่</li>
 </ul>
 
-<div class="callout callout--warn"><p><strong>คำเตือนความเสี่ยง:</strong> การเทรด Forex ทองคำ และ CFD มีความเสี่ยงสูง คุณอาจสูญเสียเงินทุนบางส่วนหรือทั้งหมด Profit Factor และตัวชี้วัดทุกตัวในรายงานคำนวณจากข้อมูลในอดีต ผลการทดสอบหรือผลการเทรดในอดีตไม่ได้รับประกันผลลัพธ์ในอนาคต และไม่มี EA ใดรับรองกำไรได้ อ่านเพิ่มเติมที่ <a href="{{home}}/risk-disclosure/">การเปิดเผยความเสี่ยง</a></p></div>
+<div class="callout callout--warn"><p><strong>คำเตือนความเสี่ยง:</strong> การเทรด Forex ทองคำ และ CFD มีความเสี่ยงสูง เงินทุนของคุณอาจหายไปบางส่วนหรือหมดทั้งก้อน ตัวเลขอย่าง Profit Factor และตัวชี้วัดอื่นในรายงานล้วนคำนวณจากข้อมูลในอดีต ผลการทดสอบหรือผลการเทรดในอดีตไม่ได้รับประกันผลลัพธ์ในอนาคต ส่วน EA ทุกตัวก็รับรองกำไรไม่ได้ อ่านเพิ่มเติมที่ <a href="{{home}}/risk-disclosure/">การเปิดเผยความเสี่ยง</a></p></div>
 
 <h2>คำถามที่พบบ่อยเรื่อง Profit Factor</h2>
 <div class="faq-block">
@@ -118,7 +118,7 @@
 <div class="related-links"><h2>คู่มือที่เกี่ยวข้อง</h2><ul>
   <li><a href="{{home}}/what-is-backtest/">Backtest คืออะไร และอ่านผลทดสอบอย่างไร</a></li>
   <li><a href="{{home}}/backtest/">วิธี Backtest และอ่านรายงานใน Strategy Tester</a></li>
-  <li><a href="{{home}}/forward-test/">Forward Test คืออะไร</a></li>
+  <li><a href="{{home}}/backtest-mt5-how-to/">Backtest MT5 ยังไง: ทดสอบ EA ด้วย Strategy Tester</a></li>
   <li><a href="{{home}}/drawdown/">Drawdown คืออะไร และตั้งเพดานอย่างไร</a></li>
   <li><a href="{{home}}/spread-slippage/">Spread และ Slippage กระทบผล EA อย่างไร</a></li>
   <li><a href="{{home}}/ea-scam-warning/">สัญญาณเตือน EA หลอกลวง</a></li>

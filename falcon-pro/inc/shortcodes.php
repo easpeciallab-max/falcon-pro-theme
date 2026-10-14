@@ -471,7 +471,7 @@ function fenix_sc_calc( $atts ) {
 				<?php echo fenix_icon_badge( 'calc' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 				<div>
 					<strong>เครื่องคิด Lot Size ตามความเสี่ยง</strong>
-					<small>คำนวณขนาดออเดอร์จากทุน ความเสี่ยงต่อไม้ และระยะ Stop Loss</small>
+					<small>หาขนาด Lot จากทุนในบัญชี เปอร์เซ็นต์ที่ยอมเสียต่อไม้ และระยะ Stop Loss</small>
 				</div>
 			</div>
 			<div class="calc-grid">
