@@ -164,16 +164,14 @@
 	}
 
 	/* บาร์ล่างมือถือ · PHP ส่ง is-active / aria-current / --dock-x มากับ HTML แล้ว (ปิด JS ก็ถูก)
-	   บล็อกนี้เพิ่มแค่ลูกเล่น: แรงกด, ไฟวิ่งไปช่องที่กด, ย่อบาร์ตอนเลื่อนลง (ย่อ ไม่ซ่อน) · เว้นที่ท้ายหน้าด้วย div.dock-spacer */
+	   บล็อกนี้เพิ่มแค่ลูกเล่น: แรงกด, ไฟวิ่งไปช่องที่กด · เว้นที่ท้ายหน้าด้วย div.dock-spacer
+	   บาร์ไม่ย่อตอนเลื่อนหน้าแล้ว (เจ้าของสั่ง 15 ต.ค. 2026 · เดิมซ่อนป้ายชื่อตอนเลื่อนลง) */
 	var dock = document.querySelector('.mobile-app-nav.dock');
 
 	if (dock) {
 		var dockKeys = Array.prototype.slice.call(dock.querySelectorAll('.dock-key'));
 		var dockSeats = Math.max(1, dockKeys.length);
-		var dockNarrow = mq('(max-width: 760px)');
 		var dockWait = 0;
-		var dockLastY = Math.max(0, window.pageYOffset || 0);
-		var dockDrift = 0;
 
 		var dockLight = function (seat) {
 			if (seat < 0 || seat >= dockSeats) {
@@ -233,11 +231,6 @@
 			});
 		});
 
-		dock.addEventListener('pointerdown', function () {
-			dock.classList.remove('is-slim');
-			dockDrift = 0;
-		});
-
 		dock.addEventListener('click', function (e) {
 			var key = e.target && e.target.closest ? e.target.closest('.dock-key') : null;
 			if (!key || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) {
@@ -261,48 +254,6 @@
 		});
 
 		window.addEventListener('pageshow', dockRest);
-
-		var dockScroll = function () {
-			if (!dockNarrow.matches || reduced) {
-				return;
-			}
-			var y = Math.max(0, window.pageYOffset || 0);
-			var step = y - dockLastY;
-			dockLastY = y;
-			if (Math.abs(step) < 2) {
-				return;
-			}
-			var toEnd = document.documentElement.scrollHeight - window.innerHeight - y;
-			if (y < 220 || toEnd < 140) {
-				dockDrift = 0;
-				dock.classList.remove('is-slim');
-				return;
-			}
-			dockDrift = (dockDrift > 0) === (step > 0) ? dockDrift + step : step;
-			if (dockDrift > 56) {
-				dockDrift = 0;
-				dock.classList.add('is-slim');
-			} else if (dockDrift < -18) {
-				dockDrift = 0;
-				dock.classList.remove('is-slim');
-			}
-		};
-		window.addEventListener('scroll', dockScroll, { passive: true });
-
-		var dockRecalibrate = function () {
-			dockLastY = Math.max(0, window.pageYOffset || 0);
-			dockDrift = 0;
-			if (!dockNarrow.matches || document.documentElement.scrollHeight - window.innerHeight < 260) {
-				dock.classList.remove('is-slim');
-			}
-		};
-		window.addEventListener('resize', dockRecalibrate, { passive: true });
-		window.addEventListener('orientationchange', dockRecalibrate);
-		if (dockNarrow.addEventListener) {
-			dockNarrow.addEventListener('change', dockRecalibrate);
-		} else if (dockNarrow.addListener) {
-			dockNarrow.addListener(dockRecalibrate);
-		}
 	}
 
 	/* Reveal on scroll · .reveal (เลื่อนขึ้นจาง) และ .watch (สถานะอย่างเดียว) ได้คลาส .in ครั้งเดียว */

@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <?php endif; ?>
 
 <?php if ( ! function_exists( 'elementor_theme_do_location' ) || ! elementor_theme_do_location( 'header' ) ) : ?>
-<header class="site-header" id="top">
+<header class="site-header">
 	<div class="container header-inner">
 
 		<a class="brand brand--wordmark" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) . ' · ' . fenix_mod( 'nav_home_label' ) ); ?>">
@@ -47,6 +47,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 					'depth'          => 2,
 				)
 			);
+			/* ลิ้นชักมือถือ: ปุ่ม LINE + OpenChat แล้วแถวไอคอนโซเชียล (จอกว้างซ่อนทั้งสองอย่าง) */
+			if ( function_exists( 'fenix_chrome_nav_contact' ) ) {
+				fenix_chrome_nav_contact();
+			}
 			if ( function_exists( 'fenix_chrome_social_row' ) ) {
 				fenix_chrome_social_row( 'nav-social' );
 			}

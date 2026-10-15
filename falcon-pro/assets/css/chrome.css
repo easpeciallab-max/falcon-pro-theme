@@ -120,7 +120,8 @@
 	display: none !important;
 }
 
-/* แถวโซเชียลในลิ้นชัก (แสดงเฉพาะโหมดมือถือ) */
+/* ปุ่ม LINE + OpenChat และแถวโซเชียลในลิ้นชัก (แสดงเฉพาะโหมดมือถือ) */
+.nav-contact,
 .nav-social {
 	display: none;
 }
@@ -358,6 +359,35 @@
 		border-top: 1px solid var(--border);
 	}
 
+	/* ปุ่ม LINE + OpenChat: เต็มความกว้างของลิ้นชัก เรียงลงมา · มีปุ่มชุดนี้ = เส้นคั่นอยู่เหนือปุ่ม แถวโซเชียลต่อท้ายโดยไม่มีเส้นซ้ำ */
+	.nav-contact {
+		display: grid;
+		gap: 10px;
+		margin-top: 18px;
+		padding: 18px 14px 0;
+		border-top: 1px solid var(--border);
+	}
+
+	.nav-contact-btn {
+		justify-content: center;
+		width: 100%;
+		gap: 10px;
+		padding: 0.8rem 1rem;
+		font-size: 0.98rem;
+		font-weight: 600;
+	}
+
+	.nav-contact-btn .icon {
+		width: 20px;
+		height: 20px;
+	}
+
+	.nav-contact + .nav-social {
+		margin-top: 0;
+		padding-top: 14px;
+		border-top: 0;
+	}
+
 	.nav-social .social-link {
 		display: inline-grid;
 		place-items: center;
@@ -403,8 +433,24 @@
 		box-shadow: none;
 	}
 
-	.theme-dark .nav-social {
+	.theme-dark .nav-social,
+	.theme-dark .nav-contact {
 		border-top-color: var(--border-dark);
+	}
+
+	.theme-dark .nav-contact .btn-ghost {
+		background: transparent;
+		color: var(--header-text);
+		border-color: rgba(255, 255, 255, 0.28);
+	}
+
+	.theme-dark .nav-contact .btn-ghost .icon {
+		color: var(--header-accent);
+	}
+
+	.theme-dark .nav-contact .btn-ghost:hover {
+		color: #FFFFFF;
+		border-color: #FFFFFF;
 	}
 
 	.theme-dark .nav-social .social-link {
@@ -1172,21 +1218,17 @@
 		color: var(--mint);
 	}
 
-	/* ช่องกลาง · ปุ่มติดต่อ (LINE = เขียว LINE · ไปหน้า /go/ = เขียว FALCON) */
-	.dock-key.is-action {
+	/* ช่องกลาง · แดชบอร์ด (ปุ่มเขียว FALCON เด่น) · ช่องติดต่อ (.is-action) อยู่ขวาสุดหน้าตาเหมือนช่องอื่น (เจ้าของสั่ง 15 ต.ค. 2026) */
+	.dock-key.is-feature {
 		color: var(--on-black);
 	}
 
-	.dock-key.is-action .dock-cap {
+	.dock-key.is-feature .dock-cap,
+	.dock-key.is-feature.is-active .dock-cap {
 		width: 50px;
 		height: 34px;
 		background: var(--ember);
 		color: var(--on-ember);
-	}
-
-	.dock-key.is-action.is-line .dock-cap {
-		background: var(--line-green);
-		color: #03240F;
 	}
 
 	@media (hover: hover) {
@@ -1202,12 +1244,8 @@
 			background: rgba(74, 242, 142, 0.18);
 		}
 
-		.dock-key.is-action:hover .dock-cap {
+		.dock-key.is-feature:hover .dock-cap {
 			background: var(--ember-deep);
-		}
-
-		.dock-key.is-action.is-line:hover .dock-cap {
-			background: var(--line-green-dark);
 		}
 	}
 
@@ -1226,17 +1264,6 @@
 
 	.dock.is-lit .dock-lamp {
 		opacity: 1;
-	}
-
-	/* ย่อบาร์ตอนเลื่อนอ่านลง (ไม่ซ่อน ปุ่มติดต่อยังอยู่บนจอ) */
-	.dock.is-slim .dock-key {
-		min-height: 42px;
-		gap: 0;
-	}
-
-	.dock.is-slim .dock-label {
-		max-height: 0;
-		opacity: 0;
 	}
 
 	.dock-spacer {

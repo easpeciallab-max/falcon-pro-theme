@@ -107,6 +107,8 @@ add_filter(
 				/* ปุ่มสมาชิกแดชบอร์ดบนแถบหัว (เจ้าของสั่ง 15 ต.ค. 2026 หลังสมาชิกหาปุ่มเข้าสู่ระบบไม่เจอ): เข้าสู่ระบบทุกขนาดจอ · สมัครสมาชิกเฉพาะจอคอม */
 				'header_signin_label'      => 'เข้าสู่ระบบ',
 				'header_signup_label'      => 'สมัครสมาชิก',
+				/* ปุ่ม LINE OA + OpenChat ในลิ้นชักเมนูมือถือ (เจ้าของสั่ง 15 ต.ค. 2026) · ข้อความปุ่มใช้ชุดเดียวกับบล็อกติดต่อ */
+				'nav_show_contact'         => true,
 				'chrome_skip_text'         => 'ข้ามไปที่เนื้อหาหลัก',
 				'chrome_loading_text'      => 'กำลังโหลดบทความ…',
 			)
@@ -217,19 +219,19 @@ add_filter(
 
 		$sections['fenix_mobile_nav'] = array(
 			'title'       => '16) เมนูลัดมือถือด้านล่าง',
-			'description' => 'บาร์ 5 ช่องบนจอมือถือ · ช่องกลางคือปุ่มติดต่อ: มีลิงก์ LINE = ทัก LINE · ไม่มี LINE = ไปหน้า /go/ (เมื่อเผยแพร่แล้ว) · ไม่มีทั้งคู่ = เหลือ 4 ช่อง · ช่องของหน้าปัจจุบันติดไฟให้อัตโนมัติ · ช่องที่ใส่ slug ของเพจที่ยังไม่เผยแพร่ หรือเพจที่ถอดออกจากเว็บแล้ว (คู่มือติดตั้ง คู่มือ VPS หน้า Forward Test) จะไม่แสดง',
+			'description' => 'บาร์ 5 ช่องบนจอมือถือ เรียง หน้าแรก · การทดสอบ · แดชบอร์ด (ช่องกลาง ปุ่มเขียวเด่น) · แพ็กเกจ · ติดต่อ (ขวาสุด) · บาร์แสดงเต็มตลอด ไม่ย่อตอนเลื่อนหน้า · ช่องติดต่อ: มีลิงก์ LINE = ทัก LINE · ไม่มี LINE = ไปหน้า /go/ (เมื่อเผยแพร่แล้ว) · ไม่มีทั้งคู่ = เหลือ 4 ช่อง · ช่องของหน้าปัจจุบันติดไฟให้อัตโนมัติ · ช่องที่ใส่ slug ของเพจที่ยังไม่เผยแพร่ หรือเพจที่ถอดออกจากเว็บแล้ว (คู่มือติดตั้ง คู่มือ VPS หน้า Forward Test) จะไม่แสดง',
 			'fields'      => array(
 				'show_mobile_nav'          => array( 'แสดงเมนูลัดด้านล่างบนมือถือ', 'checkbox' ),
 				'mobile_nav_home_label'    => array( 'ช่อง 1 · ชื่อ', 'text' ),
 				'mobile_nav_home_url'      => array( 'ช่อง 1 · ลิงก์หรือ slug', 'text' ),
 				'mobile_nav_test_label'    => array( 'ช่อง 2 · ชื่อ', 'text' ),
 				'mobile_nav_test_url'      => array( 'ช่อง 2 · ลิงก์หรือ slug', 'text' ),
-				'mobile_nav_line_label'    => array( 'ช่อง 3 (กลาง) · ชื่อปุ่มเมื่อมีลิงก์ LINE', 'text', 'ใช้เป็นข้อความปุ่มติดต่อบนแถบหัวเว็บด้วย (จอกว้าง และจอมือถือเมื่อปิดเมนูลัดนี้) · เว้นว่าง = ไม่มีปุ่มทั้งสองที่' ),
-				'mobile_nav_contact_label' => array( 'ช่อง 3 (กลาง) · ชื่อปุ่มเมื่อยังไม่มี LINE (ไปหน้า /go/)', 'text', 'ใช้เป็นข้อความปุ่มติดต่อบนแถบหัวเว็บด้วยเช่นกัน' ),
+				'mobile_nav_install_label' => array( 'ช่อง 3 (กลาง ปุ่มเด่น) · ชื่อ', 'text', 'ค่าเริ่มต้นคือแดชบอร์ด ไปหน้า /dashboard/ ของเว็บนี้' ),
+				'mobile_nav_install_url'   => array( 'ช่อง 3 (กลาง ปุ่มเด่น) · ลิงก์หรือ slug', 'text' ),
 				'mobile_nav_price_label'   => array( 'ช่อง 4 · ชื่อ', 'text' ),
 				'mobile_nav_price_url'     => array( 'ช่อง 4 · ลิงก์หรือ slug', 'text' ),
-				'mobile_nav_install_label' => array( 'ช่อง 5 · ชื่อ', 'text' ),
-				'mobile_nav_install_url'   => array( 'ช่อง 5 · ลิงก์หรือ slug', 'text' ),
+				'mobile_nav_line_label'    => array( 'ช่อง 5 (ขวาสุด) · ชื่อปุ่มเมื่อมีลิงก์ LINE', 'text', 'ใช้เป็นข้อความปุ่มติดต่อบนแถบหัวเว็บด้วย (จอกว้าง และจอมือถือเมื่อปิดเมนูลัดนี้) · เว้นว่าง = ไม่มีปุ่มทั้งสองที่' ),
+				'mobile_nav_contact_label' => array( 'ช่อง 5 (ขวาสุด) · ชื่อปุ่มเมื่อยังไม่มี LINE (ไปหน้า /go/)', 'text', 'ใช้เป็นข้อความปุ่มติดต่อบนแถบหัวเว็บด้วยเช่นกัน' ),
 			),
 		);
 
@@ -249,6 +251,7 @@ add_filter(
 						'nav_articles_label'  => array( 'เมนู · บทความ', 'text' ),
 						'nav_contact_label'   => array( 'เมนู · ติดต่อ (ว่าง = ไม่ต่อท้ายอัตโนมัติ)', 'text' ),
 						'header_signin_label' => array( 'แถบหัว · ปุ่มเข้าสู่ระบบแดชบอร์ด (ว่าง = ไม่แสดง)', 'text', 'แสดงทุกขนาดจอ ข้างปุ่มเมนูบนมือถือ · พาไปหน้าเข้าสู่ระบบของแดชบอร์ด (#signin) ในแท็บใหม่ · ปิดแดชบอร์ดหรือลบ "ข้อความปุ่ม · เข้าสู่ระบบ" ในหมวด 1.1 = ปุ่มนี้หายด้วย' ),
+						'nav_show_contact'    => array( 'เมนูมือถือ · แสดงปุ่ม LINE และ OpenChat ในเมนูที่กางออก', 'checkbox', 'ปุ่มอยู่ท้ายรายการเมนู เหนือแถวไอคอนโซเชียล · ข้อความปุ่มใช้ "ข้อความปุ่ม LINE" (หมวด 15) และ "ข้อความปุ่ม OpenChat" (หมวด 1) · ปุ่มที่ยังไม่มีลิงก์ไม่แสดง (ไม่มี LINE = ปุ่มติดต่อพาไปหน้า /go/)' ),
 						'header_signup_label' => array( 'แถบหัว · ปุ่มสมัครสมาชิกแดชบอร์ด (ว่าง = ไม่แสดง)', 'text', 'แสดงเฉพาะจอคอมกว้าง 1200px ขึ้นไป (มือถือมีแค่ปุ่มเข้าสู่ระบบ เพราะแถบหัวแคบ) · พาไปหน้าสมัครสมาชิกของแดชบอร์ด (#signup) ในแท็บใหม่ ซึ่งต้องใช้รหัสเชิญจากทีมงาน · ปิดแดชบอร์ดหรือลบ "ข้อความปุ่ม · สมัครสมาชิก" ในหมวด 1.1 = ปุ่มนี้หายด้วย' ),
 						'chrome_skip_text'    => array( 'ลิงก์ข้ามไปเนื้อหา (เห็นเมื่อกด Tab)', 'text' ),
 						'chrome_loading_text' => array( 'ข้อความระหว่างโหลดบทความเพิ่ม', 'text' ),
@@ -803,6 +806,43 @@ function fenix_chrome_social_row( $class = 'nav-social' ) {
 }
 
 /**
+ * ลิ้นชักเมนูมือถือ · ปุ่ม LINE OA (ปุ่มติดต่อหลัก: LINE → หน้า /go/) + ปุ่ม OpenChat เรียงลงมาเต็มความกว้าง เหนือแถวไอคอนโซเชียล
+ * จอกว้างซ่อนด้วย CSS (เมนูเป็นแถวในแถบหัว) · ปิดได้ที่หมวด 16.1 (nav_show_contact) · ไม่มีลิงก์ทั้งคู่ = ไม่พิมพ์
+ * นับคลิกผ่าน data-line-pos: nav (line_click) และ nav-openchat (openchat_click)
+ */
+function fenix_chrome_nav_contact() {
+	if ( ! fenix_mod( 'nav_show_contact' ) ) {
+		return;
+	}
+	$target  = fenix_contact_target();
+	$oc_url  = trim( (string) fenix_mod( 'line_openchat_url' ) );
+	$oc_text = trim( (string) fenix_mod( 'line_openchat_text' ) );
+	$oc_ok   = fenix_chrome_url_ok( $oc_url ) && '' !== $oc_text;
+	if ( '' === $target['url'] && ! $oc_ok ) {
+		return;
+	}
+	echo '<div class="nav-contact">';
+	if ( '' !== $target['url'] ) {
+		fenix_contact_button(
+			array(
+				'class' => 'btn btn-fire nav-contact-btn',
+				'pos'   => 'nav',
+				'arrow' => false,
+			)
+		);
+	}
+	if ( $oc_ok ) {
+		printf(
+			'<a class="btn btn-ghost nav-contact-btn nav-openchat" href="%1$s" target="_blank" rel="noopener" data-line-pos="nav-openchat">%2$s<span>%3$s</span></a>',
+			esc_url( $oc_url ),
+			fenix_icon( 'chat' ), // phpcs:ignore WordPress.Security.EscapeOutput
+			esc_html( $oc_text )
+		);
+	}
+	echo '</div>';
+}
+
+/**
  * Footer · รายการหน้า (เมนูหลักระดับบน → โครงเมนูมาตรฐาน)
  *
  * @return array[] { 0 => label, 1 => url }
@@ -989,7 +1029,8 @@ function fenix_chrome_slot_url( $value ) {
 }
 
 /**
- * บาร์ล่างมือถือ · 5 ช่อง (ช่องกลาง = ติดต่อ) + ช่องที่ active คิดฝั่ง PHP (ปิด JS ก็ถูก)
+ * บาร์ล่างมือถือ · 5 ช่อง: หน้าแรก · การทดสอบ · แดชบอร์ด (ช่องกลาง เด่น) · แพ็กเกจ · ติดต่อ (ขวาสุด) + ช่องที่ active คิดฝั่ง PHP (ปิด JS ก็ถูก)
+ * เจ้าของสั่ง 15 ต.ค. 2026: แดชบอร์ดไว้กลางและเด่น LINE ไปขวาสุดแบบปุ่มธรรมดา (เดิม LINE อยู่กลางเป็นปุ่มเขียว)
  *
  * @return array { items[], active (int, -1 = ไม่มี), x (float %) }
  */
@@ -1012,6 +1053,20 @@ function fenix_chrome_dock() {
 			'group' => 'test',
 		),
 	);
+	/* ช่องกลาง (ค่าจากช่อง "แดชบอร์ด" mobile_nav_install_*): ค่าเริ่มต้นไปหน้า /dashboard/ ของเว็บนี้ (ไอคอนจอ) · เจ้าของชี้ไปหน้าอื่น เช่นคู่มือ = ไอคอนหนังสือ */
+	$mid_url = fenix_chrome_slot_url( fenix_mod( 'mobile_nav_install_url' ) );
+	$slots[] = array(
+		'label'   => fenix_mod( 'mobile_nav_install_label' ),
+		'url'     => $mid_url,
+		'icon'    => preg_match( '#/dashboard/?(?:[?\#].*)?$#i', $mid_url ) ? 'monitor' : 'book',
+		'feature' => true,
+	);
+	$slots[] = array(
+		'label' => fenix_mod( 'mobile_nav_price_label' ),
+		'url'   => fenix_chrome_slot_url( fenix_mod( 'mobile_nav_price_url' ) ),
+		'icon'  => 'tag',
+	);
+	/* ขวาสุด · ปุ่มติดต่อ (LINE → หน้า /go/) หน้าตาเหมือนช่องอื่น · action = ไม่ติดไฟเป็นหน้าปัจจุบัน และนับคลิกเป็น line_click */
 	$target = fenix_contact_target();
 	if ( '' !== $target['url'] ) {
 		$slots[] = array(
@@ -1022,18 +1077,6 @@ function fenix_chrome_dock() {
 			'line'   => $target['is_line'],
 		);
 	}
-	$slots[] = array(
-		'label' => fenix_mod( 'mobile_nav_price_label' ),
-		'url'   => fenix_chrome_slot_url( fenix_mod( 'mobile_nav_price_url' ) ),
-		'icon'  => 'tag',
-	);
-	/* ช่อง 5: ค่าเริ่มต้นไปหน้า /dashboard/ ของเว็บนี้ (ไอคอนจอ) · เจ้าของชี้ไปหน้าอื่น เช่นคู่มือ = ไอคอนหนังสือตามเดิม */
-	$last_url = fenix_chrome_slot_url( fenix_mod( 'mobile_nav_install_url' ) );
-	$slots[]  = array(
-		'label' => fenix_mod( 'mobile_nav_install_label' ),
-		'url'   => $last_url,
-		'icon'  => preg_match( '#/dashboard/?(?:[?\#].*)?$#i', $last_url ) ? 'monitor' : 'book',
-	);
 
 	$items = array();
 	foreach ( $slots as $slot ) {

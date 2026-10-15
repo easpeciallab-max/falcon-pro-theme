@@ -175,6 +175,7 @@ $fenix_stat = trim( (string) fenix_mod( 'footer_status_text' ) );
 				<p class="ft-clock"><span class="chrome-dot" aria-hidden="true"></span><span><?php echo esc_html( fenix_mod( 'footer_clock_label' ) ); ?></span> <time data-clock-out data-tz="Asia/Bangkok" datetime="<?php echo esc_attr( wp_date( 'c', null, $fenix_bkk ) ); ?>"><?php echo esc_html( wp_date( 'H:i', null, $fenix_bkk ) ); ?></time></p>
 			<?php endif; ?>
 			<?php if ( '' !== $fenix_top ) : ?>
+				<?php /* #top ที่ไม่มี element ชื่อนี้ = เบราว์เซอร์เลื่อนขึ้นบนสุดของหน้า (มาตรฐาน HTML) · ห้ามใส่ id="top" ให้แถบหัว: แถบหัวติดขอบบนตลอด ลิงก์จึงไม่เลื่อน */ ?>
 				<a class="ft-top" href="#top"><?php echo esc_html( $fenix_top ); ?><?php echo fenix_icon( 'arrow', 'icon icon-sm' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
 			<?php endif; ?>
 		</div>
@@ -200,6 +201,9 @@ $fenix_stat = trim( (string) fenix_mod( 'footer_status_text' ) );
 				$fenix_cls .= ' is-action' . ( ! empty( $fenix_item['line'] ) ? ' is-line' : '' );
 			} elseif ( $fenix_is_here ) {
 				$fenix_cls .= ' is-active';
+			}
+			if ( ! empty( $fenix_item['feature'] ) ) {
+				$fenix_cls .= ' is-feature';
 			}
 			?>
 		<a class="<?php echo esc_attr( $fenix_cls ); ?>" href="<?php echo esc_url( $fenix_item['url'] ); ?>" data-slot="<?php echo esc_attr( (string) $fenix_slot ); ?>"<?php echo $fenix_is_here ? ' aria-current="page"' : ''; ?><?php echo ! empty( $fenix_item['line'] ) ? ' target="_blank" rel="noopener"' : ''; ?><?php echo $fenix_is_action ? ' data-line-pos="dock"' : ''; ?>>
