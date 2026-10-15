@@ -44,8 +44,9 @@ Tags: one-column, custom-logo, custom-menu, landing-page
 	--ok: #1E9E73;
 	--bad: #D64545;
 	--warn: #B26C09;
-	--line-green: #06C755;
-	--line-green-dark: #05A648;
+	/* ปุ่มที่พาไป LINE OA ทั้งเว็บ = เขียวสด #00FF1D (เจ้าของสั่ง 15 ต.ค. 2026 ให้แยกจากเขียวของธีม --ember) · ตัวอักษรบนสีนี้ใช้ #03240F */
+	--line-green: #00FF1D;
+	--line-green-dark: #00D919;
 
 	--border: rgba(20, 24, 30, 0.12);
 	--border-fire: rgba(34, 197, 94, 0.35);

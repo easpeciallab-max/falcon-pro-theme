@@ -1316,6 +1316,10 @@ function fenix_home_contact_link( $text, $class, $pos, $pkg = '', $icons = true 
 	if ( '' === $label ) {
 		$label = '' !== $fallback ? $fallback : trim( (string) fenix_mod( 'footer_line_text' ) );
 	}
+	/* ปุ่ม (คลาสมี btn) ที่ไป LINE OA = .is-line-btn เขียว LINE สด · ลิงก์ข้อความไม่เปลี่ยน */
+	if ( $target['is_line'] && preg_match( '/(^|\s)btn(\s|$)/', (string) $class ) ) {
+		$class .= ' is-line-btn';
+	}
 	printf(
 		'<a class="%1$s" href="%2$s"%3$s data-line-pos="%4$s"%5$s>%6$s<span>%7$s</span>%8$s</a>',
 		esc_attr( $class ),

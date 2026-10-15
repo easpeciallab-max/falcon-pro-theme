@@ -388,11 +388,12 @@ function fenix_chrome_header_cta() {
 		return;
 	}
 	printf(
-		'<a class="btn btn-fire btn-sm header-cta" href="%1$s"%2$s data-line-pos="header">%3$s<span>%4$s</span></a>',
+		'<a class="btn btn-fire btn-sm header-cta%5$s" href="%1$s"%2$s data-line-pos="header">%3$s<span>%4$s</span></a>',
 		esc_url( $target['url'] ),
 		$target['is_line'] ? ' target="_blank" rel="noopener"' : '',
 		fenix_icon( $target['is_line'] ? 'line' : 'chat' ), // phpcs:ignore WordPress.Security.EscapeOutput
-		esc_html( $label )
+		esc_html( $label ),
+		$target['is_line'] ? ' is-line-btn' : ''
 	);
 }
 

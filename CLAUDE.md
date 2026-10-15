@@ -92,6 +92,7 @@
 ## Design tokens (style.css :root) — FALCON Banner theme v3
 - พื้น: **เข้ม** `--black #172125` / `--black-deep #10181B` / `--black-2 #1D2A2F` / `--black-3 #25343A` (พื้นหลักของโหมด dark: hero, บทส่วนใหญ่, CTA, footer, page hero) + ขาว `--void #FFFFFF` + เทาอ่อน `--coal #F4F6F8` (ส่วนอ่านยาวและบทที่ระบุเป็นโทนสว่าง)
 - เขียว FALCON: `--ember #22C55E` (ปุ่ม/ไฮไลต์ ใช้ทึบ), `--ember-deep #16A34A` (hover / ตัวอักษรใหญ่บนขาว), `--flare #15803D` (ลิงก์/ข้อความเขียวบนขาว — ผ่าน AA), `--mint #4AF28E` (เขียวโลโก้ ใช้บนพื้นดำเท่านั้น)
+- **ปุ่มที่พาไป LINE OA = เขียวสด `--line-green` #00FF1D ตัวอักษร #03240F** (เจ้าของสั่ง 15 ต.ค. 2026 ให้แยกจากปุ่มเขียวของธีม): PHP ใส่คลาส `.is-line-btn` เฉพาะเมื่อปลายทางเป็น LINE OA (`fenix_contact_button()`, ปุ่มบนแถบหัว, ปุ่มแพ็กเกจ, `[falcon_line]`, `fenix_home_contact_link()`) · กฎสีอยู่ท้าย `assets/css/components.css` · ปุ่มเส้นขอบที่ไป LINE คงเป็นปุ่มรอง · ช่อง LINE ในบาร์ล่างมือถือเป็นปุ่มธรรมดา · ปุ่ม LINE ใหม่ต้องใส่ `.is-line-btn` ด้วย
 - **ตัวอักษรบนปุ่มเขียว = ดำเข้ม `--on-ember #06140B`** (ขาวบนเขียวไม่ผ่าน contrast) · บนพื้นดำใช้ `--on-black` / `--on-black-2`
 - ตัวอักษร: `--ink #0F1216`, `--ash #4B535C`, `--ash-2 #636C76` · semantic: `--ok`, `--bad`, `--warn #B26C09`
 - เงา: อนุญาตเฉพาะเงานุ่มสีเทา `--shadow-soft` / `--shadow-lift` · **ห้าม gradient / glow สี** · มุมทแยงทำด้วย `clip-path` สีทึบ

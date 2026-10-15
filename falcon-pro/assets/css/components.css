@@ -319,3 +319,20 @@
 .nobr {
 	white-space: nowrap;
 }
+
+/* ---------- ปุ่มที่พาไป LINE OA ----------
+   ทั้งเว็บเป็นเขียวสด var(--line-green) #00FF1D ตัวอักษร #03240F (เจ้าของสั่ง 15 ต.ค. 2026) ให้แยกจากปุ่มเขียวของธีม (--ember)
+   คลาส .is-line-btn ใส่โดย PHP เฉพาะปุ่มที่ปลายทางเป็น LINE OA (ไปหน้า /go/ แทน = สีเดิม) · ปุ่มเส้นขอบ (.btn-ghost) คงเป็นปุ่มรอง
+   ปุ่ม LINE ที่ใช้ var(--line-green) อยู่แล้ว (หน้า /go ปุ่ม LINE ลอย .btn-line) เปลี่ยนตามค่าใน :root · ช่อง LINE ในบาร์ล่างมือถือเป็นปุ่มธรรมดาตามที่เจ้าของสั่ง */
+a.btn.is-line-btn:not(.btn-ghost) {
+	border-color: var(--line-green);
+	background: var(--line-green);
+	color: #03240F;
+}
+
+a.btn.is-line-btn:not(.btn-ghost):hover,
+a.btn.is-line-btn:not(.btn-ghost):focus-visible {
+	border-color: var(--line-green-dark);
+	background: var(--line-green-dark);
+	color: #03240F;
+}

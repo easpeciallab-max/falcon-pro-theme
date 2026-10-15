@@ -956,7 +956,7 @@ function fenix_pages_package_button( $name, $featured ) {
 	}
 	printf(
 		'<a class="btn %1$s btn-block price-btn" href="%2$s"%3$s data-line-pos="pricing" data-line-pkg="%4$s">%5$s<span>%6$s</span></a>',
-		$featured ? 'btn-fire' : 'btn-ghost',
+		( $featured ? 'btn-fire' : 'btn-ghost' ) . ( $target['is_line'] ? ' is-line-btn' : '' ),
 		esc_url( $target['url'] ),
 		$target['is_line'] ? ' target="_blank" rel="noopener"' : '',
 		esc_attr( $name ),

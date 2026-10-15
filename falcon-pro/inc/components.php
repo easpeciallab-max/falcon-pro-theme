@@ -160,9 +160,10 @@ function fenix_contact_button( $args = array() ) {
 	}
 
 	$text = $target['is_line'] ? $args['text'] : fenix_mod( 'contact_fallback_text' );
+	/* ไป LINE OA = .is-line-btn (ปุ่มทึบเป็นเขียว LINE สด · assets/css/components.css) · ไปหน้า /go/ = สีตามคลาสเดิม */
 	printf(
 		'<a class="%1$s" href="%2$s"%3$s data-line-pos="%4$s">%5$s<span>%6$s</span>%7$s</a>',
-		esc_attr( $args['class'] ),
+		esc_attr( trim( $args['class'] . ( $target['is_line'] ? ' is-line-btn' : '' ) ) ),
 		esc_url( $target['url'] ),
 		$target['is_line'] ? ' target="_blank" rel="noopener"' : '',
 		esc_attr( $args['pos'] ),
