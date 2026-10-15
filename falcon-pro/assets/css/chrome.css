@@ -149,6 +149,110 @@
 	}
 }
 
+/* ปุ่มสมาชิกแดชบอร์ดบนแถบหัว (fenix_chrome_header_member) · อยู่ระหว่างเมนูกับปุ่มติดต่อ
+   เข้าสู่ระบบแสดงทุกจอ (บนมือถืออยู่ข้างปุ่มเมนู) · สมัครสมาชิกเฉพาะจอ ≥1200px เพราะแถบหัวที่แคบกว่านั้นวางไม่พอ
+   ปุ่มเส้นขอบ ไม่แย่งปุ่มติดต่อสีเขียว · กฎ margin บนจอ ≤960px อยู่ในหัวข้อ 2 */
+.header-member {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.header-member-btn {
+	gap: 7px;
+	padding: 0.5rem 0.85rem;
+	border-radius: var(--btn-radius-sm);
+	font-size: 0.88rem;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.header-member-btn .icon {
+	width: 16px;
+	height: 16px;
+}
+
+.theme-dark .header-member-btn {
+	background: transparent;
+	color: var(--header-text);
+	border-color: rgba(255, 255, 255, 0.28);
+}
+
+.theme-dark .header-member-btn .icon {
+	color: var(--header-accent);
+}
+
+.theme-dark .header-member-btn:hover {
+	background: rgba(255, 255, 255, 0.06);
+	color: #FFFFFF;
+	border-color: #FFFFFF;
+}
+
+/* ปุ่มสมาชิกกับปุ่มติดต่อเป็นกลุ่มเดียวกัน: ห่างกัน 12px แทนระยะ 28px ของแถบหัว */
+.header-inner > .header-member + .header-cta {
+	margin-left: -16px;
+}
+
+@media (max-width: 1199px) {
+	.header-signup {
+		display: none;
+	}
+}
+
+/* ≥1200px มีครบสามปุ่ม: ระยะเมนู 22px (เดิม 26px) เผื่อที่ให้ชื่อเมนูไม่ตัดบรรทัดเมื่อแบบอักษรของเบราว์เซอร์กว้างกว่าเล็กน้อย */
+@media (min-width: 1200px) {
+	.nav-list {
+		gap: 22px;
+	}
+}
+
+/* จอ ≤420px ที่ปิดบาร์ล่าง: แถบหัวมีทั้งปุ่มเข้าสู่ระบบและปุ่มติดต่อ วางเต็มคำไม่พอ (โลโก้ถูกบีบ)
+   → ทั้งสองปุ่มเหลือไอคอน ข้อความยังอยู่ให้โปรแกรมอ่านหน้าจอ · ค่าเริ่มต้นเปิดบาร์ล่าง จึงไม่เข้ากรณีนี้ */
+@media (max-width: 420px) {
+	body:not(.has-dock) .header-member-btn,
+	body:not(.has-dock) .header-member + .header-cta {
+		padding: 0.5rem 0.65rem;
+	}
+
+	body:not(.has-dock) .header-member-btn > span:not(.sr-only),
+	body:not(.has-dock) .header-member + .header-cta > span {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
+	}
+}
+
+/* 961–1199px เมนูยังเป็นแถว: บีบระยะระหว่างรายการเมนูให้ปุ่มเข้าสู่ระบบมีที่ */
+@media (min-width: 961px) and (max-width: 1199px) {
+	.nav-list {
+		gap: 18px;
+	}
+}
+
+/* 961–1023px ยังแคบไป (ชื่อเมนูตัดเป็นสองบรรทัด): ระยะเมนู 12px ตัวอักษรเมนูเล็กลงเล็กน้อย และปุ่มเข้าสู่ระบบไม่มีไอคอนกุญแจ */
+@media (min-width: 961px) and (max-width: 1023px) {
+	.nav-list {
+		gap: 12px;
+	}
+
+	.nav-list > li > a {
+		font-size: 0.92rem;
+	}
+
+	.header-member-btn {
+		padding-right: 0.7rem;
+		padding-left: 0.7rem;
+	}
+
+	.header-member-btn .icon {
+		display: none;
+	}
+}
+
 /* ปุ่มถูกซ่อน (≤760px + มีบาร์ล่าง): คืนหน้าที่ดันชิดขวาให้ตัวถัดไป (กฎ margin ของปุ่มอยู่ในหัวข้อ 2) */
 @media (max-width: 760px) {
 	body.has-dock .header-inner > .header-cta ~ .nav-toggle,
@@ -192,6 +296,24 @@
 	}
 
 	.header-inner > .header-cta ~ .language-switcher ~ .nav-toggle {
+		margin-left: 0;
+	}
+
+	/* มีปุ่มสมาชิก: ปุ่มสมาชิกเป็นตัวดันชิดขวาแทน แล้วปุ่มติดต่อ (ถ้าแสดง) ตัวสลับภาษา และปุ่มเมนูต่อท้ายติดกัน
+	   selector ยาวกว่ากฎ body.has-dock ในหัวข้อ 1 เพื่อชนะกรณีปุ่มติดต่อถูกซ่อน */
+	.header-inner > .header-member {
+		margin-left: auto;
+	}
+
+	.header-inner > .header-member ~ .nav-toggle,
+	body.has-dock .header-inner > .header-member ~ .header-cta ~ .nav-toggle {
+		margin-left: -12px;
+	}
+
+	.header-inner > .header-member ~ .language-switcher,
+	.header-inner > .header-member ~ .language-switcher ~ .nav-toggle,
+	body.has-dock .header-inner > .header-member ~ .header-cta ~ .language-switcher,
+	body.has-dock .header-inner > .header-member ~ .header-cta ~ .language-switcher ~ .nav-toggle {
 		margin-left: 0;
 	}
 

@@ -7,7 +7,7 @@
  * - บล็อกติดต่อ (ปุ่ม LINE · OpenChat · อีเมล · QR · รายการเตรียมข้อความ · เวลาตอบแชท) วาดโดย fenix_chrome_launch() ที่เดียว
  *   และพิมพ์ได้หน้าละ 1 ครั้ง: หน้าที่เรียก fenix_line_cta() ได้บล็อกท้ายเนื้อหา (.cta-console) พร้อมหัวข้อของหน้านั้น
  *   หน้าอื่น (หน้าแรก บทความรวม 404 ค้นหา เพจเอกสาร) ได้บล็อกเดียวกันเป็นแถวแรกของ footer (fenix_chrome_footer_contact)
- * - ปุ่มติดต่อบนแถบหัว: fenix_chrome_header_cta() · คอลัมน์คู่มือใน footer: fenix_chrome_guide_items()
+ * - ปุ่มติดต่อบนแถบหัว: fenix_chrome_header_cta() · ปุ่มสมาชิกแดชบอร์ดบนแถบหัว: fenix_chrome_header_member() · คอลัมน์คู่มือใน footer: fenix_chrome_guide_items()
  * - ปุ่มติดต่อทุกปุ่มใช้ fenix_contact_target() / fenix_contact_button() · ไม่มีปุ่มใดชี้ไปที่ '#'
  *
  * @package falcon-pro
@@ -104,6 +104,9 @@ add_filter(
 				'nav_pricing_label'        => 'แพ็กเกจ',
 				'nav_articles_label'       => 'บทความ',
 				'nav_contact_label'        => 'ติดต่อ',
+				/* ปุ่มสมาชิกแดชบอร์ดบนแถบหัว (เจ้าของสั่ง 15 ต.ค. 2026 หลังสมาชิกหาปุ่มเข้าสู่ระบบไม่เจอ): เข้าสู่ระบบทุกขนาดจอ · สมัครสมาชิกเฉพาะจอคอม */
+				'header_signin_label'      => 'เข้าสู่ระบบ',
+				'header_signup_label'      => 'สมัครสมาชิก',
 				'chrome_skip_text'         => 'ข้ามไปที่เนื้อหาหลัก',
 				'chrome_loading_text'      => 'กำลังโหลดบทความ…',
 			)
@@ -245,6 +248,8 @@ add_filter(
 						'nav_pricing_label'   => array( 'เมนู · แพ็กเกจ', 'text' ),
 						'nav_articles_label'  => array( 'เมนู · บทความ', 'text' ),
 						'nav_contact_label'   => array( 'เมนู · ติดต่อ (ว่าง = ไม่ต่อท้ายอัตโนมัติ)', 'text' ),
+						'header_signin_label' => array( 'แถบหัว · ปุ่มเข้าสู่ระบบแดชบอร์ด (ว่าง = ไม่แสดง)', 'text', 'แสดงทุกขนาดจอ ข้างปุ่มเมนูบนมือถือ · พาไปหน้าเข้าสู่ระบบของแดชบอร์ด (#signin) ในแท็บใหม่ · ปิดแดชบอร์ดหรือลบ "ข้อความปุ่ม · เข้าสู่ระบบ" ในหมวด 1.1 = ปุ่มนี้หายด้วย' ),
+						'header_signup_label' => array( 'แถบหัว · ปุ่มสมัครสมาชิกแดชบอร์ด (ว่าง = ไม่แสดง)', 'text', 'แสดงเฉพาะจอคอมกว้าง 1200px ขึ้นไป (มือถือมีแค่ปุ่มเข้าสู่ระบบ เพราะแถบหัวแคบ) · พาไปหน้าสมัครสมาชิกของแดชบอร์ด (#signup) ในแท็บใหม่ ซึ่งต้องใช้รหัสเชิญจากทีมงาน · ปิดแดชบอร์ดหรือลบ "ข้อความปุ่ม · สมัครสมาชิก" ในหมวด 1.1 = ปุ่มนี้หายด้วย' ),
 						'chrome_skip_text'    => array( 'ลิงก์ข้ามไปเนื้อหา (เห็นเมื่อกด Tab)', 'text' ),
 						'chrome_loading_text' => array( 'ข้อความระหว่างโหลดบทความเพิ่ม', 'text' ),
 					),
@@ -331,6 +336,37 @@ function fenix_chrome_language_switcher() {
 	fenix_language_switcher();
 	if ( null !== $gtranslate ) {
 		$shortcode_tags['gtranslate'] = $gtranslate;
+	}
+}
+
+/**
+ * ปุ่มสมาชิกแดชบอร์ดบนแถบหัว (อยู่ก่อนปุ่มติดต่อ) · เข้าสู่ระบบ (#signin) ทุกขนาดจอ · สมัครสมาชิก (#signup) เฉพาะจอ ≥1200px (ซ่อนด้วย CSS)
+ * ข้อความจากหมวด 16.1 (header_signin_label / header_signup_label) · ว่าง = ไม่พิมพ์ปุ่มนั้น
+ * ปิดแดชบอร์ด หรือข้อความปุ่มของโหมดในหมวด 1.1 ว่าง = fenix_dashboard_button() คืน '' · นับคลิกเป็น dashboard_click (dash_pos = header)
+ */
+function fenix_chrome_header_member() {
+	if ( ! function_exists( 'fenix_dashboard_button' ) ) {
+		return;
+	}
+	$html = '';
+	foreach ( array( 'signin' => 'header_signin_label', 'signup' => 'header_signup_label' ) as $mode => $key ) {
+		$text = trim( (string) fenix_mod( $key ) );
+		if ( '' === $text ) {
+			continue;
+		}
+		$html .= fenix_dashboard_button(
+			$mode,
+			array(
+				'text'  => $text,
+				'class' => 'btn btn-ghost btn-sm header-member-btn header-' . $mode,
+				'pos'   => 'header',
+				'icon'  => 'signin' === $mode,
+				'arrow' => false,
+			)
+		);
+	}
+	if ( '' !== $html ) {
+		echo '<div class="header-member">' . $html . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- fenix_dashboard_button() escape แล้ว
 	}
 }
 
