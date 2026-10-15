@@ -444,8 +444,18 @@ function fenix_chrome_nav_tree() {
 		),
 	);
 
-	/* หน้า /dashboard/ เป็นรายการระดับบนของเมนู (เมื่อเผยแพร่แล้วและมีชื่อเมนู) · กรณีนั้นไม่ซ้ำในเมนูย่อยของกลุ่มคู่มือ */
+	/* หน้า /dashboard/ เป็นรายการระดับบนของเมนู (เมื่อเผยแพร่แล้วและมีชื่อเมนู) · กรณีนั้นไม่ซ้ำในเมนูย่อยของกลุ่มคู่มือ
+	 * อยู่ลำดับที่สองต่อจากหน้าแรก (เจ้าของสั่ง 15 ต.ค. 2026) */
 	$dash_top = fenix_chrome_dashboard_top();
+	$dash_lbl = trim( (string) fenix_mod( 'nav_dashboard_label' ) );
+	if ( $dash_top && '' !== $dash_lbl ) {
+		$tree[] = array(
+			'label'    => $dash_lbl,
+			'url'      => fenix_chrome_page_url( 'dashboard' ),
+			'current'  => is_page( 'dashboard' ),
+			'children' => array(),
+		);
+	}
 
 	/* กลุ่มของเมนู = กลุ่มเพจใน manifest (เพจที่ถอดออกจากเว็บแล้วไม่อยู่ใน fenix_guide_links จึงไม่ขึ้นเมนู)
 	 * หัวกลุ่มชี้ไปเพจแรกของกลุ่มที่เผยแพร่แล้ว · กลุ่มที่เหลือเพจเดียว (การทดสอบ มี Backtest หน้าเดียว) เป็นรายการระดับบนรายการเดียว
@@ -498,7 +508,6 @@ function fenix_chrome_nav_tree() {
 	}
 
 	$singles = array(
-		array( 'nav_dashboard_label', $dash_top ? fenix_chrome_page_url( 'dashboard' ) : '', is_page( 'dashboard' ) ),
 		array( 'nav_pricing_label', fenix_chrome_page_url( 'pricing' ), is_page( 'pricing' ) ),
 		array( 'nav_articles_label', fenix_chrome_articles_url(), is_home() ),
 		array( 'nav_contact_label', fenix_chrome_page_url( 'go' ), is_page( 'go' ) ),

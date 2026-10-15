@@ -505,6 +505,24 @@ function fenix_setup_menu() {
 add_action( 'admin_menu', 'fenix_setup_menu' );
 
 /**
+ * หน้า "เพจทั้งหมด" ในหลังบ้าน: เพจที่เผยแพร่แล้วขึ้นก่อน ฉบับร่างและรออนุมัติไปอยู่ท้ายรายการ (เจ้าของสั่ง 15 ต.ค. 2026)
+ * ภายในแต่ละกลุ่มเรียงตามเดิม (ลำดับเพจ แล้วชื่อ) · ไม่แตะเมื่อเจ้าของกดหัวคอลัมน์เพื่อเรียงเอง หรือค้นหา · ไม่เปลี่ยนข้อมูลในฐานข้อมูล
+ */
+function fenix_setup_pages_drafts_last( $orderby, $query ) {
+	global $pagenow, $wpdb;
+	if ( ! is_admin() || 'edit.php' !== $pagenow || ! $query->is_main_query() || 'page' !== $query->get( 'post_type' ) ) {
+		return $orderby;
+	}
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- อ่านอย่างเดียว เพื่อดูว่าเจ้าของเลือกเรียงเองหรือไม่
+	if ( ! empty( $_GET['orderby'] ) || '' !== (string) $query->get( 's' ) ) {
+		return $orderby;
+	}
+	$late = "CASE {$wpdb->posts}.post_status WHEN 'draft' THEN 1 WHEN 'pending' THEN 1 ELSE 0 END ASC";
+	return '' !== trim( (string) $orderby ) ? $late . ', ' . $orderby : $late;
+}
+add_filter( 'posts_orderby', 'fenix_setup_pages_drafts_last', 10, 2 );
+
+/**
  * หา page จาก slug (รวมฉบับร่าง)
  */
 function fenix_find_page( $slug ) {
@@ -913,8 +931,15 @@ function fenix_setup_menu_build() {
 	};
 
 	/* กลุ่มที่มีเพจเดียว (การทดสอบ เหลือ Backtest หน้าเดียว) = รายการระดับบนรายการเดียว ไม่มีเมนูย่อยที่ซ้ำกับหัวกลุ่ม
-	 * กลุ่มที่มีหลายเพจ: หัวกลุ่มชี้ไปเพจแรกของกลุ่ม · หน้า /dashboard/ เป็นรายการระดับบนของตัวเอง ต่อจากกลุ่มคู่มือ (ลำดับเดียวกับเมนูสำรองของธีม) */
+	 * กลุ่มที่มีหลายเพจ: หัวกลุ่มชี้ไปเพจแรกของกลุ่ม · หน้า /dashboard/ เป็นรายการระดับบนของตัวเอง ลำดับที่สองต่อจากหน้าแรก
+	 * (เจ้าของสั่ง 15 ต.ค. 2026 · ลำดับเดียวกับเมนูสำรองของธีม) */
 	$add( 'หน้าแรก', home_url( '/' ) );
+	$guides = fenix_guide_links( array( 'guide' ) );
+	if ( isset( $guides['dashboard'] ) ) {
+		$dash_label = trim( (string) fenix_mod( 'nav_dashboard_label' ) );
+		$add( '' !== $dash_label ? $dash_label : 'แดชบอร์ด', 'dashboard' );
+	}
+	unset( $guides['dashboard'] );
 	$test = array_keys( fenix_guide_links( array( 'test' ) ) );
 	if ( $test ) {
 		$parent = $add( 'การทดสอบ', $test[0] );
@@ -924,9 +949,6 @@ function fenix_setup_menu_build() {
 			}
 		}
 	}
-	$guides = fenix_guide_links( array( 'guide' ) );
-	$dash   = isset( $guides['dashboard'] );
-	unset( $guides['dashboard'] );
 	if ( $guides ) {
 		$parent = $add( 'คู่มือการใช้งาน', (string) key( $guides ) );
 		if ( count( $guides ) > 1 ) {
@@ -934,10 +956,6 @@ function fenix_setup_menu_build() {
 				$add( $link['label'], $slug, $parent );
 			}
 		}
-	}
-	if ( $dash ) {
-		$dash_label = trim( (string) fenix_mod( 'nav_dashboard_label' ) );
-		$add( '' !== $dash_label ? $dash_label : 'แดชบอร์ด', 'dashboard' );
 	}
 	$add( 'แพ็กเกจ', 'pricing' );
 	$add( 'บทความ', 'articles' );
