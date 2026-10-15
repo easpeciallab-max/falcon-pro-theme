@@ -769,12 +769,10 @@ function fenix_dashboard_page_hero( $title ) {
 	$kicker  = fenix_dashboard_text( 'dash_kicker' );
 	$sub     = fenix_dashboard_text( 'dash_sub' );
 	$actions = fenix_dashboard_page_actions( 'dashboard-hero', false, 'btn btn-ghost-dark' );
-	if ( '' !== $actions ) {
-		$actions .= fenix_dashboard_notes( array( 'sample', 'invite' ), 'dash-notes--hero' );
-	}
-	$title = '' !== trim( (string) $title ) ? $title : $kicker;
+	$notes   = '' !== $actions ? fenix_dashboard_notes( array( 'sample', 'invite' ), 'dash-notes--hero' ) : '';
+	$title   = '' !== trim( (string) $title ) ? $title : $kicker;
 	if ( function_exists( 'fenix_pages_hero' ) ) {
-		fenix_pages_hero( $kicker, $title, fenix_is_placeholder( $sub ) ? '' : $sub, $actions );
+		fenix_pages_hero( $kicker, $title, fenix_is_placeholder( $sub ) ? '' : $sub, $actions, $notes );
 		return;
 	}
 	fenix_page_hero( $kicker, $title, fenix_is_placeholder( $sub ) ? '' : $sub );

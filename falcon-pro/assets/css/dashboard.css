@@ -36,16 +36,23 @@ a.btn[data-dash] .icon-sm:last-of-type {
 	width: 100%;
 }
 
+/* ปุ่มที่อยู่คู่กันกว้างเท่ากัน (เจ้าของสั่ง 15 ต.ค. 2026 · ตรวจด้วย dev/check-buttons.mjs): ปุ่มเข้าชมกับปุ่มสมัครเป็นสองคอลัมน์เท่ากัน ลิงก์เข้าสู่ระบบต่อท้ายในคอลัมน์ที่สาม · จอ ≤640px ซ้อนกันเต็มความกว้าง */
 .dash-actions--row {
-	display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
-	align-items: center;
+	grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+	grid-auto-rows: auto;
+	align-items: stretch;
 	gap: 12px 14px;
+	width: fit-content;
+	max-width: 100%;
 }
 
 .dash-actions--row .btn {
 	width: auto;
+	white-space: normal;
+}
+
+.dash-actions--row .dash-textlink {
+	align-self: center;
 }
 
 /* ลิงก์ข้อความ (เข้าสู่ระบบ) ข้างปุ่มหลัก */
@@ -404,8 +411,9 @@ div.dash-promo.is-dark {
 	}
 
 	.dash-actions--row {
-		flex-direction: column;
+		grid-template-columns: minmax(0, 1fr);
 		align-items: stretch;
+		width: 100%;
 	}
 
 	.dash-actions--row .btn {

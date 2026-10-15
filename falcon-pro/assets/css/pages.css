@@ -280,12 +280,19 @@
 	min-width: 0;
 }
 
+/* ปุ่มที่อยู่คู่กันกว้างเท่ากัน (เจ้าของสั่ง 15 ต.ค. 2026 · ตรวจด้วย dev/check-buttons.mjs): คอลัมน์เท่ากัน · จอ ≤640px ซ้อนกันเต็มความกว้าง */
 .tests-live-actions {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: minmax(0, 1fr);
 	gap: 12px;
+	width: fit-content;
+	max-width: 100%;
 	margin-top: 20px;
+}
+
+.tests-live-actions > .btn {
+	white-space: normal;
 }
 
 /* ลูกศรชี้ลง: ปุ่มนี้เลื่อนไปที่ตารางผลในหน้าเดียวกัน */
@@ -327,10 +334,10 @@
 		text-align: left;
 	}
 
-	.tests-live-actions .btn {
-		flex: 1 1 100%;
-		justify-content: center;
-		white-space: normal;
+	.tests-live-actions {
+		grid-auto-flow: row;
+		grid-template-columns: minmax(0, 1fr);
+		width: 100%;
 	}
 }
 
@@ -1776,12 +1783,20 @@
 /* ==========================================================
    11) หัวเพจ · แถวปุ่ม (fenix_pages_hero · หน้า Pricing)
    ========================================================== */
+/* ปุ่มที่อยู่คู่กันกว้างเท่ากัน (เจ้าของสั่ง 15 ต.ค. 2026 · ตรวจด้วย dev/check-buttons.mjs): คอลัมน์เท่ากัน กว้างเท่าปุ่มที่ยาวที่สุด · จอ ≤640px ซ้อนกันเต็มความกว้าง
+   หมายเหตุใต้ปุ่ม (หัวเพจแดชบอร์ด) อยู่นอกแถวนี้ (พารามิเตอร์ $after ของ fenix_pages_hero) */
 .phero-actions {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: minmax(0, 1fr);
 	gap: 12px;
+	width: fit-content;
+	max-width: 100%;
 	margin-top: 28px;
+}
+
+.phero-actions > .btn {
+	white-space: normal;
 }
 
 .phero-actions .admin-hint {
@@ -1798,9 +1813,10 @@
 		margin-top: 22px;
 	}
 
-	.phero-actions .btn {
-		flex: 1 1 100%;
-		white-space: normal;
+	.phero-actions {
+		grid-auto-flow: row;
+		grid-template-columns: minmax(0, 1fr);
+		width: 100%;
 	}
 
 	.pending-slots {

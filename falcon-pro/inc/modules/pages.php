@@ -547,15 +547,16 @@ function fenix_pages_capture( $callback, ...$args ) {
  * หัวเพจพร้อมแถวปุ่ม · ใช้ fenix_page_hero() ตัวเดิมทุกประการ แล้วแทรกแถวปุ่มต่อท้ายคำโปรย (ภายใน .phero-inner)
  *
  * @param string $actions HTML ของปุ่มที่ escape แล้ว · ว่าง = หัวเพจแบบเดิม ไม่มีแถวปุ่ม
+ * @param string $after   HTML ที่ escape แล้ว ต่อท้ายแถวปุ่ม (เช่นหมายเหตุใต้ปุ่ม) · แถวปุ่มเป็น grid คอลัมน์เท่ากัน จึงใส่ได้เฉพาะปุ่ม
  */
-function fenix_pages_hero( $kicker, $title, $subtitle = '', $actions = '' ) {
+function fenix_pages_hero( $kicker, $title, $subtitle = '', $actions = '', $after = '' ) {
 	$actions = trim( (string) $actions );
 	if ( '' === $actions ) {
 		fenix_page_hero( $kicker, $title, $subtitle );
 		return;
 	}
 	$html = fenix_pages_capture( 'fenix_page_hero', $kicker, $title, $subtitle );
-	$row  = '<div class="phero-actions">' . $actions . '</div>';
+	$row  = '<div class="phero-actions">' . $actions . '</div>' . (string) $after;
 	$pos  = strrpos( $html, '</div>' );
 	echo false === $pos ? $html . $row : substr( $html, 0, $pos ) . $row . substr( $html, $pos ); // phpcs:ignore WordPress.Security.EscapeOutput -- fenix_page_hero escapes its own output, $actions is escaped by the caller
 }

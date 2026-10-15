@@ -2280,17 +2280,28 @@ h3 {
 	cursor: pointer;
 }
 
+/* ปุ่มที่อยู่คู่กันกว้างเท่ากัน (เจ้าของสั่ง 15 ต.ค. 2026 · ตรวจด้วย dev/check-buttons.mjs): เรียงข้างกันเป็นคอลัมน์เท่ากัน · จอ ≤560px ซ้อนกัน กว้างเท่าปุ่มที่ยาวที่สุด */
 .error-actions {
-	display: flex;
-	flex-wrap: wrap;
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: minmax(0, 1fr);
 	gap: 12px;
-	justify-content: center;
-	margin-bottom: 28px;
+	width: fit-content;
+	max-width: 100%;
+	margin: 0 auto 28px;
 }
 
 .error-actions .btn {
 	min-width: 180px;
 	justify-content: center;
+	white-space: normal;
+}
+
+@media (max-width: 560px) {
+	.error-actions {
+		grid-auto-flow: row;
+		grid-template-columns: minmax(0, 1fr);
+	}
 }
 
 .error-links {
