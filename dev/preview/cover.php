@@ -199,16 +199,16 @@ html,body{width:1200px;height:630px;overflow:hidden}
 body{background:#172125;color:#fff;font-family:'Noto Sans Thai',sans-serif;position:relative}
 .panel{position:absolute;top:0;right:0;width:470px;height:630px;clip-path:polygon(150px 0,100% 0,100% 100%,0 100%)}
 .stripe{position:absolute;top:0;right:430px;width:190px;height:630px;background:#1D2A2F;clip-path:polygon(150px 0,190px 0,40px 100%,0 100%)}
-.v-green .panel{background:#22C55E}
+.v-green .panel{background:#48F790}
 .v-white .panel{background:#FFFFFF}
 .v-dark .panel{background:#25343A}
 .badge{position:absolute;top:50%;right:95px;width:230px;height:230px;margin-top:-115px;border-radius:50%;background:#10181B;display:flex;align-items:center;justify-content:center}
-.v-dark .badge{background:#22C55E}
-.badge svg{width:112px;height:112px;color:#4AF28E;stroke-width:1.6}
+.v-dark .badge{background:#48F790}
+.badge svg{width:112px;height:112px;color:#48F790;stroke-width:1.6}
 .v-dark .badge svg{color:#06140B}
 .txt{position:absolute;left:72px;top:64px;width:640px;height:502px;display:flex;flex-direction:column}
-.kicker{font-size:21px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:#4AF28E;display:flex;align-items:center;gap:14px}
-.kicker:before{content:"";width:44px;height:4px;background:#22C55E;border-radius:2px}
+.kicker{font-size:21px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:#48F790;display:flex;align-items:center;gap:14px}
+.kicker:before{content:"";width:44px;height:4px;background:#48F790;border-radius:2px}
 .ttl{margin:auto 0;padding:18px 0 26px}
 h1{font-size:60px;line-height:1.3;font-weight:700}
 .sub{margin-top:.35em;font-size:36px;line-height:1.4;font-weight:500;color:#A3B3B8}

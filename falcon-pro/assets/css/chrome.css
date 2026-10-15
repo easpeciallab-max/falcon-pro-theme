@@ -60,7 +60,7 @@
 /* แถวที่ชี้อยู่: ขีดซ้ายเขียวทึบ 2px (พื้นโปร่งอย่างเดียวบนแผงเข้มมองแทบไม่ออก) */
 .theme-dark .nav-list .sub-menu a:hover,
 .theme-dark .nav-list .sub-menu a:focus-visible {
-	background: rgba(74, 242, 142, 0.10);
+	background: rgba(72, 247, 144, 0.10);
 	box-shadow: inset 2px 0 0 var(--header-accent);
 	color: #FFFFFF;
 }
@@ -428,13 +428,13 @@
 
 	.theme-dark .nav-list a:hover,
 	.theme-dark .nav-list a:focus-visible {
-		background: rgba(74, 242, 142, 0.10);
+		background: rgba(72, 247, 144, 0.10);
 		box-shadow: inset 2px 0 0 var(--header-accent);
 		color: #FFFFFF;
 	}
 
 	.theme-dark .nav-list .sub-menu {
-		border-left: 2px solid rgba(74, 242, 142, 0.45);
+		border-left: 2px solid rgba(72, 247, 144, 0.45);
 		border-radius: 0;
 		background: transparent;
 		box-shadow: none;
@@ -488,9 +488,9 @@
 	gap: 8px;
 	margin: 0 0 16px;
 	padding: 6px 14px 6px 10px;
-	border: 1px solid rgba(74, 242, 142, 0.28);
+	border: 1px solid rgba(72, 247, 144, 0.28);
 	border-radius: var(--btn-radius-xs, 6px); /* ป้ายสถานะ: มุมมนเล็กน้อยแบบเดียวกับปุ่ม ไม่ใช้ทรงแคปซูล */
-	background: rgba(74, 242, 142, 0.08);
+	background: rgba(72, 247, 144, 0.08);
 	color: var(--mint);
 	font-size: 0.8rem;
 	font-weight: 600;
@@ -626,7 +626,7 @@
 
 .ft-openchat.btn-ghost:hover {
 	border-color: var(--mint);
-	background: rgba(74, 242, 142, 0.08);
+	background: rgba(72, 247, 144, 0.08);
 	color: #FFFFFF;
 }
 
@@ -1011,7 +1011,7 @@
 	color: #FFFFFF;
 	font-weight: 600;
 	text-decoration: underline;
-	text-decoration-color: rgba(74, 242, 142, 0.5);
+	text-decoration-color: rgba(72, 247, 144, 0.5);
 	text-underline-offset: 4px;
 	transition: color 0.16s ease, text-decoration-color 0.16s ease;
 }
@@ -1214,7 +1214,7 @@
 	}
 
 	.dock-key.is-active .dock-cap {
-		background: rgba(74, 242, 142, 0.14);
+		background: rgba(72, 247, 144, 0.14);
 		color: var(--mint);
 	}
 
@@ -1223,7 +1223,7 @@
 	}
 
 	.dock.is-going .dock-key.is-going .dock-cap {
-		background: rgba(74, 242, 142, 0.22);
+		background: rgba(72, 247, 144, 0.22);
 		color: var(--mint);
 	}
 
@@ -1250,11 +1250,11 @@
 		}
 
 		.dock-key.is-active:hover .dock-cap {
-			background: rgba(74, 242, 142, 0.18);
+			background: rgba(72, 247, 144, 0.18);
 		}
 
 		.dock-key.is-feature:hover .dock-cap {
-			background: var(--ember-deep);
+			background: var(--ember-hover);
 		}
 	}
 

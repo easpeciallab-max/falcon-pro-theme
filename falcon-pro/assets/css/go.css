@@ -47,9 +47,9 @@ body.link-hub-page {
 	--lh-line: rgba(255, 255, 255, 0.10);
 	--lh-line-strong: rgba(255, 255, 255, 0.20);
 	--lh-accent: var(--mint);
-	--lh-accent-soft: rgba(74, 242, 142, 0.10);
-	--lh-accent-line: rgba(74, 242, 142, 0.32);
-	--lh-hover: rgba(34, 197, 94, 0.09);
+	--lh-accent-soft: rgba(72, 247, 144, 0.10);
+	--lh-accent-line: rgba(72, 247, 144, 0.32);
+	--lh-hover: rgba(72, 247, 144, 0.09);
 	--lh-focus: var(--mint);
 }
 
@@ -65,7 +65,7 @@ body.link-hub-page {
 	--lh-accent: var(--flare);
 	--lh-accent-soft: #EAF9F0;
 	--lh-accent-line: var(--border-fire);
-	--lh-hover: rgba(34, 197, 94, 0.07);
+	--lh-hover: rgba(72, 247, 144, 0.07);
 	--lh-focus: var(--ember-deep);
 	border-color: transparent;
 }
@@ -308,8 +308,8 @@ a.lh-btn:hover .lh-ar {
 
 .lh-card a.lh-btn-signup:hover,
 .lh-card a.lh-btn-accent:hover {
-	border-color: var(--ember-deep);
-	background: var(--ember-deep);
+	border-color: var(--ember-hover);
+	background: var(--ember-hover);
 	color: var(--on-ember);
 }
 

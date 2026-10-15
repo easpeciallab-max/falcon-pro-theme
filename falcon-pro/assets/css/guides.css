@@ -48,7 +48,7 @@
 }
 
 .gd-hero .gd-quick--hero .gd-flow li:not(:last-child)::after {
-	background: rgba(74, 242, 142, 0.28);
+	background: rgba(72, 247, 144, 0.28);
 }
 
 .gd-hero .gd-quick--hero .gd-flow-note {
@@ -360,7 +360,7 @@
 }
 
 .is-dark .gd-flow li:not(:last-child)::after {
-	background: rgba(74, 242, 142, 0.28);
+	background: rgba(72, 247, 144, 0.28);
 }
 
 .is-dark .gd-marks li {
@@ -675,7 +675,7 @@
 	height: 22px;
 	margin-top: 1px;
 	border-radius: 50%;
-	background: rgba(74, 242, 142, 0.12);
+	background: rgba(72, 247, 144, 0.12);
 	color: var(--mint);
 	font-size: 0.72rem;
 	font-weight: 700;
@@ -872,12 +872,12 @@
 
 .is-dark .gd-more-item > a:hover,
 .is-dark .gd-more-item > a:focus-visible {
-	border-color: rgba(74, 242, 142, 0.4);
+	border-color: rgba(72, 247, 144, 0.4);
 	background: var(--black-3);
 }
 
 .is-dark .gd-more-idx {
-	background: rgba(74, 242, 142, 0.12);
+	background: rgba(72, 247, 144, 0.12);
 	color: var(--mint);
 }
 

@@ -21,3 +21,6 @@ vendor/
 
 # WP Pusher ดึงทั้งโฟลเดอร์ falcon-pro/ ไปติดตั้ง อย่า commit ไฟล์ลับใด ๆ
 # (ค่า config เช่น LINE URL / ราคา อยู่ใน WordPress DB ผ่าน Customizer ไม่ใช่ในโค้ด)
+
+# Dashboard redesign mockups (local only: screenshots of the member dashboard, not for the public repo)
+design/

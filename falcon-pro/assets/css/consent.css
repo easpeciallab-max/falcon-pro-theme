@@ -18,9 +18,9 @@
 	--consent-line: var(--border-dark, rgba(255, 255, 255, 0.10));
 	--consent-edge: rgba(255, 255, 255, 0.14);
 	--consent-line-strong: rgba(255, 255, 255, 0.2);
-	--consent-accent: var(--mint, #4AF28E);
-	--consent-green: var(--ember, #22C55E);
-	--consent-green-deep: var(--ember-deep, #16A34A);
+	--consent-accent: var(--mint, #48F790);
+	--consent-green: var(--ember, #48F790);
+	--consent-green-deep: var(--ember-hover, #2BEE7B);
 	--consent-on-green: var(--on-ember, #06140B);
 
 	position: fixed;
@@ -182,7 +182,7 @@
 	width: 34px;
 	height: 34px;
 	border-radius: 50%;
-	background: rgba(74, 242, 142, 0.1);
+	background: rgba(72, 247, 144, 0.1);
 	color: var(--consent-accent);
 	align-self: start;
 }
@@ -212,9 +212,9 @@
 	display: inline-flex;
 	align-items: center;
 	padding: 4px 10px;
-	border: 1px solid rgba(74, 242, 142, 0.3);
+	border: 1px solid rgba(72, 247, 144, 0.3);
 	border-radius: var(--btn-radius-xs, 6px); /* ป้ายสถานะ: มุมมนเล็กน้อยแบบเดียวกับปุ่ม ไม่ใช้ทรงแคปซูล */
-	background: rgba(74, 242, 142, 0.08);
+	background: rgba(72, 247, 144, 0.08);
 	color: var(--consent-accent);
 	font-size: 0.72rem;
 	font-weight: 600;
@@ -338,7 +338,7 @@
 	display: inline-block;
 	padding: 0 6px;
 	border-radius: 6px;
-	background: rgba(74, 242, 142, 0.1);
+	background: rgba(72, 247, 144, 0.1);
 	color: var(--consent-accent);
 	font-family: inherit;
 	font-size: 0.95em;

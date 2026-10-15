@@ -19,7 +19,7 @@
  *   Gateway, No Gateway Configured · ห้ามเดาหน้าจอที่ไม่มีภาพจริงยืนยัน (จึงไม่มีภาพจำลองของแอปบน Android)
  * - ค่าตัวอย่าง: IP ใช้ช่วงสำหรับเอกสาร 203.0.113.10 เท่านั้น · Friendly Name เป็นชื่อตัวอย่างของ FALCON · ไม่มีรหัสผ่าน ไม่มีชื่อผู้ใช้จริง
  * - ลุค FALCON: พื้น #172125 แผง #1D2A2F แถว #25343A เส้น #34474E ตัวอักษร #EEF3F4 / #A3B3B8
- *   กรอบเน้นเป็นเส้นทึบ #22C55E · ไม่มี gradient ไม่มีเงาเรืองแสง · ฟอนต์ Noto Sans Thai จาก falcon-pro/assets/fonts
+ *   กรอบเน้นเป็นเส้นทึบ #48F790 · ไม่มี gradient ไม่มีเงาเรืองแสง · ฟอนต์ Noto Sans Thai จาก falcon-pro/assets/fonts
  * - ทุกภาพมีแถบ "ภาพจำลอง" ด้านล่าง · ไม่มีชื่อผู้ให้บริการ VPS ชื่อโบรกเกอร์ หรือแบรนด์อื่นในภาพ
  * - ข้อความถูกอบลงในภาพ: แก้เมื่อไหร่ให้เพิ่มเลข 'v' ของภาพนั้น เรนเดอร์ใหม่ แล้วแก้ชื่อไฟล์ในข้อมูลขั้นตอน
  *   (องค์ประกอบที่ 5 ของขั้นนั้นใน fenix_guide_data()) และใน dev/image-shot-list.md ให้ตรงกัน เพราะแคชเก็บรูปตาม URL
@@ -148,7 +148,7 @@ body{font-family:"Noto Sans Thai",sans-serif;color:#EEF3F4;-webkit-font-smoothin
 .ttl{position:absolute;left:0;right:0;text-align:center;font-size:42px;font-weight:700;line-height:84px;pointer-events:none}
 .btn-save{min-width:176px;height:76px;padding:0 34px;border-radius:38px;background:#25343A;border:2px solid #34474E;font-size:36px;font-weight:600;line-height:72px;text-align:center;color:#6F8188}
 .btn-save.is-on{color:#EEF3F4}
-.btn-save.is-marked{border:5px solid #22C55E;line-height:66px}
+.btn-save.is-marked{border:5px solid #48F790;line-height:66px}
 .grp{margin:26px 0 12px 8px;font-size:28px;font-weight:700;line-height:38px;letter-spacing:.04em;text-transform:uppercase;color:#A3B3B8}
 .set{background:#25343A;border-radius:26px;margin-top:24px}
 .grp + .set{margin-top:0}
@@ -159,10 +159,10 @@ body{font-family:"Noto Sans Thai",sans-serif;color:#EEF3F4;-webkit-font-smoothin
 .chev{flex:0 0 auto;width:18px;height:18px;margin-left:22px;border-top:5px solid #A3B3B8;border-right:5px solid #A3B3B8;transform:rotate(45deg)}
 .tog{margin-left:auto;width:96px;height:54px;border-radius:27px;background:#34474E;position:relative}
 .tog i{position:absolute;left:5px;top:5px;width:44px;height:44px;border-radius:50%;background:#EEF3F4}
-.row.is-marked{border:5px solid #22C55E;border-radius:22px;padding:0 29px;background:#1D2A2F}
+.row.is-marked{border:5px solid #48F790;border-radius:22px;padding:0 29px;background:#1D2A2F}
 .row.is-marked:before,.row.is-marked + .row:before{display:none}
 .strip{position:absolute;left:48px;right:48px;top:968px;height:68px;display:flex;align-items:center;white-space:nowrap}
-.tag{flex:0 0 auto;height:58px;padding:0 26px;border-radius:29px;background:#22C55E;color:#06140B;font-size:34px;font-weight:700;line-height:58px}
+.tag{flex:0 0 auto;height:58px;padding:0 26px;border-radius:29px;background:#48F790;color:#06140B;font-size:34px;font-weight:700;line-height:58px}
 .note{margin-left:22px;font-size:30px;font-weight:400;line-height:68px;color:#A3B3B8}
 </style></head><body>
 <div class="panel">

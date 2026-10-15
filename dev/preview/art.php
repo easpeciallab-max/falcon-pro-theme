@@ -5,8 +5,8 @@
  * Rendered by headless Chrome in dev/make-art.php and saved to falcon-pro/assets/img/illus/:
  *   falcon-pro-ea-<name>-v<N>.webp         wide 1600×760 (desktop and tablet)
  *   falcon-pro-ea-<name>-mobile-v<N>.webp  tall 800×1140 (narrow screens · picked up by [falcon_figure] on its own)
- * Look: FALCON Banner theme v3 · flat #172125 ground, #1D2A2F / #25343A panels, solid #22C55E blocks with a diagonal cut,
- * #4AF28E on dark only, Noto Sans Thai from the theme, one soft neutral shadow, no gradients, no glow. Not part of the theme.
+ * Look: FALCON Banner theme v3 · flat #172125 ground, #1D2A2F / #25343A panels, solid #48F790 blocks (the logo green) with a diagonal cut,
+ * #48F790 on dark only, Noto Sans Thai from the theme, one soft neutral shadow, no gradients, no glow. Not part of the theme.
  *
  * กติกาของภาพ:
  * - ไม่มีตัวเลขผลเทรด ราคา หรือชื่อโบรกเกอร์ในภาพ (เลขที่มีได้คือเลขลำดับขั้นเท่านั้น) และไม่สัญญาผลกำไร
@@ -132,7 +132,7 @@ $fx_plain = function ( $text ) {
 <title><?php echo esc_html( $fx_plain( $a['title'] ) ); ?></title>
 <link rel="stylesheet" href="<?php echo esc_url( $theme . '/assets/css/fonts.css' ); ?>">
 <style>
-:root{--bg:#172125;--deep:#10181B;--p1:#1D2A2F;--p2:#25343A;--line:rgba(255,255,255,.10);--green:#22C55E;--mint:#4AF28E;--ink:#EEF3F4;--ink2:#A3B3B8;--on-green:#06140B;--k:1}
+:root{--bg:#172125;--deep:#10181B;--p1:#1D2A2F;--p2:#25343A;--line:rgba(255,255,255,.10);--green:#48F790;--mint:#48F790;--ink:#EEF3F4;--ink2:#A3B3B8;--on-green:#06140B;--k:1}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:<?php echo $tall ? 800 : 1600; ?>px;height:<?php echo $tall ? 1140 : 760; ?>px;overflow:hidden}
 body{position:relative;background:var(--bg);color:var(--ink);font-family:'Noto Sans Thai',sans-serif;-webkit-font-smoothing:antialiased}

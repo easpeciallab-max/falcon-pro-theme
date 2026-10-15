@@ -23,11 +23,12 @@ Tags: one-column, custom-logo, custom-menu, landing-page
 	--coal-2: #FFFFFF;
 	--coal-3: #EDF0F3;
 
-	--ember: #22C55E;
-	--ember-deep: #16A34A;
-	--flare: #15803D;
+	--ember: #48F790;
+	--ember-deep: #0A6B32;
+	--ember-hover: #2BEE7B;
+	--flare: #0E803D;
 	--gold: #5F6B77;
-	--mint: #4AF28E;
+	--mint: #48F790;
 	--on-ember: #06140B;
 
 	--black: #172125;
@@ -49,7 +50,7 @@ Tags: one-column, custom-logo, custom-menu, landing-page
 	--line-green-dark: #00D919;
 
 	--border: rgba(20, 24, 30, 0.12);
-	--border-fire: rgba(34, 197, 94, 0.35);
+	--border-fire: rgba(72, 247, 144, 0.35);
 	--border-dark: rgba(255, 255, 255, 0.10);
 	--shadow-soft: 0 1px 2px rgba(15, 18, 22, 0.04), 0 8px 24px rgba(15, 18, 22, 0.06);
 	--shadow-lift: 0 2px 4px rgba(15, 18, 22, 0.05), 0 18px 40px rgba(15, 18, 22, 0.10);
@@ -152,7 +153,7 @@ footer[id] {
 }
 
 ::selection {
-	background: rgba(34, 197, 94, 0.22);
+	background: rgba(72, 247, 144, 0.22);
 	color: var(--ink);
 }
 
@@ -304,13 +305,13 @@ h3 {
 .btn-ghost {
 	border-color: var(--border-fire);
 	color: var(--ink);
-	background: rgba(34, 197, 94, 0.06);
+	background: rgba(72, 247, 144, 0.06);
 }
 
 .btn-ghost:hover {
 	color: var(--ink);
-	border-color: rgba(34, 197, 94, 0.5);
-	background: rgba(34, 197, 94, 0.12);
+	border-color: rgba(72, 247, 144, 0.5);
+	background: rgba(72, 247, 144, 0.12);
 }
 
 .btn-line {
@@ -568,7 +569,7 @@ h3 {
 
 .nav-list .sub-menu a:hover,
 .nav-list .sub-menu a:focus-visible {
-	background: rgba(34, 197, 94, 0.12);
+	background: rgba(72, 247, 144, 0.12);
 	color: var(--ink);
 }
 
@@ -614,8 +615,8 @@ h3 {
 }
 
 .language-switcher[open] summary {
-	border-color: rgba(34, 197, 94, 0.42);
-	background: rgba(34, 197, 94, 0.11);
+	border-color: rgba(72, 247, 144, 0.42);
+	background: rgba(72, 247, 144, 0.11);
 	color: var(--flare);
 }
 
@@ -676,7 +677,7 @@ h3 {
 .language-switcher--plugin a:hover,
 .language-switcher-menu a.is-active,
 .language-switcher--plugin a.is-active {
-	background: rgba(34, 197, 94, 0.12);
+	background: rgba(72, 247, 144, 0.12);
 	color: var(--ink);
 	transform: translateX(2px);
 }
@@ -687,7 +688,7 @@ h3 {
 	justify-content: center;
 	width: 34px;
 	height: 28px;
-	border: 1px solid rgba(34, 197, 94, 0.22);
+	border: 1px solid rgba(72, 247, 144, 0.22);
 	border-radius: 999px;
 	color: var(--flare);
 	font-size: 0.75rem;
@@ -743,8 +744,8 @@ h3 {
 
 .language-switcher--gtranslate select:hover,
 .language-switcher--gtranslate .gt_selector:hover {
-	border-color: rgba(34, 197, 94, 0.42);
-	background-color: rgba(34, 197, 94, 0.11);
+	border-color: rgba(72, 247, 144, 0.42);
+	background-color: rgba(72, 247, 144, 0.11);
 }
 
 .language-switcher--gtranslate img {
@@ -786,8 +787,8 @@ h3 {
 }
 
 .site-header .language-switcher--gtranslate .gt_float_switcher:hover {
-	border-color: rgba(34, 197, 94, 0.42) !important;
-	background: rgba(34, 197, 94, 0.11) !important;
+	border-color: rgba(72, 247, 144, 0.42) !important;
+	background: rgba(72, 247, 144, 0.11) !important;
 }
 
 .site-header .language-switcher--gtranslate .gt_float_switcher .gt-selected {
@@ -884,7 +885,7 @@ h3 {
 }
 
 .site-header .language-switcher--gtranslate .gt_float_switcher .gt_options a:hover {
-	background: rgba(34, 197, 94, 0.12) !important;
+	background: rgba(72, 247, 144, 0.12) !important;
 	color: var(--ink) !important;
 	transform: translateX(3px) !important;
 }
@@ -986,7 +987,7 @@ h3 {
 	padding: 8px 16px;
 	border-radius: 999px;
 	border: 1px solid var(--border-fire);
-	background: rgba(34, 197, 94, 0.08);
+	background: rgba(72, 247, 144, 0.08);
 	color: var(--flare);
 	font-family: var(--font-display);
 	font-size: 0.82rem;
@@ -1078,7 +1079,7 @@ h3 {
 
 .orb-ring-b {
 	inset: 7%;
-	border-color: rgba(74, 242, 142, 0.2);
+	border-color: rgba(72, 247, 144, 0.2);
 	animation: orb-spin 38s linear infinite reverse;
 }
 
@@ -1148,7 +1149,7 @@ h3 {
 	border-radius: 14px;
 	margin-bottom: 16px;
 	color: var(--ember);
-	background: rgba(34, 197, 94, 0.1);
+	background: rgba(72, 247, 144, 0.1);
 	border: 1px solid var(--border-fire);
 }
 
@@ -1238,7 +1239,7 @@ h3 {
 	letter-spacing: 0.06em;
 	color: var(--flare);
 	border: 1px solid var(--border-fire);
-	background: rgba(34, 197, 94, 0.08);
+	background: rgba(72, 247, 144, 0.08);
 }
 
 /* ==========================================================
@@ -1453,7 +1454,7 @@ h3 {
 }
 
 .price-card.is-featured {
-	border-color: rgba(34, 197, 94, 0.55);
+	border-color: rgba(72, 247, 144, 0.55);
 	background: var(--coal-3);
 }
 
@@ -2132,7 +2133,7 @@ h3 {
 	padding: 4px 12px;
 	border-radius: var(--btn-radius-xs, 6px); /* ป้ายหมวดบนรูปปก: มุมมนเล็กน้อยแบบเดียวกับป้ายสถานะอื่น ไม่ใช้ทรงแคปซูล */
 	background: rgba(255, 255, 255, 0.90);
-	border: 1px solid rgba(34, 197, 94, 0.4);
+	border: 1px solid rgba(72, 247, 144, 0.4);
 	color: var(--flare);
 	font-family: var(--font-display);
 	font-size: 0.72rem;
@@ -2229,7 +2230,7 @@ h3 {
 
 .error-search:focus-within {
 	border-color: var(--gold);
-	box-shadow: 0 0 0 2px rgba(74, 242, 142, 0.35);
+	box-shadow: 0 0 0 2px rgba(72, 247, 144, 0.35);
 }
 
 .error-search input {
@@ -2459,7 +2460,7 @@ h3 {
 	padding: 5px 14px;
 	border-radius: var(--btn-radius-sm);
 	border: 1px solid var(--border-fire);
-	background: rgba(34, 197, 94, 0.08);
+	background: rgba(72, 247, 144, 0.08);
 	color: var(--flare);
 	font-family: var(--font-display);
 	font-size: 0.78rem;
@@ -2469,7 +2470,7 @@ h3 {
 }
 
 .article-cat:hover {
-	background: rgba(34, 197, 94, 0.14);
+	background: rgba(72, 247, 144, 0.14);
 	color: var(--flare);
 }
 
@@ -2803,7 +2804,7 @@ h3 {
 .rail-btn:hover {
 	color: var(--flare);
 	border-color: var(--border-fire);
-	background: rgba(34, 197, 94, 0.08);
+	background: rgba(72, 247, 144, 0.08);
 }
 
 .rail-btn .icon {
@@ -3022,7 +3023,7 @@ h3 {
 
 	.nav-list a:hover,
 	.nav-list a:focus-visible {
-		background: rgba(34, 197, 94, 0.10);
+		background: rgba(72, 247, 144, 0.10);
 		color: var(--ink);
 	}
 
@@ -3033,7 +3034,7 @@ h3 {
 		margin: 2px 0 6px 10px;
 		padding: 2px 0 2px 12px;
 		border: 0;
-		border-left: 2px solid rgba(34, 197, 94, 0.28);
+		border-left: 2px solid rgba(72, 247, 144, 0.28);
 		border-radius: 0;
 		opacity: 1;
 		visibility: visible;
@@ -3392,7 +3393,7 @@ h1, h2, h3, h4,
 	font-family: var(--font-display);
 	font-weight: 600;
 	color: var(--gold);
-	background: rgba(34, 197, 94, 0.06);
+	background: rgba(72, 247, 144, 0.06);
 }
 
 .compare-table thead th:first-child {
@@ -3463,7 +3464,7 @@ h1, h2, h3, h4,
 	place-items: center;
 	border-radius: 14px;
 	border: 1px solid var(--border-fire);
-	background: rgba(34, 197, 94, 0.08);
+	background: rgba(72, 247, 144, 0.08);
 	background-clip: padding-box;
 	color: var(--ember);
 }
@@ -3608,7 +3609,7 @@ h1, h2, h3, h4,
 	border-radius: 10px;
 	color: var(--flare);
 	border: 1px solid var(--border-fire);
-	background: rgba(34, 197, 94, 0.08);
+	background: rgba(72, 247, 144, 0.08);
 }
 
 .riskdoc-block p {
@@ -3772,7 +3773,7 @@ h1, h2, h3, h4,
 	flex: 0 0 auto;
 	border-radius: 11px;
 	color: var(--ember);
-	background: rgba(34, 197, 94, 0.12);
+	background: rgba(72, 247, 144, 0.12);
 	border: 1px solid var(--border-fire);
 }
 
@@ -4076,8 +4077,8 @@ h1, h2, h3, h4,
 	height: 42px;
 	padding: 0 16px;
 	border-radius: 999px;
-	border: 1px solid rgba(34, 197, 94, 0.34);
-	background: rgba(34, 197, 94, 0.1);
+	border: 1px solid rgba(72, 247, 144, 0.34);
+	background: rgba(72, 247, 144, 0.1);
 	color: var(--flare);
 	font-family: var(--font-display);
 	font-weight: 800;
@@ -4250,7 +4251,7 @@ h1, h2, h3, h4,
 	height: 54px;
 	border-radius: 999px;
 	border: 1px solid var(--border-fire);
-	background: rgba(34, 197, 94, 0.1);
+	background: rgba(72, 247, 144, 0.1);
 	font-size: 1.05rem;
 	margin-bottom: 18px;
 }
@@ -4403,7 +4404,7 @@ h1, h2, h3, h4,
 	width: 130px;
 	height: 130px;
 	border-radius: 999px;
-	border: 1px solid rgba(34, 197, 94, 0.18);
+	border: 1px solid rgba(72, 247, 144, 0.18);
 	pointer-events: none;
 }
 
@@ -4818,7 +4819,7 @@ h1, h2, h3, h4,
 	height: 42px;
 	border-radius: 12px;
 	color: var(--ember);
-	background: rgba(34, 197, 94, 0.1);
+	background: rgba(72, 247, 144, 0.1);
 	border: 1px solid var(--border-fire);
 }
 
@@ -5018,8 +5019,8 @@ h3 {
 
 /* ตอนชี้: เขียวเข้มขึ้น + ยกขึ้น 2px (.btn:hover) + ลูกศรขยับ เท่านั้น · ไม่มีเงาสี (เงาที่ใช้ได้มีแค่ --shadow-soft / --shadow-lift สีเทา) */
 .btn-fire:hover {
-	background: var(--ember-deep);
-	border-color: var(--ember-deep);
+	background: var(--ember-hover);
+	border-color: var(--ember-hover);
 	color: var(--on-ember);
 	box-shadow: none;
 }
@@ -6619,7 +6620,7 @@ h3 {
 
 .callout--tip {
 	background: #EAF9F0;
-	border-color: rgba(34, 197, 94, 0.3);
+	border-color: rgba(72, 247, 144, 0.3);
 }
 
 .callout--tip::before {
@@ -7760,7 +7761,7 @@ h3 {
 
 .theme-dark .nav-list .sub-menu a:hover,
 .theme-dark .nav-list .sub-menu a:focus-visible {
-	background: rgba(74, 242, 142, 0.10);
+	background: rgba(72, 247, 144, 0.10);
 	color: #FFFFFF;
 }
 
@@ -7790,7 +7791,7 @@ h3 {
 
 .theme-dark .language-switcher-menu a:hover,
 .theme-dark .language-switcher-menu a.is-active {
-	background: rgba(74, 242, 142, 0.10);
+	background: rgba(72, 247, 144, 0.10);
 	color: #FFFFFF;
 }
 
@@ -7806,13 +7807,13 @@ h3 {
 
 	.theme-dark .nav-list a:hover,
 	.theme-dark .nav-list a:focus-visible {
-		background: rgba(74, 242, 142, 0.10);
+		background: rgba(72, 247, 144, 0.10);
 		color: #FFFFFF;
 	}
 
 	.theme-dark .nav-list .sub-menu {
 		background: transparent;
-		border-left-color: rgba(74, 242, 142, 0.35);
+		border-left-color: rgba(72, 247, 144, 0.35);
 		box-shadow: none;
 	}
 }
@@ -7833,8 +7834,8 @@ h3 {
 }
 
 .theme-dark .hero--split .badge {
-	background: rgba(74, 242, 142, 0.10);
-	border-color: rgba(74, 242, 142, 0.30);
+	background: rgba(72, 247, 144, 0.10);
+	border-color: rgba(72, 247, 144, 0.30);
 	color: var(--mint);
 }
 
@@ -7931,7 +7932,7 @@ h3 {
 }
 
 .is-dark .card:hover {
-	border-color: rgba(74, 242, 142, 0.35);
+	border-color: rgba(72, 247, 144, 0.35);
 	box-shadow: 0 18px 40px rgba(0, 0, 0, 0.30);
 }
 
@@ -8038,8 +8039,8 @@ h3 {
 /* Pricing */
 .is-dark .price-teaser-card.is-featured {
 	background: var(--black-3);
-	border-color: rgba(74, 242, 142, 0.45);
-	box-shadow: inset 0 0 0 1px rgba(74, 242, 142, 0.25);
+	border-color: rgba(72, 247, 144, 0.45);
+	box-shadow: inset 0 0 0 1px rgba(72, 247, 144, 0.25);
 }
 
 .is-dark .price-amt,
@@ -8061,7 +8062,7 @@ h3 {
 }
 
 .is-dark .faq-item[open] {
-	border-color: rgba(74, 242, 142, 0.35);
+	border-color: rgba(72, 247, 144, 0.35);
 }
 
 /* Fit */
@@ -8127,7 +8128,7 @@ h3 {
 
 .theme-dark .mid-cta .mid-cta-inner {
 	background: var(--black-2);
-	border: 1px solid rgba(74, 242, 142, 0.30);
+	border: 1px solid rgba(72, 247, 144, 0.30);
 }
 
 /* บทความ/หน้าเอกสาร: สารบัญฝั่งซ้ายเป็นพื้นเข้ม ให้สัดส่วนเข้มมากขึ้นแต่เนื้อหายังอ่านง่าย */
@@ -8150,7 +8151,7 @@ h3 {
 
 .theme-dark .longform-toc a:hover,
 .theme-dark .longform-toc a.is-active {
-	background: rgba(74, 242, 142, 0.10);
+	background: rgba(72, 247, 144, 0.10);
 	color: #FFFFFF;
 }
 
