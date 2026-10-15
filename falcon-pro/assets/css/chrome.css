@@ -388,6 +388,11 @@
 		border-top: 0;
 	}
 
+	/* ไอคอนโซเชียลจัดกลางลิ้นชัก ให้สมดุลกับปุ่มเต็มความกว้างด้านบน (เจ้าของสั่ง 15 ต.ค. 2026) */
+	.nav-social {
+		justify-content: center;
+	}
+
 	.nav-social .social-link {
 		display: inline-grid;
 		place-items: center;

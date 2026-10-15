@@ -835,7 +835,7 @@ function fenix_chrome_nav_contact() {
 		printf(
 			'<a class="btn btn-ghost nav-contact-btn nav-openchat" href="%1$s" target="_blank" rel="noopener" data-line-pos="nav-openchat">%2$s<span>%3$s</span></a>',
 			esc_url( $oc_url ),
-			fenix_icon( 'chat' ), // phpcs:ignore WordPress.Security.EscapeOutput
+			fenix_icon( 'users' ), // phpcs:ignore WordPress.Security.EscapeOutput
 			esc_html( $oc_text )
 		);
 	}
@@ -944,7 +944,7 @@ function fenix_chrome_channels() {
 	$openchat = trim( (string) fenix_mod( 'line_openchat_url' ) );
 	if ( fenix_chrome_url_ok( $openchat ) ) {
 		$out[] = array(
-			'icon'  => 'chat',
+			'icon'  => 'users',
 			'url'   => $openchat,
 			'label' => (string) fenix_mod( 'line_openchat_text' ),
 			'pos'   => 'footer-channels-openchat',
@@ -1277,7 +1277,7 @@ function fenix_chrome_launch( $args = array() ) {
 				?>
 				<?php if ( '' !== $openchat ) : ?>
 					<a class="btn btn-ghost btn-lg ft-openchat" href="<?php echo esc_url( $openchat ); ?>" target="_blank" rel="noopener" data-line-pos="<?php echo esc_attr( $pos . '-openchat' ); ?>">
-						<?php echo fenix_icon( 'chat' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+						<?php echo fenix_icon( 'users' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 						<span><?php echo esc_html( $oc_text ); ?></span>
 					</a>
 				<?php endif; ?>
