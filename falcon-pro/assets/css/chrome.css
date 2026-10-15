@@ -326,8 +326,10 @@
 		pointer-events: auto;
 	}
 
+	/* เมนูย่อยในลิ้นชัก: เส้นเขียวด้านซ้ายเริ่มห่างจากกล่องหัวข้อ 10px (เดิม 2px ดูติดกล่อง · เจ้าของทัก 15 ต.ค. 2026) */
 	.nav-list .sub-menu {
 		display: none;
+		margin: 10px 0 10px 10px;
 		visibility: inherit;
 		opacity: 1;
 		transform: none;
